@@ -53,11 +53,11 @@ of \mhack{} strings.
 
 \title{\sca{} --- An EPICS Channel Access Interface for \scilab{} and \matlab{}}
 \author{Till Straumann $<$straumanATslac.stanford.edu$>$, 2003}
-\date{December 24, 2003}
+\date{June 23, 2004}
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.23 2004/06/22 01:02:53 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.24 2004/06/22 01:57:47 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -255,10 +255,8 @@ and fractional nanoseconds (imaginary part) elapsed since
 \begin{verbatim}
 // read a PV
     lcaGet( 'thepv' )
-// get EPICS timestamp as well
-    [ val, tstamp ] = lcaGet( 'thepv' )
-// read multiple PVs
-    lcaGet( [ 'aPV' ; 'anotherPV' ] )
+// read multiple PVs along with their EPICS timestamps
+    [ vals, tstamps] = lcaGet( [ 'aPV' ; 'anotherPV' ] )
 // read an 'ENUM/STRING'
     lcaGet( 'thepv.SCAN' )
 // read an 'ENUM/STRING' as a number (server converts)
@@ -359,7 +357,7 @@ motor.
 \subsubsection{Parameters}
 See \com{lcaPut}.
 
-\pbrk
+\pbrkf
 \subsection{lcaGetNelem}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
@@ -394,7 +392,7 @@ Retrieve the control limits associated with a number of PVs.
 \end{description}
 
 
-\pbrk
+\pbrkf
 \subsection{lcaGetGraphicLimits}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
@@ -431,7 +429,7 @@ PV \hyperref[ref]{timestamps}{timestamps (see }{ about the timestamp format)}{ts
 \end{description}
 
 
-\pbrk
+\pbrkf
 \subsection{lcaGetPrecision}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
@@ -515,10 +513,14 @@ Set the warning threshold for \com{lcaGet()} operations.
 A warning message is printed when retrieving a PV with a severity bigger
 or equal to the warning level. Supported values are \sevrange{} (No alarm,
 minor alarm, major alarm, invalid alarm). The initial/default value is 3.
+
 If a value $>=10$ is passed, the threshold for refusing to read the \com{.VAL}
 field of PVs with an \ita{INVALID} severity can be changed. The rejection
-can be switched off completely by passing 14 ($= 10 + INVALID\_ALARM + 1$).
+can be switched off completely by passing 14 ($= 10 + INVALID\_ALARM + 1$)
+or made more sensitive by passing a value of less than 13 ($=10 + INVALID\_ALARM$),
+the default.
 
+\pbrk
 \subsection{lcaClear}
 \label{lcaclear}
 \subsubsection{Calling Syntax}
@@ -546,6 +548,7 @@ thus clearing {\em all} channels (and monitors).
   lcaClear()
 \end{verbatim}
 
+\pbrk
 \subsection{lcaSetMonitor}
 \label{lcasetmonitor}
 \subsubsection{Calling Syntax}
@@ -587,6 +590,11 @@ See \hyperref[ref]{here}{(}{)}{nmaxarg} for more information.
 data type to be used for the channel access data transfer. The
 native type is used by default.
 See \hyperref[ref]{here}{(}{)}{typearg} for more information.
+
+The type specified for the subsequent \com{lcaGet} for retrieving
+the data should match the monitor's data type. Otherwise, \com{lcaGet}
+will fetch a new copy from the server instead of using the data that
+was already transferred as a result of the monitoring.
 \end{description}
 \subsubsection{Examples}
 \begin{verbatim}
@@ -597,6 +605,7 @@ lcaSetMonitor('PV')
 lcaSetMonitor('PV', 20, 's')
 \end{verbatim}
 
+\pbrk
 \subsection{lcaNewMonitorValue}
 \label{lcanewmonitorvalue}
 \subsubsection{Calling Syntax}
@@ -615,6 +624,12 @@ data must be done using \comref{lcaGet}{lcaget}.
 data type to be used for the channel access data transfer. The
 native type is used by default.
 See \hyperref[ref]{here}{(}{)}{typearg} for more information.
+
+Note that monitors are specific to a particular data type and therefore
+\com{lcaNewMonitorValue} will only report the status for a monitor that had been established
+(by \com{lcaSetMonitor}) with a matching type.
+Using the ``native'' type, which is the default, for both calls
+satisfies this condition.
 \item[flags]
 Column vector of flag values. A value of zero indicates that no new data are available --
 the monitored PV has not changed since it was last read (i.e., the data {\em not the flag}).
@@ -628,6 +643,7 @@ PV/data type).
 lcaNewMonitorValue('PV')
 \end{verbatim}
 
+\pbrk
 \subsection{lcaDelay}
 \label{lcadelay}
 \subsubsection{Calling Syntax}
@@ -640,21 +656,22 @@ to handle channel access activity (monitors).
 {\em Using this call is not needed under EPICS-3.14} since monitors
 are transparently handled by separate threads. These ``worker threads''
 receive data from CA on monitored channels ``in the background'' while
-\scilab{}/\matlab{} are processing. You only need to poll the library
-if the data are ready (using \comref{lcaNewMonitorValue()}{lcanewmonitorvalue}).
+\scilab{}/\matlab{} are processing arbitrary calculations.
+You only need to poll the library for the data being ready using the
+\comref{lcaNewMonitorValue()}{lcanewmonitorvalue}) routine.
 
-Under 3.13, however, the user must periodically call {\tt lcaDelay()} or
-an other  \sca{} routine in order to yield the CPU to the channel access
+Under 3.13 however, the user must periodically call {\tt lcaDelay()} or
+another  \sca{} routine in order to yield the CPU to the CA
 library.
 \subsubsection{Parameters}
 \begin{description}
 \item[timeout]
 A timeout value in seconds.
 \end{description}
-\subsubsection{Examples}
-\begin{verbatim}
-lcaDelay(2.0)
-\end{verbatim}
+%\subsubsection{Examples}
+%\begin{verbatim}
+%lcaDelay(2.0)
+%\end{verbatim}
 
 \pbrkf
 \section{Building and Using \sca{}}
