@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.1.1.1 2001/09/20 05:20:12 till Exp $ */
+/* $Id: ecget.c,v 1.2 2001/09/20 05:37:20 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -288,7 +288,7 @@ fprintf(stderr,"# elements %i, BLSZ %i, reading data...",nelms,blsz); fflush(std
 			/* work our way downwards converting shorts to longs */
 			for (j=chunk-1; j>=0; j--) {
 				/* do the actual conversion */
-				(buf+i)[j] = ((short*)(buf+i))[j];
+				(buf+i)[j] = (long)(((short*)(buf+i))[j]);
 			}
 
 		}
