@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.3 2001/09/21 00:11:50 till Exp $ */
+/* $Id: ecget.c,v 1.4 2001/09/21 01:15:15 strauman Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -8,7 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#ifndef MATLAB_APP
+#if defined(CMDLINE_APP)
+/* probably need the cygwin environment for the
+ * command line utility on windows...
+ */
 #include <unistd.h>
 #endif
 #include <string.h>

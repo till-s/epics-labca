@@ -1,11 +1,16 @@
+EPICS_TOP = /usr/local/epics-3.14_a2/
+EPICS_BASE = $(EPICS_TOP)/base
+EPICS_EXTENSIONS = $(EPICS_TOP)/extensions
+SCIDIR = /usr/lib/scilab-2.5
+
 HARCH = linux-x86
 TARCH = Linux
-LIBS = -L/usr/local/epics-3.14_a2/base/lib/$(HARCH)/ -lca -lCom -lpthread -lreadline -ltermcap -lrt
-INCS = -I/usr/local/epics-3.14_a2/base/include/ -I/usr/local/epics-3.14_a2/base/include/os/$(TARCH)
-EINCS = -I/usr/local/epics-3.14_a2/extensions/include/
-ELIBS = -L/usr/local/epics-3.14_a2/extensions/lib/$(HARCH)/ -lezca
+PTHREAD = -lpthread
+LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -lreadline -ltermcap -lrt
+INCS = -I$(EPICS_BASE)/include/ -I$(EPICS_BASE)/include/os/$(TARCH)
+EINCS = -I$(EPICS_EXTENSIONS)/include/
+ELIBS = -L$(EPICS_EXTENSIONS)/lib/$(HARCH)/ -lezca
 
-SCIDIR = /usr/lib/scilab-2.5
 INTERSCI = $(SCIDIR)/bin/intersci
 
 all: ezcalib ezca.o ecget
@@ -22,22 +27,22 @@ ezca.f:	ezca.desc
 	
 
 ecget.o: ecget.c
-	$(CC) -c -DSCILAB_APP $(INCS) $(EINCS) -I$(SCIDIR) $<
+	$(CC) -c $(CFLAGS) -fPIC -DSCILAB_APP $(INCS) $(EINCS) -I$(SCIDIR) $<
 
-ezcaWrap.o: ezcaWrap.c
-	$(CC) -c $(INCS) $(EINCS) -I$(SCIDIR) $<
+ezcaWrap.o: ezcaWrap.cc
+	$(CXX) -c $(CFLAGS) -fPIC $(INCS) $(EINCS) -I$(SCIDIR) $<
 
 #	$(CC) -Wl,"-Ur,-u ezcaGet" -o $@ -L/usr/local/epics-3.14_a2/base/lib/$(HARCH)/ $(ELIBS) -lca -lCom
 ezcalib:  ezcaWrap.o ecget.o
-	$(CC) -r -o $@ $^ $(ELIBS) -L/usr/local/epics-3.14_a2/base/lib/$(HARCH)/ -lca -lCom -lreadline -ltermcap -lrt
+	$(CC) -r -o $@ $^ $(ELIBS) $(LIBS)
 #	$(LD) -i -o $@ $^ -L/usr/lib $(ELIBS) -lezca /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libca.a /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libCom.a /usr/lib/libpthread.a /usr/lib/libreadline.a /usr/lib/libtermcap.a /usr/lib/librt.a /usr/lib/gcc-lib/i386-redhat-linux/2.96/libgcc.a 
 
 ecget: ecget.c
 #	$(CC) -O2 -o $@ $^ $(INCS) $(LIBS)
-	$(CC) -g -o $@ $^ -DCMDLINE_APP -Wl,"-Map,feil" $(INCS) /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libca.a /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libCom.a /usr/lib/libpthread.a /usr/lib/libreadline.a /usr/lib/libtermcap.a /usr/lib/librt.a  -lm
+	$(CC) $(CFLAGS) -o $@ $^ -DCMDLINE_APP $(INCS) $(LIBS) $(PTHREAD)
 
 caInf: caInf.c
-	$(CC) -O2 -o $@ $^ $(EINCS) $(INCS) $(ELIBS) $(LIBS)
+	$(CC) -O2 -o $@ $^ $(EINCS) $(INCS) $(ELIBS) $(LIBS) $(PTHREAD)
 
 clean:
 	$(RM) ezcalib *.o ezca.f ecget caInf ezca.tmp.f ezca.sce
