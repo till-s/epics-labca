@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.9 2004/02/11 23:06:10 till Exp $ */
+/* $Id: mglue.h,v 1.10 2004/02/27 01:21:44 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -28,10 +28,11 @@ releasePVs(PVs *pvs);
 epicsShareFunc int epicsShareAPI
 buildPVs(const mxArray *pin, PVs *pvs);
 
-/* mexErrMsgTxt() crashes matlab14-beta (linux) - also, we don't want
- * to jump out of context
+/* We don't want to jump out of context; instead,
+ * we check for accumulated errors prior to exiting
+ * the mexfiles.
  */
-#define MEXERRPRINTF mexWarnMsgTxt
+#define MEXERRPRINTF(arg) mexPrintf("Error: %s\n",(arg))
 
 /* check for 'typearg' being a string and use the
  * first character to determine the desired ezca type
