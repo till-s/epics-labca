@@ -40,7 +40,7 @@ MATLAB Version 7.0.0.14092 (R14) Prerelease, dated February 23, 2004:
               libraries prior to executing MATLAB which then finds
               the stuff it needs and it won't try to load it's own
               library versions.
-			  As it is the case with similar variables, LD_PRELOAD
+              As it is the case with similar variables, LD_PRELOAD
               must be set prior to launching matlab.
 
 
