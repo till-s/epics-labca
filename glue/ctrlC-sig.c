@@ -1,4 +1,4 @@
-/* $Id: ctrlC-sig.c,v 1.1 2004/01/29 05:47:55 till Exp $ */
+/* $Id: ctrlC-sig.c,v 1.2 2004/02/11 18:51:52 till Exp $ */
 
 /* Ctrl-C handling for solaris and linux */
 
@@ -98,6 +98,7 @@ static int sigblk(sigset_t *po)
 	sigset_t n;
 	sigemptyset(&n);
 	sigaddset(&n,SIGINT);
+	sigaddset(&n,SIGABRT);
 	return pthread_sigmask( SIG_BLOCK, &n, po );
 } 
 
