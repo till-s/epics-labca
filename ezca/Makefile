@@ -9,6 +9,6 @@
 #
 # Makefile,v 1.3 2002/08/02 15:38:41 jba Exp
 #
-TOP = ../..
-include $(TOP)/config/CONFIG_EXTENSIONS
+TOP = ..
+include $(TOP)/config/CONFIG_APP
 include $(TOP)/config/RULES_ARCHS

@@ -17,8 +17,8 @@
 #
 #
 
-TOP = ../../..
-include $(TOP)/config/CONFIG_EXTENSIONS
+TOP = ../..
+include $(TOP)/config/CONFIG_APP
 
 #USR_CFLAGS += -I../include -I../../SDDS/include
 
