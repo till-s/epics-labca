@@ -1,4 +1,4 @@
-/* $Id: ezcaWrap.c,v 1.10 2003/12/10 00:57:55 till Exp $ */
+/* $Id: ezcaWrap.c,v 1.11 2003/12/11 05:33:08 till Exp $ */
 
 /* SCILAB - EZCA interface */
 
@@ -171,11 +171,12 @@ typedef char units_string[EZCA_UNITS_SIZE];
 void
 C2F(ezgetunits)(char ***nms, int *m, char ***units, int *mo)
 {
-int i,dim;
-MultiArgRec args[]={
-		{ sizeof(units_string), 0, (void**)0 },
+units_string	*unitsbuf = 0;
+MultiArgRec		args[]={
+		{ sizeof(units_string), 0, (void**)&unitsbuf },
 		};
-char **buf = 0;
+char			**buf = 0;
+int				i,dim;
 
 	*units = 0;
 	*mo    = 0;
@@ -187,7 +188,7 @@ char **buf = 0;
 		}
 
 		for ( i=0; i<*m; i++ )
-			if ( !(buf[i] = strdup( &((units_string*)args[0].buf)[i][0] )) ) {
+			if ( !(buf[i] = strdup( &unitsbuf[i][0] )) ) {
 				cerro("no memory");
 				goto cleanup;
 			}
@@ -202,7 +203,7 @@ cleanup:
 			free(buf[i]);
 		free(buf);
 	}
-	free(args[0].buf);
+	free(unitsbuf);
 }
 
 void

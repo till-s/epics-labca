@@ -23,7 +23,7 @@ ezca_funs=[...
   'ezcaLibInit';
   'ecdrGet']
 ifile='ezca.o' 
-ufiles=['ecget.o' 'ezcaWrap.o'];
+ufiles=['ecget.o' 'ezcaWrap.o' 'multiEzca.o'];
 //ufiles=['ecget.o ezcaWrap.o -L/usr/local/epics/lib/linux-ppc -lezca -lca -lCom -lrt']
 // NOTE
 // NOTE LD_LIBRARY_PATH must be set to the base and extensions dirs as 

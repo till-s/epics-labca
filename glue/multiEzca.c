@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.1 2003/12/11 05:33:08 till Exp $ */
+/* $Id: multiEzca.c,v 1.2 2003/12/12 10:28:22 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -180,6 +180,24 @@ unsigned idx,i;
 
 #endif
 
+static int do_end_group(int *dims, int m, int **prcs)
+{
+int nrcs,i;
+int rval = EZCA_OK, tmp;
+	if ( prcs ) {
+		rval = ezcaEndGroupWithReport(prcs, &nrcs);
+		assert(nrcs == m);
+		if ( EZCA_OK != rval && dims ) {
+			for ( i=0; i<nrcs; i++ )
+				dims[i] = 0;
+		}
+	} else {
+		rval = ezcaEndGroup();
+	}
+	return rval;
+}
+
+
 /* our 'strdup' implementation (*IMPORTANT*, in order for the matlab implementation using mxMalloc!!)
  * also, strdup is no POSIX...
  */
@@ -270,11 +288,15 @@ struct timespec ts;
 }
 
 static void
-ezErr(char *nm)
+ezErr(char *nm, int warnflag)
 {
 	char *msg;
 	ezcaGetErrorString(nm,&msg);
-	if (msg) cerro(msg);
+	if (msg) {
+		mexPrintf(msg);
+		if ( !warnflag )
+			cerro("Errors encountered...");
+	}
 	ezcaFree(msg);
 }
 
@@ -325,13 +347,13 @@ int i;
 
 		for ( i=0; i<m; i++) {
 			if ( ezcaGetNelem( nms[i], dims+i ) ) {
-				ezErr("ezcaGetNelem");
+				ezErr("multi_ezca_get_nelem - ", 0);
 				return -1;
 			}
 		}
 
 	if ( EZCA_END_NELEM_GROUP() ) {
-		ezErr("ezcaGetNelem");
+		ezErr("multi_ezca_get_nelem - ", 0);
 		return -1;
 	}
 
@@ -446,8 +468,9 @@ register char *bufp;
 			ezcaPut(nms[i], types[i], dims[i], bufp);
 		}
 
-	if (ezcaEndGroup())
-		ezErr("multi_ezca_put");
+	if ( EZCA_OK != do_end_group(0, m, 0) ) {
+		ezErr("multi_ezca_put - ", 0);
+	}
 
 cleanup:
 	free(types);
@@ -523,24 +546,20 @@ register char *bufp;
 	ezcaStartGroup();
 		for ( i=0, bufp=cbuf; i<m; i++, bufp+=rowsize ) {
 			if ( ezcaGetWithStatus(nms[i],types[i],dims[i], bufp,ts + i,stat+i,sevr+i) ) {
-				ezErr("multi_ezca_get");
+				ezErr("multi_ezca_get - ", 0);
 				goto cleanup;
 			}
 		}
 #ifdef SILENT_AND_PROGRESS
 	{
 	int *rcs = 0;
-	int nrcs;
-	ezcaEndGroupWithReport(&rcs, &nrcs);
-	assert(nrcs == m);
-	for ( i=0; i<nrcs; i++ )
-		if ( EZCA_OK != rcs[i] )
-			dims[i] = 0;
+	if ( EZCA_OK != do_end_group(dims, m, &rcs) )
+		ezErr("multi_ezca_get - ", 1);
 	ezcaFree(rcs);
 	}
 #else
-	if ( ezcaEndGroup() ) {
-		ezErr("multi_ezca_get");
+	if ( EZCA_OK != do_end_group(dims, m, 0) ) {
+		ezErr("multi_ezca_get - ", 0);
 		goto cleanup;
 	}
 #endif
@@ -551,6 +570,8 @@ register char *bufp;
 						nms[i],
 						alarmStatusString[stat[i]],
 						alarmSeverityString[sevr[i]]);
+		if ( INVALID_ALARM == sevr[i] )
+			dims[i] = 0;
 	}
 
 	/* allocate the target buffer */
@@ -570,35 +591,35 @@ register char *bufp;
 			case ezcaByte:   CVTVEC( double,
 										(0),
 										char,
-										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
 							  break;
 
 			case ezcaShort:   CVTVEC( double,
 										(0),
 										short,
-										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
 							  break;
 
 			case ezcaLong :   CVTVEC( double,
 										(0),
 										long,
-										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
 							  break;
 
 			case ezcaFloat:   CVTVEC( double,
 										(0),
 										float,
-										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
 							  break;
 
 			case ezcaDouble:  CVTVEC( double,
 										(0),
 										double,
-										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
 							  break;
 
@@ -606,14 +627,7 @@ register char *bufp;
 										(0),
 										dbr_string_t,
 										do {  \
-										  if ( !(*fpt=my_strdup(j>=dims[i] ? \
-																"" :      \
-															    ( INVALID_ALARM == sevr[i] ?  \
-																    "<INVALID_ALARM>" :       \
-																	&(*cpt)[0]                \
-															    )         \
-															 ) \
-												) ) {  \
+										  if ( !(*fpt=my_strdup(j>=dims[i] ? "" : &(*cpt)[0])) ) { \
 										     cerro("strdup: no memory"); \
 											 goto cleanup; \
 										  } \
@@ -659,10 +673,11 @@ char	*bufp3;
 
 	/* allocate buffers */
 	for ( i=0; i<nargs; i++ ) {
+		assert( (0==args[i].pres) != (0==args[i].buf) );
 		if ( args[i].pres )
 			*args[i].pres = 0;
-		if ( args[i].buf )
-				continue; /* caller allocated the buffer */
+		else /* args[i].buf is !=0 as asserted */
+			continue; /* caller allocated/owns the buffer */
 
 		if ( !(args[i].buf = calloc( m, args[i].size )) ) {
 			cerro("no memory");
@@ -732,8 +747,8 @@ char	*bufp3;
 		assert(!"multi_ezca_get_misc: invalid number of arguments - should never happen");
 	}
 
-	if ( ezcaEndGroup() ) {
-		ezErr("multi_ezca_get_misc");
+	if ( EZCA_OK != do_end_group(0, m, 0) ) {
+		ezErr("multi_ezca_get - ", 0);
 		goto cleanup;
 	}
 
@@ -745,7 +760,12 @@ char	*bufp3;
 	nargs = 0;
 
 cleanup:
-	for ( i=0; i<nargs; i++ )
-		free (args[i].buf);
+	for ( i=0; i<nargs; i++ ) {
+		/* release only the buffers we created/own */
+		if ( args[i].pres ) {
+			free (args[i].buf);
+			args[i].buf = 0;
+		}
+	}
 	return rval;
 }
