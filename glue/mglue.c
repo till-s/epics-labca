@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.8 2004/01/28 05:47:10 till Exp $ */
+/* $Id: mglue.c,v 1.9 2004/01/29 05:43:27 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -9,10 +9,12 @@
 #include <cadef.h>
 #include <ezca.h>
 
+#define epicsExportSharedSymbols
+#include "shareLib.h"
 #include "multiEzca.h"
 #include "mglue.h"
 
-void
+void epicsShareAPI
 releasePVs(PVs *pvs)
 {
 int i;
@@ -25,7 +27,7 @@ int i;
 	}
 }
 
-int
+int epicsShareAPI
 buildPVs(const mxArray *pin, PVs *pvs)
 {
 char	**mem = 0;
@@ -89,7 +91,7 @@ cleanup:
 	return rval;	
 }
 
-char
+char epicsShareAPI
 marg2ezcaType(const mxArray *typearg)
 {
 char typestr[2] = { 0 };
@@ -115,5 +117,3 @@ char typestr[2] = { 0 };
 	}
 	return ezcaInvalid;
 }
-
-

@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.6 2004/01/27 03:33:04 till Exp $ */
+/* $Id: mglue.h,v 1.7 2004/01/29 05:43:27 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -16,14 +16,16 @@ typedef struct PVs_ {
 	char 			**names;
 } PVs;
 
+#include "shareLib.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void
+epicsShareFunc void epicsShareAPI
 releasePVs(PVs *pvs);
 
-int
+epicsShareFunc int epicsShareAPI
 buildPVs(const mxArray *pin, PVs *pvs);
 
 /* mexErrMsgTxt() crashes matlab14-beta - also, we don't want
@@ -31,7 +33,7 @@ buildPVs(const mxArray *pin, PVs *pvs);
  */
 #define MEXERRPRINTF mexWarnMsgTxt
 
-void
+epicsShareFunc void epicsShareAPI
 ecdrget(char *name, int *nlen, long **buf, int *nelms);
 
 /* check for 'typearg' being a string and use the
@@ -44,7 +46,7 @@ ecdrget(char *name, int *nlen, long **buf, int *nelms);
  *  ezca'D'ouble
  * or 'C'har for ezcaString
  */
-char
+epicsShareFunc char epicsShareAPI
 marg2ezcaType(const mxArray *typearg);
 
 #ifdef __cplusplus
@@ -52,4 +54,3 @@ marg2ezcaType(const mxArray *typearg);
 #endif
 
 #endif
-

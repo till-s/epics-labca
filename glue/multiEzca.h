@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.15 2004/01/29 05:42:29 till Exp $ */
+/* $Id: multiEzca.h,v 1.16 2004/01/30 01:44:31 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -21,6 +21,14 @@
 extern "C" {
 #endif
 
+#ifdef epicsExportSharedSymbols
+#	define multi_ezca_epics_ExportSharedSymbols
+#	undef epicsExportSharedSymbols
+#endif
+
+/* CA includes */
+#include <tsDefs.h> 
+
 #ifdef MATLAB_APP
 #define C2F(name) name
 #define cerro(arg) mexPrintf("Error: %s\n",arg)
@@ -29,14 +37,16 @@ extern "C" {
 #define calloc(n,s) mxCalloc((n),(s))
 /* #define C2F(name) name##_ */
 #else
-void cerro(const char*);
+extern void cerro(const char*);
 #endif
 
-/* CA includes */
-#include <tsDefs.h> 
-#include <shareLib.h>
+#ifdef multi_ezca_epics_ExportSharedSymbols
+#  define epicsExportSharedSymbols
+#  include <shareLib.h>
+#endif
 
-void ezcaSetSeverityWarnLevel(int level);
+epicsShareFunc void epicsShareAPI
+ezcaSetSeverityWarnLevel(int level);
 
 /* MACROS */
 #define NumberOf(arr) (sizeof(arr)/sizeof(arr[0]))
@@ -47,19 +57,19 @@ void ezcaSetSeverityWarnLevel(int level);
  * parts, respectively.
  */
 
-void
+epicsShareFunc void epicsShareAPI
 multi_ezca_ts_cvt(int m, TS_STAMP *pts, double *pre, double *pim);
 
-int
+epicsShareFunc int epicsShareAPI
 multi_ezca_get_nelem(char **nms, int m, int *dims);
 
 #define ezcaNative  ((char)-1)
 #define ezcaInvalid ((char)-2)
 
-void
+epicsShareFunc void epicsShareAPI
 multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n);
 
-int
+epicsShareFunc int epicsShareAPI
 multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts);
 
 typedef struct MultiArgRec_ {
@@ -76,7 +86,7 @@ typedef struct MultiArgRec_ {
 
 typedef epicsShareFunc int (epicsShareAPI *MultiEzcaFunc)();
 
-int
+epicsShareFunc int epicsShareAPI
 multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args);
 
 #ifdef __cplusplus

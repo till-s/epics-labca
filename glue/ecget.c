@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.16 2004/01/15 00:49:10 till Exp $ */
+/* $Id: ecget.c,v 1.17 2004/01/27 03:34:47 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -212,7 +212,20 @@ cleanup:
  *
  */
 
-void C2F(ecdrget)(char *pv_name, int *l, buf_t **result, int *nord)
+#ifndef CMDLINE_APP
+
+#define epicsExportSharedSymbols
+#include <shareLib.h>
+
+epicsShareFunc void epicsShareAPI
+C2F(ecdrget)(char *pv_name, int *l, buf_t **result, int *nord);
+#endif
+
+void
+#ifndef CMDLINE_APP
+epicsShareAPI
+#endif
+C2F(ecdrget)(char *pv_name, int *l, buf_t **result, int *nord)
 {
 long		i,j,blsz,zero=0,nelms,chunk,elsz;
 char		lock=1;

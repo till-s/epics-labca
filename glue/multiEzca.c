@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.14 2004/01/14 00:08:18 till Exp $ */
+/* $Id: multiEzca.c,v 1.15 2004/01/30 01:45:06 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -12,6 +12,8 @@
 #include <ctype.h>
 #include <assert.h>
 #include <math.h>
+#include <time.h>
+/*#include <unistd.h>*/
 
 #if defined(WIN32) || defined(_WIN32)
 #include <float.h>
@@ -24,7 +26,6 @@
 #define C2F(name) name##_
 #endif
 
-#include "multiEzca.h"
 
 /* CA includes */
 #include <tsDefs.h> 
@@ -33,6 +34,10 @@
 #include <alarm.h>
 #include <alarmString.h>
 #include <epicsVersion.h>
+
+#define epicsExportSharedSymbols
+#include "shareLib.h"
+#include "multiEzca.h"
 
 #if defined(WIN32) || defined(_WIN32) 
 static unsigned long mynan[2] = { 0xffffffff, 0x7fffffff };
@@ -61,8 +66,6 @@ static char * my_strdup(const char *str);
 #define EZCA_START_NELEM_GROUP()	(0)
 #define EZCA_END_NELEM_GROUP()		(0)
 #endif
-
-
 
 /* in TESTING mode, we fake a couple of ezca routines for debugging
  * conversion and packing issues
@@ -230,8 +233,6 @@ char *rval = 0;
 
 #if (EPICS_VERSION < 3 || (EPICS_VERSION == 3 && EPICS_REVISION < 14))
 
-/*#include <unistd.h>*/
-#include <time.h>
 
 #if !defined(_POSIX_TIMERS)
 /* compiler flags may need to define -D_POSIX_C_SOURCE=199506L */
@@ -242,7 +243,7 @@ struct timespec {
 #endif
 
 /* provide bogus epicsTimeToTimespec */
-void
+static void
 epicsTimeToTimespec(struct timespec *tspec, TS_STAMP *tstamp)
 {
 	mexPrintf("WARNING: epicsTimeToTimespec not implemented\n");
@@ -254,7 +255,7 @@ epicsTimeToTimespec(struct timespec *tspec, TS_STAMP *tstamp)
 
 /* convert timestamps into complex array */
 
-void
+void epicsShareAPI
 multi_ezca_ts_cvt(int m, TS_STAMP *pts, double *pre, double *pim)
 {
 int i;
@@ -323,7 +324,7 @@ chid *pid;
 	return ezcaFloat;
 }
 
-int
+int epicsShareAPI
 multi_ezca_get_nelem(char **nms, int m, int *dims)
 {
 int i;
@@ -370,7 +371,7 @@ int i;
 		}	\
 	}
 
-void
+void epicsShareAPI
 multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n)
 {
 void          *cbuf  = 0;
@@ -464,7 +465,7 @@ cleanup:
 	free(dims);
 }
 
-int
+int epicsShareAPI
 multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts)
 {
 void          *cbuf  = 0;
@@ -658,7 +659,7 @@ cleanup:
 	return rval;
 }
 
-int
+int epicsShareAPI
 multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args)
 {
 int		rval = 0;
@@ -767,7 +768,7 @@ cleanup:
 	return rval;
 }
 
-void
+void epicsShareAPI
 ezcaSetSeverityWarnLevel(int level)
 {
 ezcaSeverityWarnLevel = level;

@@ -2,15 +2,13 @@ LIBRARY   mezcaglue
 
 EXPORTS
 
-alarmSeverityString
-alarmStatusString
 ezcaSetSeverityWarnLevel
-buildPVs
-marg2ezcaType
 multi_ezca_get
 multi_ezca_get_misc
 multi_ezca_get_nelem
 multi_ezca_put
 multi_ezca_ts_cvt
+buildPVs
+marg2ezcaType
 releasePVs
 ecdrget

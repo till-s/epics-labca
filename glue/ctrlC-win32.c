@@ -1,4 +1,4 @@
-/* $Id: ctrlC-win32.c,v 1.2 2004/01/29 05:42:29 till Exp $ */
+/* $Id: ctrlC-win32.c,v 1.3 2004/01/30 01:43:49 till Exp $ */
 
 /* Ctrl-C processing for WIN32 */
 
@@ -11,7 +11,6 @@
 
 #include <cadef.h>
 #include <ezca.h>
-#include <multiEzca.h>
 #include <multiEzcaCtrlC.h>
 #include <epicsVersion.h>
 

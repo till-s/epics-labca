@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.10 2004/01/27 03:38:04 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.11 2004/01/29 05:42:29 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -6,10 +6,14 @@
 #include <string.h>
 #include <cadef.h>
 #include <ezca.h>
+
+#define epicsExportSharedSymbols
+#include <shareLib.h>
+
 #include <multiEzca.h>
 #include <multiEzcaCtrlC.h>
 
-extern void C2F(cts_stampf_)();
+epicsShareFunc int epicsShareAPI C2F(ezca)();
 
 #if 0
 #define getRhsVar(n,ct,mx,nx,lx) \
@@ -423,10 +427,12 @@ int m,n,i;
 	return 0;
 }
 
+epicsShareFunc void epicsShareAPI
+C2F(ecdrget)(char *, int *, long **, int *);
+
 int intsecdrGet(char *fname)
 {
 long *buf;
-extern void C2F(ecdrget)(char *, int *, long **, int *);
 
 int m,n,nord;
 char **s;
@@ -468,7 +474,7 @@ static GenericTable Tab[]={
   {(Myinterfun)sci_gateway, intsecdrGet,					"lecdrGet"},
 };
 
-int
+int epicsShareAPI
 C2F(ezca)()
 {
 CtrlCStateRec save;

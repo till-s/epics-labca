@@ -1,4 +1,4 @@
-/* $Id: ctrlC-def.c,v 1.2 2004/01/29 05:42:28 till Exp $ */
+/* $Id: ctrlC-def.c,v 1.3 2004/01/30 01:43:48 till Exp $ */
 
 /* default Ctrl-C handling (none) */
 
@@ -6,8 +6,8 @@
  * This file is subject to the EPICS open license, consult the LICENSE file for
  * more information. This header must not be removed.
  */
+#include <mex.h>
 
-#include <multiEzca.h>
 #include <multiEzcaCtrlC.h>
 
 void

@@ -1,4 +1,4 @@
-/* $Id: ctrlC-solaris.c,v 1.2 2004/01/29 05:46:05 till Exp $ */
+/* $Id: ctrlC-sig.c,v 1.1 2004/01/29 05:47:55 till Exp $ */
 
 /* Ctrl-C handling for solaris and linux */
 
@@ -61,7 +61,6 @@
 
 #include <cadef.h>
 #include <ezca.h>
-#include <multiEzca.h>
 #include <multiEzcaCtrlC.h>
 
 #ifdef DEBUG
@@ -185,7 +184,6 @@ multi_ezca_ctrlC_initialize()
 	/* Workaround Scilab BUG: they use 'signal' and don't
 	 * let their handler reinstall itself
 	 */
-	fprintf(stderr, "handler is %x\n",s);
 	siginst(s);
 	}
 #endif

@@ -1,14 +1,11 @@
-/* $Id: ini.cc,v 1.8 2004/01/28 05:47:40 till Exp $ */
+/* $Id: ini.cc,v 1.9 2004/01/29 05:44:26 till Exp $ */
 
 /* xlabcaglue library initializer */
 
+#include <mex.h>
 #include <cadef.h>
 #include <ezca.h>
-#include <multiEzca.h>
 #include <multiEzcaCtrlC.h>
-
-#define DEF_TIMEOUT 0.2
-#define DEF_RETRIES 20
 
 static int
 ezlibinit()
@@ -26,11 +23,6 @@ multi_ezca_ctrlC_initialize();
 multi_ezca_ctrlC_prologue(&saved);
 ezcaAutoErrorMessageOff(); /* calls ezca init() */
 multi_ezca_ctrlC_epilogue(&saved);
-
-mexPrintf((char*)"Polling interval is %.2fs; max. timeout: %.2fs\n",
-				DEF_TIMEOUT, DEF_RETRIES*DEF_TIMEOUT);
-ezcaSetTimeout((float)DEF_TIMEOUT);
-ezcaSetRetryCount(DEF_RETRIES);
 return 0;
 }
 
