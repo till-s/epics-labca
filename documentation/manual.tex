@@ -20,12 +20,12 @@ of $m$ strings.
 
 \title{\sca{} --- An EPICS Channel Access Interface for \scilab{} and \matlab{}}
 \author{Till Straumann <strauman@slac.stanford.edu>, 2003}
-\date{\$Id: manual.tex,v 1.3 2003/12/24 19:57:08 till Exp \$}
-
 
 \begin{document}
 \maketitle
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.4 2003/12/24 19:58:15 till Exp$}\hspace*{\fill}}
 \section{Introduction}
+
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
 integrated with the \scilab{} or \matlab{} applications.
@@ -114,6 +114,8 @@ with the seconds ({\tt tv\_sec} member) and nanoseconds
 ({\tt tv\_nsec}) in the real and imaginary parts, respectively.
 This makes it easy to extract the seconds while still maintaining
 full accuracy.
+
+\vspace*{\fill}
 
 \subsection{List of all Supported Calls}
 \subsubsection{ezcaGet}
@@ -396,7 +398,7 @@ minor alarm, major alarm, invalid alarm). The initial/default value is 3.
 \subsection{Build}
 \sca{} comes with `{\tt config}' subdirectory and Makefiles conforming to the
 EPICS build system. Following a configuration step which involves editing
-two small files, '{\tt make} is executed which installs the generated libraries
+two small files, '{\tt make}' is executed which installs the generated libraries
 and scripts.
 
 Prior to invoking the \scilab{} or \matlab{} application, the system
@@ -410,12 +412,12 @@ have multiple entry points. Hence, when statically linking multiple {\em mex}
 files against {\em ezca, ca, Com} etc. multiple copies of those libraries
 would end up in the running \matlab{} application with possible adverse
 effects. It should be possible to build and use the \scilab{} interface
-with static libraries --- minor tweaks might be necessary.
+with static libraries --- minor tweaks to the Makefiles might be necessary.
 
 \sca{} has been tested with \matlab-6.5, \matlab-7.0 and \scilab-2.7
 under a variety of EPICS releases ranging from 3.13.2
-to 3.14.4 on \windoze, {\em linux-x86}, {\em linux-ppc} and
-{\em solaris-sparc-gnu}. 
+to 3.14.4 {\em linux-x86}, {\em linux-ppc}, {\em solaris-sparc-gnu}
+and \windoze.
 
 \subsubsection{Configuration}
 Two files, `{\tt config/CONFIG}' and `{\tt config/RELEASE}' need to
@@ -424,7 +426,7 @@ be adapted to the user's installation:
 \item[\tt CONFIG:] Setting the {\tt MAKEFOR} variable in this file
 determines the target application program the interface library is
 built for. Valid settings are {\tt MAKEFOR=SCILAB} or {\tt MAKEFOR=MATLAB}.
-Any setting other than {\tt MATLAB} are treated like {\tt SCILAB}.
+Any setting other than {\tt MATLAB} is treated like {\tt SCILAB}.
 %
 %
 \item[\tt RELEASE:] In this file, paths to the EPICS base (`{\tt EPICS\_BASE}'
@@ -447,7 +449,6 @@ corresponding to the C-compiler that is used for the build. (e.g.
 {\tt win32/microsoft/msvc60} for the microsoft visual c++ 6.0 compiler).
 \end{description}
 \end{description}
-
 Any irrelevant variables (such as {\tt MATLABDIR} if {\tt MAKEFOR=SCILAB})
 are ignored.
 
@@ -505,8 +506,11 @@ the \scilab{} documentation for more information.
 
 \subsubsection{Using \sca{} with \matlab}
 Every entry point / {\tt ezcaXXX} routine is contained in a separate
-shared object file under {\tt <\sca-top>/bin/<system>/} which must
-be added to the \matlab{} search path. Note that this is in {\em addition}
+shared object file in the {\tt <\sca-top>/bin/<system>/} directory
+which must be added to the \matlab{} search path.
+Note that this is in {\em addition}
 to setting the system library search path which must be performed prior
 to starting \matlab{} (see previous section).
+All necessary objects and libraries are transparently loaded simply
+by invoking any of the entry point routines.
 \end{document}
