@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.14 2003/12/23 23:15:56 strauman Exp $ */
+/* $Id: ecget.c,v 1.15 2004/01/10 00:46:25 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -19,6 +19,8 @@
 #include <string.h>
 
 #include <cadef.h>
+
+#include <signal.h>
 
 /* our local buffer is an array of buf_t */
 typedef long buf_t;
@@ -220,6 +222,7 @@ buf_t		*buf=0;
 EcdrBoardC	p;
 char		msgbuf[100], *isSVAL;
 chid		valID;
+int			mask = sigblock( sigmask(SIGINT) );
 
 	/* reset return values */
 	*result = 0;
@@ -242,7 +245,7 @@ chid		valID;
 		else {
 			/* neither SVAL nor VAL; perform system dependent action and return */
 			NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord);
-			return;
+			goto cleanup;
 		}
 
 	} /* else no field name --> VAL is default */
@@ -376,6 +379,7 @@ cleanup:
 		ca_pend_event(1.);
 	}
 	if (buf) SYS_FREE(buf);
+	sigsetmask( mask );
 }
 
 #ifdef CMDLINE_APP
