@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.12 2004/01/14 00:06:27 till Exp $ */
+/* $Id: multiEzca.h,v 1.13 2004/01/27 03:32:21 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -89,11 +89,6 @@ multi_ezca_ctrlC_epilogue(unsigned long);
  */
 void
 multi_ezca_ctrlC_initialize();
-
-#if defined(WIN32) || defined(_WIN32)
-int
-multi_ezca_pollCb();
-#endif
 
 #ifdef __cplusplus
 };
