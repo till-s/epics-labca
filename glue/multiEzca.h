@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.16 2004/01/30 01:44:31 till Exp $ */
+/* $Id: multiEzca.h,v 1.17 2004/02/11 18:51:53 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -30,12 +30,10 @@ extern "C" {
 #include <tsDefs.h> 
 
 #ifdef MATLAB_APP
-#define C2F(name) name
 #define cerro(arg) mexPrintf("Error: %s\n",arg)
 #define malloc(arg) mxMalloc((arg))
 #define free(arg)   mxFree((arg))
 #define calloc(n,s) mxCalloc((n),(s))
-/* #define C2F(name) name##_ */
 #else
 extern void cerro(const char*);
 #endif
