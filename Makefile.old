@@ -1,15 +1,25 @@
-EPICS_TOP = /home/till/epics/
+IS_3_14=YES
+ifeq ($(IS_3_14),YES)
+EPICS_TOP = /afs/slac/g/spear/epics/
 EPICS_BASE = $(EPICS_TOP)/base/
-EPICS_EXTENSIONS = $(EPICS_TOP)/extensions
-SCIDIR = /usr/lib/scilab-2.6
+EPICS_EXTENSIONS = .
+HARCH = linux-x86
+TARCH = Linux
+else
+EPICS_TOP = /home/till/epics
+EPICS_BASE = $(EPICS_TOP)/base-3.13.6/
+EPICS_EXTENSIONS = /afs/slac/g/spear/epics/extensions
+HARCH = Linux
+TARCH = Linux
+endif
+SCIDIR = /usr/lib/scilab-2.7
 
-# 3.14: HARCH = linux-x86
-# 3.14: TARCH = Linux
-HARCH=linux-ppc
-TARCH=Linux
+ifeq ($(IS_3_14),YES)
 PTHREAD = -lpthread
-#LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -lreadline -ltermcap -lrt
+LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -lreadline -ltermcap -lrt
+else
 LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -L/lib -L/usr/lib -lm -lrt
+endif
 INCS = -I$(EPICS_BASE)/include/ -I$(EPICS_BASE)/include/os/$(TARCH)
 EINCS = -I$(EPICS_EXTENSIONS)/include/
 ELIBS = -L$(EPICS_EXTENSIONS)/lib/$(HARCH)/ -lezca
@@ -28,6 +38,8 @@ ezca.tmp.f: ezca.f
 ezca.f:	ezca.desc
 	$(SCIDIR)/bin/intersci $(<:%.desc=%)
 	
+caget: caget.c
+	$(CC) -o $@ $(CFLAGS) -fPIC -DSCILAB_APP $(INCS) $(EINCS) -I$(SCIDIR) $< $(ELIBS) $(LIBS)
 
 ecget.o: ecget.c
 	$(CC) -c $(CFLAGS) -fPIC -DSCILAB_APP $(INCS) $(EINCS) -I$(SCIDIR) $<
@@ -40,8 +52,8 @@ ezcaWrap.occ: ezcaWrap.cc
 
 #	$(CC) -Wl,"-Ur,-u ezcaGet" -o $@ $^ $(INCS) $(EINCS) -I$(SCIDIR) -L$(EPICS_BASE)/lib/$(HARCH)/ $(ELIBS) -lca -lCom -L/lib -L/usr/lib/
 ezcalib:  ezcaWrap.o ecget.o
-	$(CXX) -r -o $@ -fPIC $^ $(EPICS_EXTENSIONS)/lib/$(HARCH)/libezca.a -L/lib -L/usr/lib -lm
-#	$(LD) -i -o $@ $^ -L/usr/lib $(ELIBS) $(EPICS_BASE)/lib/$(HARCH)/libca.a $(EPICS_BASE)/lib/$(HARCH)/libCom.a
+#	$(CXX) -r -o $@ -fPIC $^ $(EPICS_EXTENSIONS)/lib/$(HARCH)/libezca.a -L/lib -L/usr/lib -lm
+	$(LD) -i -o $@ $^ -L/usr/lib $(ELIBS) $(EPICS_BASE)/lib/$(HARCH)/libca.a $(EPICS_BASE)/lib/$(HARCH)/libCom.a
 
 ecget: ecget.c
 #	$(CC) -O2 -o $@ $^ $(INCS) $(LIBS)

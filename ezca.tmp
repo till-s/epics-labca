@@ -24,11 +24,7 @@ c
        if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
        if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
        call ezget(buf(lbufi1:lbuff1),nlr1,stk(lw3),ne3)
-       if(err .gt. 0) then 
-        buf = fname // ' Internal Error' 
-        call error(999)
-        return
-       endif
+       if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
        topl=top+1
@@ -75,11 +71,7 @@ c       cross variable size checking
 c     
        if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
        call ezput(buf(lbufi1:lbuff1),nlr1,stk(lr2),n2*m2)
-       if(err .gt. 0) then 
-        buf = fname // ' Internal Error' 
-        call error(999)
-        return
-       endif
+       if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
        topl=top+0
@@ -115,11 +107,7 @@ c
        if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
        if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
        call ezgetnelem(buf(lbufi1:lbuff1),nlr1,stk(lw3))
-       if(err .gt. 0) then 
-        buf = fname // ' Internal Error' 
-        call error(999)
-        return
-       endif
+       if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
        topl=top+1
@@ -166,11 +154,7 @@ c
        if(.not.cremat(fname,top+2,0,1,1,lw4,loc4)) return
        call ezgetcontrollimits(buf(lbufi1:lbuff1),nlr1,stk(lw3),stk(lw4)
      $ )
-       if(err .gt. 0) then 
-        buf = fname // ' Internal Error' 
-        call error(999)
-        return
-       endif
+       if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
        topl=top+2
@@ -227,11 +211,7 @@ c
        if(.not.cremat(fname,top+2,0,1,1,lw4,loc4)) return
        call ezgetgraphiclimits(buf(lbufi1:lbuff1),nlr1,stk(lw3),stk(lw4)
      $ )
-       if(err .gt. 0) then 
-        buf = fname // ' Internal Error' 
-        call error(999)
-        return
-       endif
+       if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
        topl=top+2
@@ -289,11 +269,7 @@ c
        if(.not.cremat(fname,top+3,0,1,1,lw5,loc5)) return
        call ezgetstatus(buf(lbufi1:lbuff1),nlr1,stk(lw3),stk(lw4),stk(lw
      $ 5))
-       if(err .gt. 0) then 
-        buf = fname // ' Internal Error' 
-        call error(999)
-        return
-       endif
+       if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
        topl=top+3
@@ -351,11 +327,7 @@ c
 c       cross variable size checking
 c     
        call ezcaDebugOn()
-       if(err .gt. 0) then 
-        buf = fname // ' Internal Error' 
-        call error(999)
-        return
-       endif
+       if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
        topl=top+0
@@ -384,11 +356,7 @@ c
 c       cross variable size checking
 c     
        call ezcaLibInit()
-       if(err .gt. 0) then 
-        buf = fname // ' Internal Error' 
-        call error(999)
-        return
-       endif
+       if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
        topl=top+0
@@ -424,11 +392,7 @@ c
        if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
        if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
        call ecdrget(buf(lbufi1:lbuff1),nlr1,stk(lw3),ne3)
-       if(err .gt. 0) then 
-        buf = fname // ' Internal Error' 
-        call error(999)
-        return
-       endif
+       if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
        topl=top+1
