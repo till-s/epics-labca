@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.4 2003/12/23 20:31:35 till Exp $ */
+/* $Id: mglue.c,v 1.5 2003/12/23 23:15:56 strauman Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -12,6 +12,18 @@
 #include "multiEzca.h"
 #include "mglue.h"
 
+#include <signal.h>
+
+static void (*old_handler)(int);
+static int  caught;
+
+static void handler(int num)
+{
+	if ( !caught) {
+		caught = ezcaAbort();
+	}
+}
+
 void
 releasePVs(PVs *pvs)
 {
@@ -21,6 +33,11 @@ int i;
 			mxFree(pvs->names[i]);
 		}
 		mxFree( pvs->names );
+		if ( SIG_ERR != old_handler ) {
+			signal(SIGINT, old_handler);
+		}
+		if ( caught )
+			ezcaSetRetryCount(caught);
 	}
 }
 
@@ -31,6 +48,8 @@ char	**mem = 0;
 int     i,m,buflen;
 const mxArray *tmp;
 int	rval = -1;
+
+	caught     = 0;
 	
 	pvs->names = 0;
 	pvs->m     = 0;
@@ -78,6 +97,8 @@ int	rval = -1;
 	pvs->m     = m;
 	pvs  = 0;
 	rval = 0;
+
+	old_handler = signal( SIGINT, handler );
 
 cleanup:
 	releasePVs(pvs);

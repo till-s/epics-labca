@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.7 2004/01/09 04:10:41 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.8 2004/01/10 00:46:25 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -7,6 +7,7 @@
 #include <cadef.h>
 #include <ezca.h>
 #include <multiEzca.h>
+#include <signal.h>
 
 extern void C2F(cts_stampf_)();
 
@@ -467,10 +468,30 @@ static GenericTable Tab[]={
   {(Myinterfun)sci_gateway, intsecdrGet,					"lecdrGet"},
 };
                                                                                             
+static int caught;
+
+static void handler(int num)
+{
+if ( !caught ) {
+	caught = ezcaAbort();
+}
+}
+
 int
 C2F(ezca)()
 {
+void (*old)(int);
+
+  caught = 0;
+  old = signal(SIGINT, handler);
+
   Rhs = Max(0, Rhs);
   (*(Tab[Fin-1].f))(Tab[Fin-1].name,Tab[Fin-1].F);
+
+  if (SIG_ERR != old)
+	signal(SIGINT, old);
+  if (caught) {
+	ezcaSetRetryCount(caught);
+  }
   return 0;
 }
