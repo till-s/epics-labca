@@ -13,6 +13,7 @@ include $(TOP)/config/CONFIG_APP
 CMPLR = STRICT
 
 
+USR_INCLUDES += -I../../ezca
 # install header file
 #INC =
 
