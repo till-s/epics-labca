@@ -1,4 +1,4 @@
-/* $Id: lcaGet.c,v 1.6 2004/02/20 22:44:40 till Exp $ */
+/* $Id: lcaGet.c,v 1.7 2004/02/27 01:24:34 till Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -122,6 +122,6 @@ cleanup:
 	mxFree(pres);
 	mxFree(ts);
 	releasePVs(&pvs);
-	/* do this LAST (in case the use mexErrMsgTxt) */
-	flagError(nlhs, plhs);
+	/* do this LAST (in case mexErrMsgTxt is called) */
+	ERR_CHECK(nlhs, plhs);
 }

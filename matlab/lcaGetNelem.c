@@ -1,4 +1,4 @@
-/* $Id: ezcaGetNelem.c,v 1.2 2003/12/23 23:06:56 strauman Exp $ */
+/* $Id: lcaGetNelem.c,v 1.3 2004/02/27 01:24:34 till Exp $ */
 
 /* matlab wrapper for ezcaGetNelem */
 
@@ -47,6 +47,6 @@ PVs     pvs = { 0 };
 
 cleanup:
 	releasePVs(&pvs);
-	/* do this LAST (in case the use mexErrMsgTxt) */
-	flagError(nlhs, plhs);
+	/* do this LAST (in case mexErrMsgTxt is called) */
+	ERR_CHECK(nlhs, plhs);
 }

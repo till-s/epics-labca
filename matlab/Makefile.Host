@@ -89,10 +89,10 @@ PROD_LIBS := mezcaglue
 
 PROD_LIBS_WIN32+= ezcamt ca Com
 
-USR_LIBS_WIN32 += libmx libmex
+## USR_LIBS_WIN32 += libmx libmex
 
-libmx_DIR     := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
-libmex_DIR    := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+## libmx_DIR     := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+## libmex_DIR    := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 mezcaglue_DIR := $(INSTALL_LIB)
 ezcamt_DIR    := $(INSTALL_LIB)
 

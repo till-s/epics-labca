@@ -1,4 +1,4 @@
-/* $Id: ezcaGetControlLimits.c,v 1.5 2004/01/07 00:51:57 till Exp $ */
+/* $Id: lcaGetControlLimits.c,v 1.6 2004/02/27 01:24:34 till Exp $ */
 
 /* matlab wrapper for ezcaGetControlLimits */
 
@@ -67,6 +67,6 @@ cleanup:
 			mxFree(*args[i].pres);
 	}
 	releasePVs(&pvs);
-	/* do this LAST (in case the use mexErrMsgTxt) */
-	flagError(nlhs, plhs);
+	/* do this LAST (in case mexErrMsgTxt is called) */
+	ERR_CHECK(nlhs, plhs);
 }

@@ -1,4 +1,4 @@
-/* $Id: lcaSetTimeout.c,v 1.3 2004/02/12 00:24:51 till Exp $ */
+/* $Id: lcaDelay.c,v 1.1 2004/06/20 04:32:31 strauman Exp $ */
 
 /* matlab wrapper for ezcaSetTimeout */
 
@@ -31,8 +31,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		return;
 	}
 
-	if ( !ezcaDelay((float)*mxGetPr(prhs[0])) )
+	if ( !ezcaDelay((float)*mxGetPr(prhs[0])) ) {
 		nlhs = 0;
+	} else {
+		fprintf(stderr,"Need a timeout argument > 0.0\n");
+	}
 
-	flagError(nlhs, plhs);
+	/* do this LAST (in case mexErrMsgTxt is called) */
+	ERR_CHECK(nlhs, plhs);
 }
