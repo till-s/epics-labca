@@ -23,7 +23,7 @@ SHARED_LIBRARIES = YES
 #	Contents of library: generic, special and for all systems
 #
 
-LIBSRCS := multiEzca.c ecget.c
+LIBSRCS := multiEzca.c ecget.c ini.cc
 
 # on generic system
 ifeq ($(MAKEFOR),MATLAB)
@@ -92,8 +92,10 @@ ezca.sce: ezca.f
 	$(SCILABDIR)/bin/intersci $(<:%.desc=%)
 	$(MV) $(<:%.desc=%.sce) $(<:%.desc=%.tmp.sce)
 	sed -e "/^[^/]/s/files/'lib$(LIBRARY).so'/g" > $(<:%.desc=%.sce) < $(<:%.desc=%.tmp.sce)
-	echo 'ezcaLibInit();' >> $(<:%.desc=%.sce)
 	$(RM) $(<:%.desc=%.tmp.sce)
+
+%.desc: ../%.desc
+	ln -s $^ $@
 
 
 #

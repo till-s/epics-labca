@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.4 2003/12/22 04:11:16 till Exp $ */
+/* $Id: multiEzca.c,v 1.5 2003/12/23 20:40:32 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -598,12 +598,14 @@ register char *bufp;
 #endif
 
 	for ( i=0; i<m; i++ ) {
+		char *dotp;
 		if ( sevr[i] >= ezcaSeverityWarnLevel )
 			mexPrintf("Warning: PV (%s) with alarm status: %s (severity %s)\n",
 						nms[i],
 						alarmStatusString[stat[i]],
 						alarmSeverityString[sevr[i]]);
-		if ( INVALID_ALARM == sevr[i] )
+		/* refuse to return an invalid VAL field */
+		if ( INVALID_ALARM == sevr[i] && ( !(dotp=strrchr(nms[i],'.')) || !strcmp(dotp, ".VAL") )  )
 			dims[i] = 0;
 	}
 

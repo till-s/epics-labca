@@ -1,8 +1,14 @@
-/* $Id: ezcaWrap.c,v 1.12 2003/12/17 20:52:25 till Exp $ */
+/* $Id: ezcaWrap.c,v 1.13 2003/12/22 04:11:32 till Exp $ */
 
 /* SCILAB - EZCA interface */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003 */
+
+#ifndef MACHHACK
+#include <mex.h> /* fortran/C name conversion for scilab */
+#else
+#define C2F(name) name##_
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,11 +17,8 @@
 #include <time.h>
 #include <assert.h>
 
-#ifndef MACHHACK
-#include <mex.h> /* fortran/C name conversion for scilab */
-#else
-#define C2F(name) name##_
-#endif
+
+extern void cerro(const char*);
 
 /* CA includes */
 #include <tsDefs.h> 
@@ -121,7 +124,10 @@ cleanup:
 void
 C2F(ezgetcontrollimits)(char ***nms, int *m, double **plo, double **phi, int *mo)
 {
-MultiArgRec args[2]={ { sizeof(double), 0, (void**)plo }, { sizeof(double), 0, (void**)phi } };
+MultiArgRec args[2];
+
+	MSetArg(args[0], sizeof(double), 0, plo);
+	MSetArg(args[1], sizeof(double), 0, phi);
 
     *mo = multi_ezca_get_misc(*nms, *m, ezcaGetControlLimits, NumberOf(args), args);
 
@@ -130,7 +136,9 @@ MultiArgRec args[2]={ { sizeof(double), 0, (void**)plo }, { sizeof(double), 0, (
 void
 C2F(ezgetgraphiclimits)(char ***nms, int *m, double **plo, double **phi, int *mo)
 {
-MultiArgRec args[]={ { sizeof(double), 0, (void**)plo }, { sizeof(double), 0, (void**)phi } };
+MultiArgRec args[2];
+	MSetArg(args[0], sizeof(double), 0, plo);
+	MSetArg(args[1], sizeof(double), 0, phi);
     *mo = multi_ezca_get_misc(*nms, *m, ezcaGetGraphicLimits, NumberOf(args), args);
 }
 
@@ -138,18 +146,18 @@ void
 C2F(ezgetstatus)(char ***nms, int *m, TimeArg *pre, TimeArg *pim, int *hasImag, int *one, short **sta, short **svr, int *mo)
 {
 TS_STAMP *ts;
-MultiArgRec args[]={
-		{ sizeof(TS_STAMP), 0, (void**)&ts },
-		{ sizeof(short),    0, (void**)sta },
-		{ sizeof(short),    0, (void**)svr },
-		};
+MultiArgRec args[3];
+
+	MSetArg(args[0], sizeof(TS_STAMP), 0, &ts);
+	MSetArg(args[1], sizeof(short),    0, sta);
+	MSetArg(args[2], sizeof(short),    0, svr);
 
     *one = 1;
 
 	if ( timeArgsAlloc(pre,pim,hasImag) )
 		return;
 
-	if ( *mo = multi_ezca_get_misc(*nms, *m, ezcaGetStatus, NumberOf(args), args) )
+	if ( (*mo = multi_ezca_get_misc(*nms, *m, ezcaGetStatus, NumberOf(args), args)) )
 		(*pre)->pts = (*pim)->pts = ts;
 	else
 		timeArgsRelease(pre,pim,hasImag);
@@ -158,9 +166,9 @@ MultiArgRec args[]={
 void
 C2F(ezgetprecision)(char ***nms, int *m, short **prec, int *mo)
 {
-MultiArgRec args[]={
-		{ sizeof(short),    0, (void**)prec },
-		};
+MultiArgRec args[1];
+
+	MSetArg(args[0], sizeof(short), 0, prec);
 
 	*mo = multi_ezca_get_misc(*nms, *m, ezcaGetPrecision, NumberOf(args), args);
 }
@@ -171,16 +179,16 @@ void
 C2F(ezgetunits)(char ***nms, int *m, char ***units, int *mo)
 {
 units_string	*unitsbuf = 0;
-MultiArgRec		args[]={
-		{ sizeof(units_string), 0, (void**)&unitsbuf },
-		};
+MultiArgRec		args[1];
 char			**buf = 0;
 int				i,dim;
+
+	MSetArg(args[0], sizeof(units_string), 0, &unitsbuf);
 
 	*units = 0;
 	*mo    = 0;
 
-	if ( dim = multi_ezca_get_misc(*nms, *m, ezcaGetUnits, NumberOf(args), args) ) {
+	if ( (dim = multi_ezca_get_misc(*nms, *m, ezcaGetUnits, NumberOf(args), args)) ) {
 		if ( !(buf = calloc( *m, sizeof(*buf) )) ) {
 			cerro("no memory");
 			goto cleanup;
@@ -245,15 +253,4 @@ void
 C2F(ezsetseveritywarnlevel)(int *level)
 {
 	ezcaSeverityWarnLevel = *level;
-}
-
-void
-C2F(ezlibinit)(void)
-{
-/* don't print to stderr because that
- * doesn't go to scilab's main window...
- */
-ezcaAutoErrorMessageOff();
-ezcaSetTimeout(0.1);
-ezcaSetRetryCount(40);
 }

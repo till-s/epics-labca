@@ -194,12 +194,6 @@ ezsetseveritywarnlevel level
 level integer
 
 out empty
-***********************
-ezcaLibInit
-
-ezlibinit
-
-out	empty
 **********************************************
 ecdrGet name
 name	string l
