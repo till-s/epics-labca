@@ -1,4 +1,4 @@
-/* $Id: ctrlC-solaris.c,v 1.1 2004/01/28 05:44:58 till Exp $ */
+/* $Id: ctrlC-solaris.c,v 1.2 2004/01/29 05:46:05 till Exp $ */
 
 /* Ctrl-C handling for solaris and linux */
 

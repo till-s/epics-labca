@@ -23,8 +23,8 @@ SHARED_LIBRARIES = YES
 #	Contents of library: generic, special and for all systems
 #
 CTRLC_SRC_WIN32   = ctrlC-win32.c
-CTRLC_SRC_solaris = ctrlC-solaris.c
-CTRLC_SRC_Linux   = ctrlC-solaris.c
+CTRLC_SRC_solaris = ctrlC-sig.c
+CTRLC_SRC_Linux   = ctrlC-sig.c
 
 ifeq ($(CTRLC_SRC_$(ARCH_CLASS))xx,xx)
 CTRLC_SRC_YES = ctrlC-def.c
