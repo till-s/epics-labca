@@ -4,7 +4,7 @@
 %   lcaGet                   - read one or multiple EPICS PVs
 %   lcaPut                   - write one or multiple EPICS PVs
 %   lcaGetNelem              - retrieve max. number of elements of EPICS PVs
-%   lcaGetStatus             - NOT IMPLEMENTED YET (read status, severity and timestamp of EPICS PVs)
+%   lcaGetStatus             - read status, severity and timestamp of EPICS PVs
 %   lcaGetControlLimits      - read control limits of EPICS PVs
 %   lcaGetGraphicLimits      - read graphic limits of EPICS PVs
 %   lcaGetPrecision          - NOT IMPLEMENTED YET (read the display precision associated with EPICS PVs)

@@ -1,4 +1,4 @@
-/* $Id: ezcaGet.c,v 1.4 2004/01/01 01:16:33 till Exp $ */
+/* $Id: lcaGet.c,v 1.5 2004/01/05 19:37:15 till Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -94,7 +94,6 @@ TS_STAMP *ts = 0;
 				MEXERRPRINTF("Not enough memory");
 				goto cleanup;
 			}
-			/* these actually release the timestamps in an obscure way */
 			multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[1]), mxGetPi(plhs[1]) );
 		}
 	}

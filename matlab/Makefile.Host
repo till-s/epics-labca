@@ -25,6 +25,7 @@ SHARED_LIBRARIES = YES
 #
 lcaGetNelem_OBJS             := lcaGetNelem.c
 lcaGet_OBJS                  := lcaGet.c
+lcaGetStatus_OBJS            := lcaGetStatus.c
 lcaPut_OBJS                  := lcaPut.c
 lcaGetControlLimits_OBJS     := lcaGetControlLimits.c
 lcaGetGraphicLimits_OBJS     := lcaGetGraphicLimits.c
@@ -40,6 +41,7 @@ USR_CPPFLAGS += -DMATLAB_APP
 EPICS_INCLUDES += -I$(MATLABDIR)/extern/include
 MEXF := lcaGetNelem
 MEXF += lcaGet
+MEXF += lcaGetStatus
 MEXF += lcaGetGraphicLimits
 MEXF += lcaGetControlLimits
 MEXF += lcaPut
