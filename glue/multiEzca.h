@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.11 2004/01/09 04:10:41 till Exp $ */
+/* $Id: multiEzca.h,v 1.12 2004/01/14 00:06:27 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -77,6 +77,23 @@ typedef int (*MultiEzcaFunc)();
 
 int
 multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args);
+
+unsigned long
+multi_ezca_ctrlC_prologue();
+
+void
+multi_ezca_ctrlC_epilogue(unsigned long);
+
+/* initialize CtrlC handling; must be
+ * called _before_ initializing CA!
+ */
+void
+multi_ezca_ctrlC_initialize();
+
+#if defined(WIN32) || defined(_WIN32)
+int
+multi_ezca_pollCb();
+#endif
 
 #ifdef __cplusplus
 };
