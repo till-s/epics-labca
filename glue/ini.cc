@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ini.cc,v 1.4 2003/12/23 23:15:56 strauman Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -12,9 +12,10 @@ ezlibinit()
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
-mexPrintf("Initializing labca Release '$Name$'...\n");
+mexPrintf((char*)"Initializing labCA Release '$Name:  $'...\n");
+mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 ezcaAutoErrorMessageOff();
-ezcaSetTimeout(0.2);
+ezcaSetTimeout((float)0.2);
 ezcaSetRetryCount(20);
 return 0;
 }
