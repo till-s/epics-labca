@@ -6152,6 +6152,7 @@ int i;
                 rc++;
             } /* endfor */
             rc->next = (struct channel *) NULL;
+			rc->refcnt = 0;
 	    rc->pvname = (char *) NULL;
 	    if (Debug)
 		printf("i = %d rc %p rc->next %p\n", i, rc, rc->next);
