@@ -17,6 +17,7 @@
 \newcommand{\NAN}{\mbox{NaN}}
 \newcommand{\pbrk}{\pagebreak[3]}
 \newcommand{\pbrkf}{\pagebreak}
+\newcommand{\comref}[2]{\hyperref[ref]{\com{#1}}{\com{#1} (see }{ )}{#2}}
 
 \newcommand{\ita}[1]{\emph{#1}}
 
@@ -56,7 +57,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.22 2004/06/20 04:37:11 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.23 2004/06/22 01:02:53 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -240,6 +241,8 @@ they refer to a record's .VAL field.
 }. In addition, warning
 messages are printed to the console if a PV's alarm status exceeds
 a \hyperref[ref]{configurable threshold}{configurable threshold (see }{ )}{swarnlevel}.
+The refusal to read PVs with \ita{INVALID} severity can be tuned using
+the \com{lcaSetSeverityWarnLevel} call as well.
 %
 %
 \item[timestamp] (\ita{optional result}) A \mxl{}
@@ -512,6 +515,9 @@ Set the warning threshold for \com{lcaGet()} operations.
 A warning message is printed when retrieving a PV with a severity bigger
 or equal to the warning level. Supported values are \sevrange{} (No alarm,
 minor alarm, major alarm, invalid alarm). The initial/default value is 3.
+If a value $>=10$ is passed, the threshold for refusing to read the \com{.VAL}
+field of PVs with an \ita{INVALID} severity can be changed. The rejection
+can be switched off completely by passing 14 ($= 10 + INVALID\_ALARM + 1$).
 
 \subsection{lcaClear}
 \label{lcaclear}
@@ -524,11 +530,13 @@ Clear / release (disconnect) channels. This is particularly useful with
 EPICS 3.14 to clean up invalid PVs (e.g., due to typos). Nonexisting PVs are
 continuously searched for by a CA background task which may result
 in cluttered IOC consoles and resource consumption.
+All monitors on the target channel(s) are cancelled/released as a
+consequence of this call.
 \subsubsection{Parameters}
 \begin{description}
 \PVITEM
 Alternatively, \com{lcaClear} may be called with {\em no} rhs argument
-thus clearing {\em all} channels.
+thus clearing {\em all} channels (and monitors).
 \end{description}
 \subsubsection{Examples}
 \begin{verbatim}
@@ -545,6 +553,28 @@ thus clearing {\em all} channels.
 lcaSetMonitor(pvs, nmax, type)
 \end{verbatim}
 \subsubsection{Description}
+Set a ``monitor'' on a set of PVs. Monitored PVs are automatically retrieved
+every time their value or status changes. \sca{} sets an internal flag when
+this happens. Monitors are especially useful under EPICS-3.14 which supports
+multiple threads. EPICS-3.14 transparently reads monitored PVs as needed.
+Older, single threaded versions of EPICS require periodic calls to \sca{}
+e.g., to \comref{lcaDelay}{lcadelay}, in order to allow \sca{} to handle
+monitors.
+
+Use the \comref{lcaNewMonitorValue}{lcanewmonitorvalue} call to check
+monitor status (local flag). If new data are available, they are retrieved using
+the ordinary \comref{lcaGet}{lcaget} call.
+
+Note the difference between polling and monitoring a PV in combination with
+polling the local monitor status flag. In the first case, remote data are fetched
+on every polling cycle whereas in the second case, data are transferred only
+when they change.  Also, in the monitored case, \com{lcaGet} reads from a local
+buffer rather than from the network.
+
+There is currently no possibility to selectively remove a monitor. Use
+the \comref{lcaClear}{lcaclear} call to disconnect a channel and as a side-effect,
+remove all monitors on that channel. Future access to a cleared channel
+simply reestablishes a connection (but no monitors).
 \subsubsection{Parameters}
 \begin{description}
 \PVITEM
@@ -571,9 +601,12 @@ lcaSetMonitor('PV', 20, 's')
 \label{lcanewmonitorvalue}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-lcaNewMonitorValue(pvs, type)
+[flags] = lcaNewMonitorValue(pvs, type)
 \end{verbatim}
 \subsubsection{Description}
+Check if monitored PVs need to be read, i.e, if fresh data are available (e.g., due to
+initial connection or changes in value and/or severity status). Reading the actual
+data must be done using \comref{lcaGet}{lcaget}.
 \subsubsection{Parameters}
 \begin{description}
 \PVITEM
@@ -582,6 +615,13 @@ lcaNewMonitorValue(pvs, type)
 data type to be used for the channel access data transfer. The
 native type is used by default.
 See \hyperref[ref]{here}{(}{)}{typearg} for more information.
+\item[flags]
+Column vector of flag values. A value of zero indicates that no new data are available --
+the monitored PV has not changed since it was last read (i.e., the data {\em not the flag}).
+A value of one indicates that new data are available for reading (\com{lcaGet}). A negative
+The flag value can be negative, indicating a problem e.g., non-existing PV, no connection,
+no monitor established (\comref{lcaSetMonitor}{lcasetmonitor} never called for this
+PV/data type).
 \end{description}
 \subsubsection{Examples}
 \begin{verbatim}
@@ -601,7 +641,7 @@ to handle channel access activity (monitors).
 are transparently handled by separate threads. These ``worker threads''
 receive data from CA on monitored channels ``in the background'' while
 \scilab{}/\matlab{} are processing. You only need to poll the library
-if the data are ready (using {\tt lcaNewMonitorValue()}).
+if the data are ready (using \comref{lcaNewMonitorValue()}{lcanewmonitorvalue}).
 
 Under 3.13, however, the user must periodically call {\tt lcaDelay()} or
 an other  \sca{} routine in order to yield the CPU to the channel access
@@ -613,7 +653,7 @@ A timeout value in seconds.
 \end{description}
 \subsubsection{Examples}
 \begin{verbatim}
-lcaTimeout(2.0)
+lcaDelay(2.0)
 \end{verbatim}
 
 \pbrkf
