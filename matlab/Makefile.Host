@@ -72,14 +72,6 @@ SCRIPTS+=$(notdir $(MATDOCS))
 
 EXE = $(MEXEXT)
 
-ifeq ($(ARCH_CLASS),WIN32)
-MEX=win32/mex.bat
-MEXFLAGS=
-else
-MEX=mex
-MEXFLAGS=-cxx
-endif
-
 #       Library to build:
 #       lib$(LIBRARY).a  or   ..dll/..exp/..lib
 #
@@ -110,7 +102,7 @@ $(notdir $(MATDOCS)):%.m:$(TOP)/documentation/help/%.m
 	$(CP) $^ $@
 
 %$(MEXEXT): %.c
-	$(MATLABDIR)/bin/$(MEX) $(MEXFLAGS) $(CPPFLAGS) $^ $(INCLUDES) $(sort $(USR_DIRS:%=-L%)) $(LDLIBS)
+	$(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(CPPFLAGS) $^ $(INCLUDES) $(sort $(USR_DIRS:%=-L%)) $(LDLIBS)
 
 buildInstall::
 	echo $(MATDOCS)
