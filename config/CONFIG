@@ -6,6 +6,17 @@
 
 MAKEFOR=SCILAB
 
+# Enable Ctrl-C handling so you can interrupt
+# lcaGet/lcaPut by hitting Ctrl-C.
+#
+# Note that this is _very_ cumbersome and involves
+# quite a few system and application dependent
+# hacks because neither scilab nor matlab offer an
+# API for this.
+# You can try it -- if you run into problems (e.g.
+# crashes/aborts) disable this feature...
+CONFIG_USE_CTRLC=NO
+
 # optionally, set installation top directory
 #INSTALL_LOCATION=/install/everything/here
 
