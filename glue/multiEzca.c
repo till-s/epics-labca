@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.10 2004/01/01 01:18:29 till Exp $ */
+/* $Id: multiEzca.c,v 1.11 2004/01/05 19:37:12 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -44,6 +44,9 @@ static unsigned long mynan[2] = { 0xffffffff, 0x7fffffff };
 
 /* GLOBAL VARIABLES */
 int ezcaSeverityWarnLevel = INVALID_ALARM;
+
+/* FWD DECLS        */
+static char * my_strdup(const char *str);
 
 #undef TESTING
 
@@ -213,9 +216,9 @@ int rval = EZCA_OK;
 
 
 /* our 'strdup' implementation (*IMPORTANT*, in order for the matlab implementation using mxMalloc!!)
- * also, strdup is no POSIX...
+ * also, strdup is not POSIX...
  */
-char *
+static char *
 my_strdup(const char *str)
 {
 char *rval = 0;
@@ -247,16 +250,6 @@ epicsTimeToTimespec(struct timespec *tspec, TS_STAMP *tstamp)
 }
 
 #endif
-
-/* scilab external type converters */
-
-void C2F(cshortf)(int *n, short *ip[], double *op)
-{
-int i;
-	for ( i=0; i<*n; i++ )
-		op[i]=(double)(*ip)[i];
-	free((void*)*ip);
-}
 
 /* convert timestamps into complex array */
 

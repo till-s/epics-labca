@@ -6,7 +6,6 @@ alarmSeverityString
 alarmStatusString
 ezcaSeverityWarnLevel
 buildPVs
-cshortf
 marg2ezcaType
 multi_ezca_get
 multi_ezca_get_misc

@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.8 2004/01/01 01:15:41 till Exp $ */
+/* $Id: multiEzca.h,v 1.9 2004/01/05 19:37:12 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -36,10 +36,6 @@ extern int ezcaSeverityWarnLevel;
 
 /* MACROS */
 #define NumberOf(arr) (sizeof(arr)/sizeof(arr[0]))
-
-/* scilab external type converters */
-
-void C2F(cshortf)(int *n, short *ip[], double *op);
 
 /* extra hacking - we store time into a complex number.
  * convert an array of timestamps into two arrays of 
