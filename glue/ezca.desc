@@ -74,6 +74,18 @@ svr	integer
 
 out	sequence ts sta svr
 ***********************
+ezcaStartGroup
+
+ezcaStartGroup
+
+out	empty
+***********************
+ezcaEndGroup
+
+ezcaEndGroup
+
+out	empty
+***********************
 ezcaDebugOn
 
 ezcaDebugOn

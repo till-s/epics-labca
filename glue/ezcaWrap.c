@@ -93,6 +93,20 @@ C2F(ezcadebugoff)(void)
 }
 
 void
+C2F(ezcastartgroup)(void)
+{
+	if (ezcaStartGroup())
+		ezErr("ezcaStartGroup");
+}
+
+void
+C2F(ezcaendgroup)(void)
+{
+	if (ezcaEndGroup())
+		ezErr("ezcaEndGroup");
+}
+
+void
 C2F(ezcalibinit)(void)
 {
 /* don't print to stderr because that
