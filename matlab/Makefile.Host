@@ -79,7 +79,8 @@ endif
 #
 
 # need additional libs
-PROD_LIBS := mezcaglue ezcamt ca Com
+PROD_LIBS := mezcaglue ezcamt
+# ca Com
 
 mezcaglue_DIR := $(INSTALL_LIB)
 ezcamt_DIR := $(INSTALL_LIB)

@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.13 2004/03/01 19:36:24 till Exp $ */
+/* $Id: mglue.c,v 1.14 2004/03/23 23:52:11 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -144,7 +144,7 @@ char	**pstr = 0;
 int     i, m = 0, n = 0;
 int		rval;
 const	mxArray *tmp, *strval;
-PVs     pvs = { 0 };
+PVs     pvs = { {0}, };
 char	type = ezcaNative;
 mxArray *dummy = 0;
 	
