@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ezcaWrap.c,v 1.8 2003/11/25 02:43:36 till Exp $ */
 
 /* SCILAB - EZCA interface */
 
@@ -37,6 +37,17 @@ static int ezcaSeverityWarnLevel = INVALID_ALARM;
 
 #define EZCA_BUG_FIXED 1 /* patch applied */
 
+#if EZCA_BUG_FIXED
+#define EZCA_START_NELEM_GROUP()	ezcaStartGroup()
+#define EZCA_END_NELEM_GROUP()		ezcaEndGroup()
+#else
+/* EZCA Bug: ezcaGetNelem() doesn't work in grouped mode :-( */
+#define EZCA_START_NELEM_GROUP()	(0)
+#define EZCA_END_NELEM_GROUP()		(0)
+#endif
+
+
+
 /* in TESTING mode, we fake a couple of ezca routines for debugging
  * conversion and packing issues
  */
@@ -47,6 +58,7 @@ int j;
 	printf("%30s:",name);
 	for (j=0; j<nelms; j++)
 			switch(type) {
+				case ezcaByte:   printf(" %i", ((char*)bufp)[j]); break;
 				case ezcaShort:  printf(" %i", ((short*)bufp)[j]); break;
 				case ezcaLong:   printf(" %i", ((long*)bufp)[j]); break;
 				case ezcaFloat:  printf(" %g", ((float*)bufp)[j]); break;
@@ -152,6 +164,7 @@ unsigned idx,i;
 	}
 	for (i=0; i<nelms; i++)
 	switch (type) {
+		case ezcaByte:   ((char*)bufp)[i]  =tstSht[3*idx+i]; break;
 		case ezcaShort:  ((short*)bufp)[i] =tstSht[3*idx+i]; break;
 		case ezcaLong:   ((long*)bufp)[i]  =tstLng[3*idx+i]; break;
 		case ezcaFloat:  ((float*)bufp)[i] =tstFlt[3*idx+i]; break;
@@ -255,6 +268,7 @@ ezErr(char *nm)
 static int typesize(int type)
 {
 	switch (type) {
+		case ezcaByte:		return sizeof(char);
 		case ezcaShort:		return sizeof(short);
 		case ezcaLong:		return sizeof(long);
 		case ezcaFloat:		return sizeof(float);
@@ -264,6 +278,28 @@ static int typesize(int type)
 	}
 	assert(!"must never get here");
 	return -1;
+}
+
+static char nativeNumType(char *pv)
+{
+chid *pid;
+
+	if ( EZCA_OK == ezcaPvToChid( pv, &pid ) && pid ) {
+		switch( ca_field_type(*pid) ) {
+			default:	/* includes TYPE_NOTCONN */
+				             break;
+
+			case DBF_CHAR:   return ezcaByte;
+
+			/*	case DBF_INT: */
+			case DBF_SHORT:  return ezcaShort;
+
+			case DBF_LONG:   return ezcaLong;
+			case DBF_FLOAT:  return ezcaFloat;
+			case DBF_DOUBLE: return ezcaDouble;
+		}
+	}
+	return ezcaFloat;
 }
 
 /* transpose and convert a matrix */
@@ -283,12 +319,22 @@ static int typesize(int type)
 	} \
 	}
 
+/* for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) */
+#define CVTVEC(Forttyp, check, Ctyp, assign)			\
+	{ Ctyp *cpt = (Ctyp*)bufp; Forttyp *fpt = (Forttyp*)fbuf + i;	\
+		for ( j = 0; j<n && !(check) ; j++, cpt++, fpt+=m ) {	\
+			assign;	\
+		}	\
+		dims[i] = j; \
+	}
+
 static void
 multi_ezca_put(char **nms, char type, void *fbuf, int m, int n)
 {
-void          *cbuf = 0;
-int           *dims = 0;
-int           rowsize;
+void          *cbuf  = 0;
+int           *dims  = 0;
+char		  *types = 0;
+int           rowsize,typesz;
 
 register int  i,j;
 register char *bufp;
@@ -296,21 +342,60 @@ register char *bufp;
 	/* get buffers; since we do asynchronous processing, we
 	 * need to buffer the full array - we cannot do it row-wise
 	 */
+	if ( !(dims  = malloc( m * sizeof(*dims) )) ||
+	     !(types = malloc( m * sizeof(*types) )) ) {
+		cerro("multi_ezca_put: not enough memory");
+		goto cleanup;
+	}
 
-	rowsize = n * typesize(type);
 
-	if ( !(cbuf = malloc( m * rowsize )) || !(dims = malloc(sizeof(*dims) * m)) ) {
+#if EZCA_BUG_FIXED
+	/* PvToChid is non-groupable; hence we request all 'nelms'
+     * hoping that batching ca connects is faster than looping
+     * through a number of PvToChids
+     */
+	if ( type < 0 ) {
+		EZCA_START_NELEM_GROUP();
+
+			for ( i=0; i<m; i++) {
+				if ( ezcaGetNelem( nms[i], dims+i ) ) {
+					ezErr("ezcaGetNelem");
+					goto cleanup;
+				}
+			}
+
+		if ( EZCA_END_NELEM_GROUP() ) {
+			ezErr("ezcaGetNelem");
+			goto cleanup;
+		}
+	}
+#endif
+
+	typesz = 0;
+	for ( i=0; i<m; i++ ) {
+		int tmp;
+		types[i] = type >=0 ? type : nativeNumType(nms[i]);
+		if ( (tmp = typesize(types[i])) > typesz ) {
+			typesz = tmp;
+		}
+	}
+
+	rowsize = n * typesz;
+
+	if ( !(cbuf  = malloc( m * rowsize )) ) {
 		cerro("multi_ezca_put: not enough memory");
 		goto cleanup;
 	}
 
 	/* transpose and convert */
-	switch ( type ) {
-		case ezcaShort:   XPOSECVT( double, isnan(*fpt), short,  *cpt=*fpt ); break;
-		case ezcaLong :   XPOSECVT( double, isnan(*fpt), long,   *cpt=*fpt ); break;
-		case ezcaFloat:   XPOSECVT( double, isnan(*fpt), float,  *cpt=*fpt ); break;
-		case ezcaDouble:  XPOSECVT( double, isnan(*fpt), double, *cpt=*fpt ); break;
-		case ezcaString:  XPOSECVT( char*,
+	for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) {
+	switch ( types[i] ) {
+		case ezcaByte:    CVTVEC( double, isnan(*fpt), char,   *cpt=*fpt ); break;
+		case ezcaShort:   CVTVEC( double, isnan(*fpt), short,  *cpt=*fpt ); break;
+		case ezcaLong :   CVTVEC( double, isnan(*fpt), long,   *cpt=*fpt ); break;
+		case ezcaFloat:   CVTVEC( double, isnan(*fpt), float,  *cpt=*fpt ); break;
+		case ezcaDouble:  CVTVEC( double, isnan(*fpt), double, *cpt=*fpt ); break;
+		case ezcaString:  CVTVEC( char*,
 								    (!*fpt || !**fpt),
 									dbr_string_t,
 									if ( strlen(*fpt) >= sizeof(dbr_string_t) ) { \
@@ -321,17 +406,19 @@ register char *bufp;
 									);
 						  break;
 	}
+	}
 
 	ezcaStartGroup();
 
 		for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize ) {
-			ezcaPut(nms[i], type, dims[i], bufp);
+			ezcaPut(nms[i], types[i], dims[i], bufp);
 		}
 
 	if (ezcaEndGroup())
 		ezErr("multi_ezca_put");
 
 cleanup:
+	free(types);
 	free(cbuf);
 	free(dims);
 }
@@ -339,19 +426,21 @@ cleanup:
 static int
 multi_ezca_get(char **nms, char type, void **pres, int m, int *pn, TimeArg *pre, TimeArg *pim, int *hasImag)
 {
-void          *cbuf = 0;
-void          *fbuf = 0;
-int           *dims = 0;
-short         *stat = 0;
-short         *sevr = 0;
-int           rval  = 0;
-int           rowsize;
-int tsill=0;
-
-TS_STAMP      *ts   = 0;
+void          *cbuf  = 0;
+void          *fbuf  = 0;
+int           *dims  = 0;
+short         *stat  = 0;
+short         *sevr  = 0;
+int           rval   = 0;
+char          *types = 0;
+TS_STAMP      *ts    = 0;
+int           rowsize,typesz,nreq;
+chid		  *pid;
 
 register int  i,j,n;
 register char *bufp;
+
+	nreq  = *pn;
 
 	*pn   = 0;
 	*pres = 0;
@@ -361,36 +450,44 @@ register char *bufp;
 	/* get buffers; since we do asynchronous processing, we
 	 * need to buffer the full array - we cannot do it row-wise
 	 */
-	if ( !(dims = calloc( m , sizeof(*dims) )) ) {
+	if ( !(dims = calloc( m , sizeof(*dims) )) || !(types = malloc( m * sizeof(*types) )) ) {
 		cerro("multi_ezca_get: not enough memory");
 		goto cleanup;
 	}
 
 	/* obtain target array sizes */
-	/* EZCA Bug: ezcaGetNelem() doesn't work in grouped mode :-( */
-#if EZCA_BUG_FIXED
-	ezcaStartGroup();
-		for ( i=0; i<m; i++)
-			ezcaGetNelem( nms[i], dims+i );
-	if ( ezcaEndGroup() ) {
+	EZCA_START_NELEM_GROUP();
+
+		for ( i=0; i<m; i++) {
+			if ( ezcaGetNelem( nms[i], dims+i ) ) {
+				ezErr("ezcaGetNelem");
+				goto cleanup;
+			}
+		}
+
+	if ( EZCA_END_NELEM_GROUP() ) {
 		ezErr("ezcaGetNelem");
 		goto cleanup;
 	}
-#else
-	for ( i=0; i<m; i++) {
-		if ( ezcaGetNelem( nms[i], dims+i ) ) {
-			ezErr("ezcaGetNelem");
-			goto cleanup;
-		}
-	}
-#endif
 
+	typesz = 0;
 	for ( n=i=0; i<m; i++) {
-		if ( dims[i] > n ) n = dims[i];
+		int tmp;
+
+		/* clip to requested n */
+		if ( dims[i] > nreq )
+			dims[i] = nreq;
+
+		if ( dims[i] > n )
+			n = dims[i];
+		/* nativeNumType uses ezcaPvToChid() which is non-groupable */
+		types[i] = type >= 0 ? type : nativeNumType( nms[i] );
+
+		if ( (tmp = typesize(types[i])) > typesz )
+			typesz = tmp;
 	}
 
-
-	rowsize = n * typesize(type);
+	rowsize = n * typesz;
 
 	if ( !(cbuf = malloc( m * rowsize ))          ||
 		 !(stat = calloc( m,  sizeof(*stat)))     ||
@@ -404,7 +501,7 @@ register char *bufp;
 	/* get the values along with status */
 	ezcaStartGroup();
 		for ( i=0, bufp=cbuf; i<m; i++, bufp+=rowsize ) {
-			if ( ezcaGetWithStatus(nms[i],type,dims[i], bufp,ts + i,stat+i,sevr+i) ) {
+			if ( ezcaGetWithStatus(nms[i],types[i],dims[i], bufp,ts + i,stat+i,sevr+i) ) {
 				ezErr("multi_ezca_get");
 				goto cleanup;
 			}
@@ -447,36 +544,44 @@ register char *bufp;
 	}
 
 	/* transpose and convert */
-	switch ( type ) {
-			case ezcaShort:   XPOSECVT( double,
+	for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) {
+	switch ( types[i] ) {
+			case ezcaByte:   CVTVEC( double,
+										(0),
+										char,
+										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
+							  );
+							  break;
+
+			case ezcaShort:   CVTVEC( double,
 										(0),
 										short,
 										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
 							  );
 							  break;
 
-			case ezcaLong :   XPOSECVT( double,
+			case ezcaLong :   CVTVEC( double,
 										(0),
 										long,
 										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
 							  );
 							  break;
 
-			case ezcaFloat:   XPOSECVT( double,
+			case ezcaFloat:   CVTVEC( double,
 										(0),
 										float,
 										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
 							  );
 							  break;
 
-			case ezcaDouble:  XPOSECVT( double,
+			case ezcaDouble:  CVTVEC( double,
 										(0),
 										double,
 										*fpt= j>=dims[i] || INVALID_ALARM == sevr[i] ? NAN : *cpt
 							  );
 							  break;
 
-			case ezcaString:  XPOSECVT( char *,
+			case ezcaString:  CVTVEC( char *,
 										(0),
 										dbr_string_t,
 										do {  \
@@ -495,6 +600,7 @@ register char *bufp;
 							  );
 							  break;
 	}
+	}
 
 	*pres = fbuf; fbuf  = 0;
 	(*pre)->pts = (*pim)->pts = ts; ts = 0;
@@ -510,6 +616,7 @@ cleanup:
 	free(fbuf);
 	free(cbuf);
 	free(dims);
+	free(types);
 	free(stat);
 	free(sevr);
 	if ( ts ) {
@@ -628,11 +735,11 @@ cleanup:
 }
 
 void
-C2F(ezget)(char ***nms, int *m, char *type, double **buf, int *mo, int *n, TimeArg *pre, TimeArg *pim, int *hasImag, int *one)
+C2F(ezget)(char ***nms, int *m, int *n, char *type, double **buf, int *mo, int *no, TimeArg *pre, TimeArg *pim, int *hasImag, int *one)
 {
 char typenum = ezcaDouble;
 
-	*n   = 0;
+	*no  = 0;
 	*buf = 0;
 	*mo  = 0;
 
@@ -647,22 +754,27 @@ char typenum = ezcaDouble;
 	switch ( toupper(type[0]) ) {
 		case 'D': typenum = ezcaDouble; break;
 		case 'F': typenum = ezcaFloat;  break;
-		case 'S': typenum = ezcaShort;  break;
 		case 'L': typenum = ezcaLong;   break;
+		case 'S': typenum = ezcaShort;  break;
+		case 'B': typenum = ezcaByte;   break;
+		case 'N': typenum = -1;			break;
 
 		default: 
-			cerro("Invalid type - must be 'short', 'long', 'float' or 'double'");
+			cerro("Invalid type - must be 'byte', 'short', 'long', 'float' or 'double'");
 		return;
 	}
 
-	*mo = multi_ezca_get(*nms, typenum, (void**)buf, *m, n, pre, pim, hasImag);
+	*no = *n;
+
+	*mo = multi_ezca_get(*nms, typenum, (void**)buf, *m, no, pre, pim, hasImag);
 }
 
 void
-C2F(ezgetstring)(char ***nms, int *m, char ***buf, int *mo, int *n, TimeArg *pre, TimeArg *pim, int *hasImag, int *one)
+C2F(ezgetstring)(char ***nms, int *m, int *n, char ***buf, int *mo, int *no, TimeArg *pre, TimeArg *pim, int *hasImag, int *one)
 {
 	*one = 1;
-	*mo = multi_ezca_get(*nms, ezcaString, (void**)buf, *m, n, pre, pim, hasImag);
+	*no = *n;
+	*mo = multi_ezca_get(*nms, ezcaString, (void**)buf, *m, no, pre, pim, hasImag);
 }
 
 
@@ -672,13 +784,15 @@ C2F(ezput)(char ***nms, int *m, char *type, double *val, int *n)
 char typenum;
 
 	switch ( toupper(type[0]) ) {
+		case 'B':	typenum = ezcaByte;   break;
 		case 'S':	typenum = ezcaShort;  break;
 		case 'L':	typenum = ezcaLong;   break;
 		case 'F':	typenum = ezcaFloat;  break;
 		case 'D':	typenum = ezcaDouble; break;
+		case 'N':   typenum = -1;	      break; /* use native type */
 
 		default:
-			cerro("Invalid type - must be 'short', 'long', 'float' or 'double'");
+			cerro("Invalid type - must be 'byte', 'short', 'long', 'float' or 'double'");
 		return;
 	}
 
