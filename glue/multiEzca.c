@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.12 2004/01/06 20:37:33 till Exp $ */
+/* $Id: multiEzca.c,v 1.13 2004/01/09 04:10:41 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <time.h>
 #include <assert.h>
 #include <math.h>
 
@@ -231,9 +230,11 @@ char *rval = 0;
 
 #if (EPICS_VERSION < 3 || (EPICS_VERSION == 3 && EPICS_REVISION < 14))
 
+#include <unistd.h>
 #include <time.h>
 
-#if defined(WIN32) || defined(_WIN32)
+#if !defined(_POSIX_TIMERS)
+/* compiler flags may need to define -D_POSIX_C_SOURCE=199506L */
 struct timespec {
     time_t tv_sec; /* seconds since some epoch */
     long tv_nsec; /* nanoseconds within the second */
