@@ -22,8 +22,21 @@ SHARED_LIBRARIES = YES
 #
 #	Contents of library: generic, special and for all systems
 #
+CTRLC_SRC_WIN32   = ctrlC-win32.c
+CTRLC_SRC_solaris = ctrlC-solaris.c
+CTRLC_SRC_Linux   = ctrlC-linux.c
 
-LIBSRCS := multiEzca.c ecget.c ini.cc ctrlC.c
+ifeq ($(CTRLC_SRC_$(ARCH_CLASS))xx,xx)
+CTRLC_SRC_YES = ctrlC-def.c
+else
+CTRLC_SRC_YES = $(CTRLC_SRC_$(ARCH_CLASS))
+endif
+CTRLC_SRC_NO  = ctrlC-def.c
+CTRLC_CFLAGS_NO = -DCTRLC_DISABLED
+
+CFLAGS += $(CTRLC_CFLAGS_$(CONFIG_USE_CTRLC))
+
+LIBSRCS := multiEzca.c ecget.c ini.cc $(CTRLC_SRC_$(CONFIG_USE_CTRLC))
 
 # on generic system
 ifeq ($(MAKEFOR),MATLAB)
