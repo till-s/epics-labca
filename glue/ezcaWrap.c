@@ -1,4 +1,4 @@
-/* $Id: ezcaWrap.c,v 1.15 2003/12/23 22:08:34 till Exp $ */
+/* $Id: ezcaWrap.c,v 1.16 2003/12/23 23:15:56 strauman Exp $ */
 
 /* SCILAB - EZCA interface */
 
@@ -129,7 +129,7 @@ MultiArgRec args[2];
 	MSetArg(args[0], sizeof(double), 0, plo);
 	MSetArg(args[1], sizeof(double), 0, phi);
 
-    *mo = multi_ezca_get_misc(*nms, *m, ezcaGetControlLimits, NumberOf(args), args);
+    *mo = multi_ezca_get_misc(*nms, *m, (MultiEzcaFunc)ezcaGetControlLimits, NumberOf(args), args);
 
 }
 
@@ -139,7 +139,7 @@ C2F(ezgetgraphiclimits)(char ***nms, int *m, double **plo, double **phi, int *mo
 MultiArgRec args[2];
 	MSetArg(args[0], sizeof(double), 0, plo);
 	MSetArg(args[1], sizeof(double), 0, phi);
-    *mo = multi_ezca_get_misc(*nms, *m, ezcaGetGraphicLimits, NumberOf(args), args);
+    *mo = multi_ezca_get_misc(*nms, *m, (MultiEzcaFunc)ezcaGetGraphicLimits, NumberOf(args), args);
 }
 
 void
@@ -157,7 +157,7 @@ MultiArgRec args[3];
 	if ( timeArgsAlloc(pre,pim,hasImag) )
 		return;
 
-	if ( (*mo = multi_ezca_get_misc(*nms, *m, ezcaGetStatus, NumberOf(args), args)) )
+	if ( (*mo = multi_ezca_get_misc(*nms, *m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args)) )
 		(*pre)->pts = (*pim)->pts = ts;
 	else
 		timeArgsRelease(pre,pim,hasImag);
@@ -170,7 +170,7 @@ MultiArgRec args[1];
 
 	MSetArg(args[0], sizeof(short), 0, prec);
 
-	*mo = multi_ezca_get_misc(*nms, *m, ezcaGetPrecision, NumberOf(args), args);
+	*mo = multi_ezca_get_misc(*nms, *m, (MultiEzcaFunc)ezcaGetPrecision, NumberOf(args), args);
 }
 
 typedef char units_string[EZCA_UNITS_SIZE];
@@ -188,7 +188,7 @@ int				i,dim;
 	*units = 0;
 	*mo    = 0;
 
-	if ( (dim = multi_ezca_get_misc(*nms, *m, ezcaGetUnits, NumberOf(args), args)) ) {
+	if ( (dim = multi_ezca_get_misc(*nms, *m, (MultiEzcaFunc)ezcaGetUnits, NumberOf(args), args)) ) {
 		if ( !(buf = calloc( *m, sizeof(*buf) )) ) {
 			cerro("no memory");
 			goto cleanup;
