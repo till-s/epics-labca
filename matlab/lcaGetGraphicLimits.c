@@ -1,3 +1,11 @@
+/* $Id$ */
+
+/* matlab wrapper for ezcaGetGraphicLimits */
+
+/* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003  */
+
+/* LICENSE: EPICS open license, see ../LICENSE file */
+
 #include "mglue.h"
 #include "multiEzca.h"
 

@@ -1,3 +1,11 @@
+/* $Id$ */
+
+/* matlab wrapper for ecget */
+
+/* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003  */
+
+/* LICENSE: EPICS open license, see ../LICENSE file */
+
 #include <mglue.h>
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
