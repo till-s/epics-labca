@@ -28,11 +28,26 @@ ezcaPut_OBJS              := ezcaPut.c
 ezcaGetControlLimits_OBJS := ezcaGetControlLimits.c
 ezcaGetGraphicLimits_OBJS := ezcaGetGraphicLimits.c
 ecget_OBJS                := ecget.c
+ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
+ezcaSetRetryCount_OBJS    := ezcaSetRetryCount.c
+ezcaGetTimeout_OBJS       := ezcaGetTimeout.c
+ezcaSetTimeout_OBJS       := ezcaSetTimeout.c
 
 # on generic system
 USR_CPPFLAGS += -DMATLAB_APP
 EPICS_INCLUDES += -I$(MATLABDIR)/extern/include
-PROD := ezcaGetNelem ezcaGet ezcaGetGraphicLimits ezcaGetControlLimits ezcaPut ecget
+PROD := ezcaGetNelem
+PROD += ezcaGet
+PROD += ezcaGetGraphicLimits
+PROD += ezcaGetControlLimits
+PROD += ezcaPut
+PROD += ezcaGetRetryCount
+PROD += ezcaSetRetryCount
+PROD += ezcaGetTimeout
+PROD += ezcaSetTimeout
+PROD += ecget
+ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
+ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
 EXE = $(MEXEXT_$(ARCH_CLASS))
 
 ifeq ($(ARCH_CLASS),WIN32)
