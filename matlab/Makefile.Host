@@ -48,7 +48,7 @@ PROD += ezcaSetTimeout
 PROD += ecget
 ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
 ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
-EXE = $(MEXEXT_$(ARCH_CLASS))
+EXE = $(MEXEXT)
 
 ifeq ($(ARCH_CLASS),WIN32)
 MEX=win32/mex.bat
