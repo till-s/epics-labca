@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.2 2003/12/12 10:28:22 till Exp $ */
+/* $Id: multiEzca.c,v 1.3 2003/12/17 20:52:26 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -11,6 +11,12 @@
 #include <time.h>
 #include <assert.h>
 #include <math.h>
+
+#if defined(WIN32) || defined(_WIN32)
+#include <float.h>
+#define isnan _isnan
+extern int _isnan(double);
+#endif
 
 #ifndef MACHHACK
 #include <mex.h> /* fortran/C name conversion for scilab */
@@ -26,7 +32,14 @@
 #include <ezca.h>
 #include <alarm.h>
 #include <alarmString.h>
+#include <epicsVersion.h>
 
+#if defined(WIN32) || defined(_WIN32) 
+static unsigned long mynan[2] = { 0xffffffff, 0x7fffffff };
+#define NAN (*(double*)mynan)
+#else
+#define NAN (0./0.)
+#endif
 
 /* GLOBAL VARIABLES */
 int ezcaSeverityWarnLevel = INVALID_ALARM;
@@ -183,7 +196,7 @@ unsigned idx,i;
 static int do_end_group(int *dims, int m, int **prcs)
 {
 int nrcs,i;
-int rval = EZCA_OK, tmp;
+int rval = EZCA_OK;
 	if ( prcs ) {
 		rval = ezcaEndGroupWithReport(prcs, &nrcs);
 		assert(nrcs == m);
@@ -240,7 +253,7 @@ TimeArg re = 0, im = 0;
 
 	*phasImag = 1;
 
-	if ( rval =  !( re = calloc( 1, sizeof(*re) )) || (*phasImag && !( im = calloc( 1, sizeof( *im ) ) )) ) {
+	if ( (rval =  !( re = calloc( 1, sizeof(*re) )) || (*phasImag && !( im = calloc( 1, sizeof( *im ) ) ))) ) {
 		cerro("timeArgsAlloc: no memory");
 		goto cleanup;
 	}
@@ -262,7 +275,7 @@ cleanup:
 	return rval;
 }
 
-int
+void
 timeArgsRelease(TimeArg *pre, TimeArg *pim, int *phasImag)
 {
 	if ( (*pre) ) {
@@ -380,7 +393,7 @@ int i;
 /* for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) */
 #define CVTVEC(Forttyp, check, Ctyp, assign)			\
 	{ Ctyp *cpt = (Ctyp*)bufp; Forttyp *fpt = (Forttyp*)fbuf + (mo > 1 ? i : 0);	\
-		for ( j = 0; j<n && !(check) ; j++, cpt++, fpt+=mo ) { \
+		for ( ; j<n && !(check) ; j++, cpt++, fpt+=mo ) { \
 			assign;	\
 		}	\
 	}
@@ -393,7 +406,7 @@ int           *dims  = 0;
 char		  *types = 0;
 int           rowsize,typesz;
 
-register int  i,j;
+register int  i;
 register char *bufp;
 
 	if ( mo != 1 && mo != m ) {
@@ -442,6 +455,7 @@ register char *bufp;
 
 	/* transpose and convert */
 	for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) {
+	int j = 0;
 	switch ( types[i] ) {
 		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), char,   *cpt=*fpt ); break;
 		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), short,  *cpt=*fpt ); break;
@@ -491,9 +505,8 @@ char          *types = 0;
 TS_STAMP      *ts    = 0;
 int           rowsize,typesz,nreq;
 int           mo     = m;
-chid		  *pid;
 
-register int  i,j,n;
+register int  i,n = 0;
 register char *bufp;
 
 	nreq  = *pn;
@@ -587,6 +600,7 @@ register char *bufp;
 
 	/* transpose and convert */
 	for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) {
+	int j = 0;
 	switch ( types[i] ) {
 			case ezcaByte:   CVTVEC( double,
 										(0),
@@ -665,7 +679,7 @@ int
 multi_ezca_get_misc(char **nms, int m, int (*ezcaProc)(), int nargs, MultiArg args)
 {
 int		rval = 0;
-int		i,sz;
+int		i;
 char	*bufp0;
 char	*bufp1;
 char	*bufp2;
@@ -769,3 +783,16 @@ cleanup:
 	}
 	return rval;
 }
+
+#if (EPICS_VERSION < 3 || (EPICS_VERSION == 3 && EPICS_REVISION < 14))
+
+/* provide bogus epicsTimeToTimespec */
+void
+epicsTimeToTimespec(struct timespec *tspec, TS_STAMP *tstamp)
+{
+	mexPrintf("WARNING: epicsTimeToTimespec not implemented\n");
+	tspec->tv_sec = 0;
+	tspec->tv_nsec = 0;
+}
+
+#endif
