@@ -50,7 +50,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.12 2004/01/07 01:19:53 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.13 2004/01/09 04:09:55 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -426,6 +426,7 @@ of strings holding the PV EGUs.
 \end{description}
 
 \subsection{lcaGetRetryCount, lcaSetRetryCount}
+\label{retrycnt}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
 currentRetryCount = lcaGetRetryCount()
@@ -433,10 +434,13 @@ lcaSetRetryCount(newRetryCount)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve / set the \ezca{} library retryCount parameter (consult the \ezca{}
-documentation for more information).
-
+documentation for more information). The retry count multiplied by the
+\hyperref[ref]{timeout parameter}{timeout parameter (see }{ )}{timeout}
+determines the maximum time the interface waits for connections and data
+transfers, respectively.
 
 \subsection{lcaGetTimeout, lcaSetTimeout}
+\label{timeout}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
 currentTimeout = lcaGetTimeout()
@@ -444,8 +448,11 @@ lcaSetTimeout(newTimeout)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve / set the \ezca{} library timeout parameter (consult the \ezca{}
-documentation for more information).
-
+documentation for more information). Note that the timeout parameter is
+actually the {\em minimum} timeout the library pends for activity. The
+{\em maximal} time spent waiting for connections and/or data equals the
+timeout multiplied by the
+\hyperref[ref]{retry count}{retry count (see }{ )}{retrycnt}.
 \subsection{lcaDebugOn, lcaDebugOff}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
