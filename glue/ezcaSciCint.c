@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.11 2004/01/29 05:42:29 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.12 2004/02/11 18:51:53 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -77,9 +77,9 @@ static int intsezcaGet(char *fname)
 int mpvs, mtmp, ntmp, itmp, jtmp;
 void *buf       = 0;
 TS_STAMP  *ts   = 0;
-char  **pvs;
-int	n    = 0;
-char   type  = ezcaNative;
+char     **pvs;
+int	n           = 0;
+char      type  = ezcaNative;
 
 	CheckRhs(1,3);
 	CheckLhs(1,2);
@@ -127,12 +127,12 @@ char   type  = ezcaNative;
 		if ( ezcaString == type ) {
 			FreeRhsSVar(((char**)buf));
 		} else {
-			FreePtr(&buf);
+			free(buf);
 		}
  	}
 
 	if ( ts ) {
-		FreePtr( &ts );
+		free(ts);
 	}
 
 	return 0;
@@ -178,7 +178,7 @@ char type  = ezcaNative;
 	return 0;
 }
 
-int intsezcaGetNelem(char *fname)
+static int intsezcaGetNelem(char *fname)
 {
 int m,n,i;
 char  **pvs;
@@ -195,7 +195,7 @@ char  **pvs;
  	return 0;
 }
 
-int intsezcaGetControlLimits(char *fname)
+static int intsezcaGetControlLimits(char *fname)
 {
 int m,n,d1,d2;
 char **pvs;
@@ -221,7 +221,7 @@ MultiArgRec args[2];
 	return 0;
 }
 
-int intsezcaGetGraphicLimits(char *fname)
+static int intsezcaGetGraphicLimits(char *fname)
 {
 int m,n,d1,d2;
 char **pvs;
@@ -247,7 +247,7 @@ MultiArgRec args[2];
 	return 0;
 }
 
-int intsezcaGetStatus(char *fname)
+static int intsezcaGetStatus(char *fname)
 {
 TS_STAMP *ts;
 int      hasImag, m,n,i,j;
@@ -287,12 +287,12 @@ MultiArgRec args[3];
 		}
 	}
 	if ( ts )
-		FreePtr( &ts );
+		free( ts );
 
  	return 0;
 }
 
-int intsezcaGetPrecision(char *fname)
+static int intsezcaGetPrecision(char *fname)
 {
 int m,n,i;
 char  **pvs;
@@ -317,7 +317,7 @@ MultiArgRec	args[1];
 typedef char units_string[EZCA_UNITS_SIZE];
 
 
-int intsezcaGetUnits(char *fname)
+static int intsezcaGetUnits(char *fname)
 {
 int  m,n,i;
 char **pvs,**tmp;
@@ -339,15 +339,15 @@ MultiArgRec  args[1];
 		}
 		tmp[m] = 0;
  		CreateVarFromPtr(2, "S",&m,&n,tmp);
-		FreePtr(&tmp);
+		free(tmp);
  		LhsVar(1)= 2;
 	}
- 	FreePtr(&strbuf);
+ 	free(strbuf);
  	return 0;
 }
 
 
-int intsezcaGetRetryCount(char *fname)
+static int intsezcaGetRetryCount(char *fname)
 {
 int m=1,i;
 
@@ -359,7 +359,7 @@ int m=1,i;
 	return 0;
 }
 
-int intsezcaSetRetryCount(char *fname)
+static int intsezcaSetRetryCount(char *fname)
 {
 int m,n,i;
 
@@ -372,7 +372,7 @@ int m,n,i;
 	return 0;
 }
 
-int intsezcaGetTimeout(char *fname)
+static int intsezcaGetTimeout(char *fname)
 {
 int m=1,i;
 
@@ -385,7 +385,7 @@ int m=1,i;
 }
 
 
-int intsezcaSetTimeout(char *fname)
+static int intsezcaSetTimeout(char *fname)
 {
 int m,n,i;
 	CheckRhs(1,1);
@@ -397,7 +397,7 @@ int m,n,i;
 	return 0;
 }
 
-int intsezcaDebugOn(char *fname)
+static int intsezcaDebugOn(char *fname)
 {
 	CheckRhs(0,0);
 	CheckLhs(1,1);
@@ -406,7 +406,7 @@ int intsezcaDebugOn(char *fname)
 	return 0;
 }
 
-int intsezcaDebugOff(char *fname)
+static int intsezcaDebugOff(char *fname)
 {
 	CheckRhs(0,0);
 	CheckLhs(1,1);
@@ -415,7 +415,7 @@ int intsezcaDebugOff(char *fname)
 	return 0;
 }
 
-int intsezcaSetSeverityWarnLevel(char *fname)
+static int intsezcaSetSeverityWarnLevel(char *fname)
 {
 int m,n,i;
 	CheckRhs(1,1);
@@ -427,10 +427,10 @@ int m,n,i;
 	return 0;
 }
 
-epicsShareFunc void epicsShareAPI
-C2F(ecdrget)(char *, int *, long **, int *);
+#ifdef WITH_ECDRGET
+#include <ecget.h>
 
-int intsecdrGet(char *fname)
+static int intsecdrGet(char *fname)
 {
 long *buf;
 
@@ -446,14 +446,15 @@ char **s;
 	GetRhsVar(1,"c",&m,&n,&i);
 #endif
 	CheckRow(1,m,n);
-	C2F(ecdrget)(s[0], &n,&buf,&nord);
+	ecdrget(s[0], &n,&buf,&nord);
 	CreateVarFromPtr(2,"i",&m,&nord,&buf);
 	if (buf) {
  		LhsVar(1)=2;
-		FreePtr(&buf);
+		free(buf);
 	}
  return 0;
 }
+#endif
 
 static GenericTable Tab[]={
   {(Myinterfun)sci_gateway, intsezcaGet,					"lcaGet"},
@@ -471,7 +472,9 @@ static GenericTable Tab[]={
   {(Myinterfun)sci_gateway, intsezcaDebugOn,				"lcaDebugOn"},
   {(Myinterfun)sci_gateway, intsezcaDebugOff,				"lcaDebugOff"},
   {(Myinterfun)sci_gateway, intsezcaSetSeverityWarnLevel,	"lcaSetSeverityWarnLevel"},
+#ifdef WITH_ECDRGET
   {(Myinterfun)sci_gateway, intsecdrGet,					"lecdrGet"},
+#endif
 };
 
 int epicsShareAPI
