@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.15 2004/06/23 18:04:56 strauman Exp $ */
+/* $Id: ini.cc,v 1.16 2004/06/23 19:24:59 till Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -9,6 +9,7 @@
 #include <multiEzca.h>
 
 /* This is now done via the '-z nodelete' linker option */
+#define USE_DLOPEN
 #if !defined(WIN32) && !defined(_WIN32) && defined(MATLAB_APP) && defined(USE_DLOPEN)
 /* matlab tries to unload mex files and dependent libraries when terminating - something
  * we want to prevent as ezca/CA cannot be shutdown cleanly.
@@ -41,7 +42,7 @@ CtrlCStateRec saved;
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
-mexPrintf((char*)"Initializing labCA Release '$Name: labca_2_0_alpha $'...\n");
+mexPrintf((char*)"Initializing labCA Release '$Name:  $'...\n");
 mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 
 #if !defined(WIN32) && !defined(_WIN32) && defined(MATLAB_APP) && defined(USE_DLOPEN)

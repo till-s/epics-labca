@@ -78,7 +78,7 @@ ifeq ($(MAKEFOR),MATLAB)
 ifeq ($(ARCH_CLASS),WIN32)
 PROD_LIBS += libmx libmex
 else
-PROD_LIBS += mx mex
+#PROD_LIBS += mx mex
 #CC         = $(MATLABDIR)/bin/mex -cxx
 #CFLAGS=$(CPPFLAGS) $(INCLUDES) $(CTRLC_CFLAGS_$(CONFIG_USE_CTRLC))
 endif
@@ -93,10 +93,10 @@ endif
 # since we cannot exit ezca/CA cleanly, this
 # might crash! These options enforce locking
 # our library stack into memory..
-ACC_SHRLIB_LDFLAGS_YES+=-z nodelete
-CCC_SHRLIB_LDFLAGS_YES+=-z nodelete
-GCC_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
-G++_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
+#ACC_SHRLIB_LDFLAGS_YES+=-z nodelete
+#CCC_SHRLIB_LDFLAGS_YES+=-z nodelete
+#GCC_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
+#G++_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
 
 libmx_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
