@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.9 2004/01/29 05:44:26 till Exp $ */
+/* $Id: ini.cc,v 1.10 2004/02/11 18:51:53 till Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -15,7 +15,7 @@ CtrlCStateRec saved;
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
-mexPrintf((char*)"Initializing labCA Release '$Name:  $'...\n");
+mexPrintf((char*)"Initializing labCA Release '$Name: labca_1_3_beta $'...\n");
 mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 
 multi_ezca_ctrlC_initialize();

@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.9 2004/01/29 05:43:27 till Exp $ */
+/* $Id: mglue.c,v 1.10 2004/02/11 18:51:53 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -35,9 +35,14 @@ int     i,m,buflen;
 const mxArray *tmp;
 int	rval = -1;
 
+	if ( !pvs )
+		return -1;
 
 	pvs->names = 0;
 	pvs->m     = 0;
+
+	if ( !pin )
+		return -1;
 
 	if ( mxIsCell(pin) &&  1 != mxGetN(pin) ) {
 			MEXERRPRINTF("Need a column vector of PV names\n");

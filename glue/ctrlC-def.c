@@ -1,4 +1,4 @@
-/* $Id: ctrlC-def.c,v 1.3 2004/01/30 01:43:48 till Exp $ */
+/* $Id: ctrlC-def.c,v 1.4 2004/02/11 18:51:51 till Exp $ */
 
 /* default Ctrl-C handling (none) */
 
@@ -9,6 +9,9 @@
 #include <mex.h>
 
 #include <multiEzcaCtrlC.h>
+
+#include <cadef.h>
+#include <ezca.h>
 
 void
 multi_ezca_ctrlC_prologue(CtrlCState psave)
@@ -28,4 +31,6 @@ multi_ezca_ctrlC_initialize()
 #else
 	mexPrintf("Ctrl-C handling not implemented for this platform, sorry\n");
 #endif
+	mexPrintf("       ==> Initializing max. timeout to 5. seconds\n");
+	ezcaSetRetryCount((unsigned)(5.0/ezcaGetTimeout()));
 }
