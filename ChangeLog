@@ -1,7 +1,24 @@
 Changes since labca_1_4_beta (T.S):
+    2004/3/24 (TS):
+	- EZCA modifications:
+       o try to recycle work nodes marked as 'trashme'.
+       o assume ca_clear_channel() does real cleanup (i.e. assume
+		 it cancels scheduled callbacks) and hence recycle channel
+         structures from push_channel(). Also, have push_channel()
+         remove deleted channels from the hash table.
+       o call clean_and_push_channel() if search attempts timeout:
+         probably, the PV name is invalid and we want to prevent 3.14 
+         background tasks to continue searching.
+       o provide 'ezcaClearChannel()' and 'ezcaPurge()' to let the user
+		 explititely remove unneeded channels.
+    - provide 'lcaClear()'.
+	- Provided 'lcaPutNoWait()' for setting values without waiting for
+      record processing to complete on the server.
+	2004/3/8 (TS):
 	- Have the matlab version call 'errMsgTxt()' on error to 
       trigger the standard way of error flagging. I finally
-      found the reason for the linux crashes ;-)
+      found the reason for the linux crashes (matlab ships with outdated
+      system libraries) ;-)
     - Implemented a workaround in ezErr() -- Scilab's mexPrintf()
       [i.e. sciprint] crashed when munging long strings (multi-line
       errors). We now break those messages up in smaller chunks...
