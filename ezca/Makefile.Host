@@ -34,6 +34,8 @@ LIBRARY := ezca
 PROD_LIBS := ca Com
 
 ca_DIR = $(EPICS_BASE_LIB)
+
+USR_CFLAGS += -Wno-format
 Com_DIR = $(EPICS_BASE_LIB)
 
 ifndef BASE_3_14

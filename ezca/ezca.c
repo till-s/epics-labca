@@ -409,7 +409,7 @@ static BOOL get_from_monitor(struct work *, struct channel *);
 static struct work *get_work(void);
 static struct work *get_work_single(void);
 static unsigned char hash(char *);
-static void init(void);
+static void init(void *);
 static BOOL issue_get(struct work *, struct channel *);
 static void issue_wait(struct work *);
 static void print_error(struct work *);
@@ -4548,7 +4548,7 @@ unsigned char rc;
 *
 ****************************************************************/
 
-static void init()
+static void init(void *unused)
 {
 
 int i;
@@ -4773,7 +4773,7 @@ int rc;
 #else
     if (!Initialized) {
 		
-		init();
+		init(0);
 	}
 #if 0
     else
