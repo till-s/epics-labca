@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ctrlC-def.c,v 1.1 2004/01/28 05:44:58 till Exp $ */
 
 /* default Ctrl-C handling (none) */
 
@@ -8,15 +8,16 @@
  */
 
 #include <multiEzca.h>
+#include <multiEzcaCtrlC.h>
 
-unsigned long
-multi_ezca_ctrlC_prologue()
+void
+multi_ezca_ctrlC_prologue(CtrlCState psave)
 {
 	return -1;
 }
 
 void
-multi_ezca_ctrlC_epilogue(unsigned long saved)
+multi_ezca_ctrlC_epilogue(CtrlCState prest)
 {
 }
 

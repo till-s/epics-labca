@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.9 2004/01/15 00:50:45 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.10 2004/01/27 03:38:04 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -7,6 +7,7 @@
 #include <cadef.h>
 #include <ezca.h>
 #include <multiEzca.h>
+#include <multiEzcaCtrlC.h>
 
 extern void C2F(cts_stampf_)();
 
@@ -470,13 +471,13 @@ static GenericTable Tab[]={
 int
 C2F(ezca)()
 {
-unsigned long old;
+CtrlCStateRec save;
 
-	old = multi_ezca_ctrlC_prologue();
+	multi_ezca_ctrlC_prologue(&save);
 
 	Rhs = Max(0, Rhs);
 	(*(Tab[Fin-1].f))(Tab[Fin-1].name,Tab[Fin-1].F);
 
-	multi_ezca_ctrlC_epilogue(old);
+	multi_ezca_ctrlC_epilogue(&save);
   return 0;
 }

@@ -14,7 +14,7 @@ CMPLR = STRICT
 
 
 # install header file
-INC = mglue.h multiEzca.h
+INC = mglue.h multiEzca.h multiEzcaCtrlC.h
 
 # build share library
 SHARED_LIBRARIES = YES
@@ -24,7 +24,7 @@ SHARED_LIBRARIES = YES
 #
 CTRLC_SRC_WIN32   = ctrlC-win32.c
 CTRLC_SRC_solaris = ctrlC-solaris.c
-CTRLC_SRC_Linux   = ctrlC-linux.c
+CTRLC_SRC_Linux   = ctrlC-solaris.c
 
 ifeq ($(CTRLC_SRC_$(ARCH_CLASS))xx,xx)
 CTRLC_SRC_YES = ctrlC-def.c

@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ctrlC-win32.c,v 1.1 2004/01/28 05:44:58 till Exp $ */
 
 /* Ctrl-C processing for WIN32 */
 
@@ -12,6 +12,7 @@
 #include <cadef.h>
 #include <ezca.h>
 #include <multiEzca.h>
+#include <multiEzcaCtrlC.h>
 #include <epicsVersion.h>
 
 #if (EPICS_VERSION > 3 || (EPICS_VERSION == 3 && EPICS_REVISION >= 14))
@@ -137,8 +138,8 @@ MSG m;
 	return 0;
 }
 
-unsigned long
-multi_ezca_ctrlC_prologue()
+void
+multi_ezca_ctrlC_prologue(CtrlCState psave)
 {
 #ifdef DEBUG
 	rec    = 0;
@@ -148,7 +149,7 @@ multi_ezca_ctrlC_prologue()
 }
 
 void
-multi_ezca_ctrlC_epilogue(unsigned long saved)
+multi_ezca_ctrlC_epilogue(CtrlCState prest)
 {
 }
 
