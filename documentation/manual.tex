@@ -56,7 +56,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.15 2004/01/14 02:10:47 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.16 2004/01/30 01:42:46 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -545,6 +545,10 @@ on certain system and/or \scilab/\matlab{} versions. Nonetheless, Ctrl-C
 handling can be very useful and works well on the aforementioned
 systems on some combinations of \scilab-2.7, \matlab-13, \matlab-14, EPICS 3.13
 and EPICS 3.14.
+
+Ctrl-C handling does {\em not} work with \scilab{}
+versions using the {\em Xaw} GUI -- the {\em Gtk} GUI should work, however.
+
 \item[\tt INSTALL\_LOCATION:] Set this variable to install in a location
 different from the \sca{} top directory.
 \end{description}
