@@ -1,0 +1,416 @@
+c SCILAB function : ezcaGet, fin = 1
+       subroutine intsezcaGet(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       lbuf = 1
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,1,1)) return
+       if(.not.checklhs(fname,1,1)) return
+c       checking variable name (number 1)
+c       
+       if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
+       if(.not.checkval(fname,m1*n1,1)) return
+c     
+c       cross variable size checking
+c     
+       if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
+       if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
+       call ezget(buf(lbufi1:lbuff1),nlr1,stk(lw3),ne3)
+       if(err .gt. 0) then 
+        buf = fname // ' Internal Error' 
+        call error(999)
+        return
+       endif
+c
+       topk=top-rhs
+       topl=top+1
+c     
+       if(lhs .ge. 1) then
+c       --------------output variable: res
+        top=topl+1
+        if(.not.cremat(fname,top,0,1,ne3,lrs,lcs)) return
+        call cdoublef(1*ne3,stk(lw3),stk(lrs))
+       endif
+c     Putting in order the stack
+       if(lhs .ge. 1) then
+        call copyobj(fname,topl+1,topk+1)
+       endif
+       top=topk+lhs
+       return
+       end
+c
+c SCILAB function : ezcaPut, fin = 2
+       subroutine intsezcaPut(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       lbuf = 1
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,2,2)) return
+       if(.not.checklhs(fname,1,1)) return
+c       checking variable nm (number 1)
+c       
+       if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
+       if(.not.checkval(fname,m1*n1,1)) return
+c       checking variable a (number 2)
+c       
+       if(.not.getvect(fname,top,top-rhs+2,it2,m2,n2,lr2,lc2)) return
+c     
+c       cross variable size checking
+c     
+       if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
+       call ezput(buf(lbufi1:lbuff1),nlr1,stk(lr2),n2*m2)
+       if(err .gt. 0) then 
+        buf = fname // ' Internal Error' 
+        call error(999)
+        return
+       endif
+c
+       topk=top-rhs
+       topl=top+0
+c       no output variable
+       top=topk+1
+       call objvide(fname,top)
+       return
+       end
+c
+c SCILAB function : ezcaGetNelem, fin = 3
+       subroutine intsezcaGetNelem(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       lbuf = 1
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,1,1)) return
+       if(.not.checklhs(fname,1,1)) return
+c       checking variable nm (number 1)
+c       
+       if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
+       if(.not.checkval(fname,m1*n1,1)) return
+c     
+c       cross variable size checking
+c     
+       if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
+       if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
+       call ezgetnelem(buf(lbufi1:lbuff1),nlr1,stk(lw3))
+       if(err .gt. 0) then 
+        buf = fname // ' Internal Error' 
+        call error(999)
+        return
+       endif
+c
+       topk=top-rhs
+       topl=top+1
+c     
+       if(lhs .ge. 1) then
+c       --------------output variable: n
+        top=topl+1
+        if(.not.cremat(fname,top,0,1,1,lrs,lcs)) return
+        call int2db(1*1,istk(iadr(lw3)),-1,stk(lrs),-1)
+       endif
+c     Putting in order the stack
+       if(lhs .ge. 1) then
+        call copyobj(fname,topl+1,topk+1)
+       endif
+       top=topk+lhs
+       return
+       end
+c
+c SCILAB function : ezcaGetControlLimits, fin = 4
+       subroutine intsezcaGetControlLimits(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       lbuf = 1
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,1,1)) return
+       if(.not.checklhs(fname,1,2)) return
+c       checking variable nm (number 1)
+c       
+       if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
+       if(.not.checkval(fname,m1*n1,1)) return
+c     
+c       cross variable size checking
+c     
+       if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
+       if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
+       if(.not.cremat(fname,top+2,0,1,1,lw4,loc4)) return
+       call ezgetcontrollimits(buf(lbufi1:lbuff1),nlr1,stk(lw3),stk(lw4)
+     $ )
+       if(err .gt. 0) then 
+        buf = fname // ' Internal Error' 
+        call error(999)
+        return
+       endif
+c
+       topk=top-rhs
+       topl=top+2
+c     
+       if(lhs .ge. 1) then
+c       --------------output variable: lo
+        top=topl+1
+        if(.not.cremat(fname,top,0,1,1,lrs,lcs)) return
+        call dcopy(1*1,stk(lw3),1,stk(lrs),1)
+       endif
+c     
+       if(lhs .ge. 2) then
+c       --------------output variable: hi
+        top=topl+2
+        if(.not.cremat(fname,top,0,1,1,lrs,lcs)) return
+        call dcopy(1*1,stk(lw4),1,stk(lrs),1)
+       endif
+c     Putting in order the stack
+       if(lhs .ge. 1) then
+        call copyobj(fname,topl+1,topk+1)
+       endif
+       if(lhs .ge. 2) then
+        call copyobj(fname,topl+2,topk+2)
+       endif
+       top=topk+lhs
+       return
+       end
+c
+c SCILAB function : ezcaGetGraphicLimits, fin = 5
+       subroutine intsezcaGetGraphicLimits(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       lbuf = 1
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,1,1)) return
+       if(.not.checklhs(fname,1,2)) return
+c       checking variable nm (number 1)
+c       
+       if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
+       if(.not.checkval(fname,m1*n1,1)) return
+c     
+c       cross variable size checking
+c     
+       if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
+       if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
+       if(.not.cremat(fname,top+2,0,1,1,lw4,loc4)) return
+       call ezgetgraphiclimits(buf(lbufi1:lbuff1),nlr1,stk(lw3),stk(lw4)
+     $ )
+       if(err .gt. 0) then 
+        buf = fname // ' Internal Error' 
+        call error(999)
+        return
+       endif
+c
+       topk=top-rhs
+       topl=top+2
+c     
+       if(lhs .ge. 1) then
+c       --------------output variable: lo
+        top=topl+1
+        if(.not.cremat(fname,top,0,1,1,lrs,lcs)) return
+        call dcopy(1*1,stk(lw3),1,stk(lrs),1)
+       endif
+c     
+       if(lhs .ge. 2) then
+c       --------------output variable: hi
+        top=topl+2
+        if(.not.cremat(fname,top,0,1,1,lrs,lcs)) return
+        call dcopy(1*1,stk(lw4),1,stk(lrs),1)
+       endif
+c     Putting in order the stack
+       if(lhs .ge. 1) then
+        call copyobj(fname,topl+1,topk+1)
+       endif
+       if(lhs .ge. 2) then
+        call copyobj(fname,topl+2,topk+2)
+       endif
+       top=topk+lhs
+       return
+       end
+c
+c SCILAB function : ezcaGetStatus, fin = 6
+       subroutine intsezcaGetStatus(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       lbuf = 1
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,1,1)) return
+       if(.not.checklhs(fname,1,3)) return
+c       checking variable nm (number 1)
+c       
+       if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
+       if(.not.checkval(fname,m1*n1,1)) return
+c     
+c       cross variable size checking
+c     
+       if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
+       if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
+       if(.not.cremat(fname,top+2,0,1,1,lw4,loc4)) return
+       if(.not.cremat(fname,top+3,0,1,1,lw5,loc5)) return
+       call ezgetstatus(buf(lbufi1:lbuff1),nlr1,stk(lw3),stk(lw4),stk(lw
+     $ 5))
+       if(err .gt. 0) then 
+        buf = fname // ' Internal Error' 
+        call error(999)
+        return
+       endif
+c
+       topk=top-rhs
+       topl=top+3
+c     
+       if(lhs .ge. 1) then
+c       --------------output variable: ts
+        top=topl+1
+        if(.not.cremat(fname,top,0,1,1,lrs,lcs)) return
+        call int2db(1*1,istk(iadr(lw3)),-1,stk(lrs),-1)
+       endif
+c     
+       if(lhs .ge. 2) then
+c       --------------output variable: sta
+        top=topl+2
+        if(.not.cremat(fname,top,0,1,1,lrs,lcs)) return
+        call int2db(1*1,istk(iadr(lw4)),-1,stk(lrs),-1)
+       endif
+c     
+       if(lhs .ge. 3) then
+c       --------------output variable: svr
+        top=topl+3
+        if(.not.cremat(fname,top,0,1,1,lrs,lcs)) return
+        call int2db(1*1,istk(iadr(lw5)),-1,stk(lrs),-1)
+       endif
+c     Putting in order the stack
+       if(lhs .ge. 1) then
+        call copyobj(fname,topl+1,topk+1)
+       endif
+       if(lhs .ge. 2) then
+        call copyobj(fname,topl+2,topk+2)
+       endif
+       if(lhs .ge. 3) then
+        call copyobj(fname,topl+3,topk+3)
+       endif
+       top=topk+lhs
+       return
+       end
+c
+c SCILAB function : ezcaDebugOn, fin = 7
+       subroutine intsezcaDebugOn(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,0,0)) return
+       if(.not.checklhs(fname,1,1)) return
+c     
+c       cross variable size checking
+c     
+       call ezcaDebugOn()
+       if(err .gt. 0) then 
+        buf = fname // ' Internal Error' 
+        call error(999)
+        return
+       endif
+c
+       topk=top-rhs
+       topl=top+0
+c       no output variable
+       top=topk+1
+       call objvide(fname,top)
+       return
+       end
+c
+c SCILAB function : ecdrGet, fin = 8
+       subroutine intsecdrGet(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       lbuf = 1
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,1,1)) return
+       if(.not.checklhs(fname,1,1)) return
+c       checking variable name (number 1)
+c       
+       if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
+       if(.not.checkval(fname,m1*n1,1)) return
+c     
+c       cross variable size checking
+c     
+       if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
+       if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
+       call ecdrget(buf(lbufi1:lbuff1),nlr1,stk(lw3),ne3)
+       if(err .gt. 0) then 
+        buf = fname // ' Internal Error' 
+        call error(999)
+        return
+       endif
+c
+       topk=top-rhs
+       topl=top+1
+c     
+       if(lhs .ge. 1) then
+c       --------------output variable: res
+        top=topl+1
+        if(.not.cremat(fname,top,0,1,ne3,lrs,lcs)) return
+        call cintf(1*ne3,stk(lw3),stk(lrs))
+       endif
+c     Putting in order the stack
+       if(lhs .ge. 1) then
+        call copyobj(fname,topl+1,topk+1)
+       endif
+       top=topk+lhs
+       return
+       end
+c

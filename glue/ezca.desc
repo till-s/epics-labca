@@ -1,0 +1,94 @@
+ezcaGet name
+name	string l
+res	vector n
+
+ezget   name l res n
+name	char
+l	integer
+res	cdoublef
+n	integer
+
+out  sequence res
+***********************
+ezcaPut nm a
+nm      string  l
+a       vector  n
+
+ezput   nm l a n
+nm      char
+l       integer
+a       double
+n       integer
+
+out empty
+***********************
+ezcaGetNelem nm
+nm	string l
+n	scalar
+
+ezgetnelem nm l n
+nm	char
+l	integer
+n	integer
+
+out	sequence n
+***********************
+ezcaGetControlLimits nm
+nm	string l
+lo	scalar
+hi	scalar
+
+ezgetcontrollimits nm l lo hi
+nm	char
+l	integer
+lo	double
+hi	double
+
+out	sequence lo hi
+***********************
+ezcaGetGraphicLimits nm
+nm	string l
+lo	scalar
+hi	scalar
+
+ezgetgraphiclimits nm l lo hi
+nm	char
+l	integer
+lo	double
+hi	double
+
+out	sequence lo hi
+***********************
+ezcaGetStatus nm
+nm	string l
+ts	scalar
+sta	scalar
+svr	scalar
+
+ezgetstatus nm l ts sta svr
+nm	char
+l	integer
+ts	integer
+sta	integer
+svr	integer
+
+out	sequence ts sta svr
+***********************
+ezcaDebugOn
+
+ezcaDebugOn
+
+out	empty
+***********************
+ecdrGet name
+name	string l
+res	vector n
+
+ecdrget name l res n
+name	char
+l	integer
+res	cintf
+n	integer
+
+out  sequence res
+***********************
