@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.13 2004/01/09 04:10:41 till Exp $ */
+/* $Id: multiEzca.c,v 1.14 2004/01/14 00:08:18 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -230,7 +230,7 @@ char *rval = 0;
 
 #if (EPICS_VERSION < 3 || (EPICS_VERSION == 3 && EPICS_REVISION < 14))
 
-#include <unistd.h>
+/*#include <unistd.h>*/
 #include <time.h>
 
 #if !defined(_POSIX_TIMERS)
@@ -721,7 +721,7 @@ char	*bufp3;
 			  bufp1+=args[1].size,
 			  bufp2+=args[2].size
 			  )
-			ezcaProc(nms[i],bufp0,bufp1,bufp2);
+			ezcaProc(nms[i],bufp0,bufp1,bufp2); 
 		break;
 
 		case 4:
