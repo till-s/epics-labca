@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.6 2002/08/05 16:03:51 till Exp $ */
+/* $Id: ecget.c,v 1.7 2002/12/05 04:26:56 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -201,7 +201,7 @@ static EcdrBoardC findConnectBoard(char *name)
 		(sprintf(nbuf,"%s.NBRD",name), ECA_NORMAL!=ca_search(nbuf,&p->nbrd_id)) ||
 		(sprintf(nbuf,"%s.LOCK",name), ECA_NORMAL!=ca_search(nbuf,&p->lock_id)) ||
 		(sprintf(nbuf,"%s.BIDX",name), ECA_NORMAL!=ca_search(nbuf,&p->bidx_id)) ||
-		(ECA_NORMAL!=ca_pend_io(15.)) ) {
+		(ECA_NORMAL!=ca_pend_io(10.)) ) {
 		sprintf(nbuf,"PVs for '%s' not found",name);
 		ecErr(nbuf);
 		goto cleanup;
@@ -370,7 +370,7 @@ fprintf(stderr,"# elements %i, BLSZ %i, reading data...",nelms,blsz); fflush(std
 
 	/* now wait for the buffer to fill... */
 
-	if ((ECA_NORMAL!=ca_pend_io(18.))) {
+	if ((ECA_NORMAL!=ca_pend_io(30.))) {
 		ecErr("Unable to get value (PEND)");
 		goto cleanup;
 	}

@@ -1,144 +1,197 @@
-ezcaGet name [ type double ]
-name	string l
+ezcaGet nms [type double]
+nms	    stringmat mi 1
 type    string ls
-res	vector n
+res		matrix mo no
+ts      imatrix mo one hasImag
 
-ezget   name l type ls res n
-name	char
-l	integer
+ezget   nms mi type res mo no ts one
+nms	    Cstringv
+mi		integer
 type    char
-ls  integer
-res	cdoublef
-n	integer
+res		cdoublef
+mo		integer
+no		integer
+ts      cts_stampf
+one     integer
 
-out  sequence res
+out  sequence res ts
 ***********************
-ezcaGetString name
-name	string l
-res	stringmat m n
+ezcaGetString nms
+nms	    stringmat mi 1
+res		stringmat mo no
+ts      imatrix mo one hasImag
 
-ezgetstring  name l res m n
-name	char
-l	integer
-res	Cstringv
-m   integer
-n	integer
+ezgetstring  nms mi res mo no ts one
+nms	    Cstringv
+mi   	integer
+res		Cstringv
+mo		integer
+no		integer
+ts      cts_stampf
+one     integer
 
-out  sequence res
+out  sequence res ts
 ***********************
-ezcaPut name [ type double ] val
-name    string  l
+ezcaPut nms val [ type double ]
+nms     stringmat m 1
 type    string  ls
-val     vector  n
+val     matrix  m n
 
-ezput   name l type ls val n
-name    char
-l       integer
+ezput   nms m type val n
+nms     Cstringv
+m       integer
 type    char
-ls      integer
 val     double
 n       integer
 
 out empty
 ***********************
-ezcaPutString name val
-name    string  l
+ezcaPutString nms val
+nms     stringmat m 1
 val     stringmat m n
 
-ezputstring   name l val m n
-name    char
-l       integer
-val     Cstringv
+ezputstring   nms m val n
+nms     Cstringv
 m       integer
+val     Cstringv
 n       integer
 
 out empty
 ***********************
-ezcaGetNelem nm
-nm	string l
-n	scalar
+ezcaGetNelem nms
+nms	    stringmat m 1
+n       column mo
 
-ezgetnelem nm l n
-nm	char
-l	integer
-n	integer
+ezgetnelem nms m n mo
+nms     Cstringv
+m       integer
+n       cintf
+mo      integer
 
 out	sequence n
 ***********************
-ezcaGetControlLimits nm
-nm	string l
-lo	scalar
-hi	scalar
+ezcaGetControlLimits nms
+nms     stringmat m 1
+lo      column mo
+hi      column mo
 
-ezgetcontrollimits nm l lo hi
-nm	char
-l	integer
-lo	double
-hi	double
-
-out	sequence lo hi
-***********************
-ezcaGetGraphicLimits nm
-nm	string l
-lo	scalar
-hi	scalar
-
-ezgetgraphiclimits nm l lo hi
-nm	char
-l	integer
-lo	double
-hi	double
+ezgetcontrollimits nms m lo hi mo
+nms     Cstringv
+m       integer
+lo      cdoublef
+hi      cdoublef
 
 out	sequence lo hi
 ***********************
-ezcaGetStatus nm
-nm	string l
-ts	scalar
-sta	scalar
-svr	scalar
+ezcaGetGraphicLimits nms
+nms     stringmat m 1
+lo      column mo
+hi      column mo
 
-ezgetstatus nm l ts sta svr
-nm	char
-l	integer
-ts	integer
-sta	integer
-svr	integer
+ezgetgraphiclimits nms m lo hi mo
+nms     Cstringv
+m       integer
+lo      cdoublef
+hi      cdoublef
 
-out	sequence ts sta svr
+out	sequence lo hi
 ***********************
-ezcaStartGroup
+ezcaGetStatus nms
+nms     stringmat m 1
+ts      imatrix mo one hasImag
+sta     column  mo
+svr     column  mo
 
-ezcaStartGroup
+ezgetstatus nms m ts one sta svr mo
+nms     Cstringv
+m       integer
+ts      cts_stampf
+one     integer
+sta     cshortf
+svr     cshortf
+mo      integer
 
-out	empty
+out	sequence svr sta ts
 ***********************
-ezcaEndGroup
+ezcaGetPrecision nms
+nms     stringmat m 1
+prec    column mo
 
-ezcaEndGroup
+ezgetprecision nms m prec mo
+nms     Cstringv
+m       integer
+prec    cshortf
+mo      integer
 
-out	empty
+out	sequence prec
+***********************
+ezcaGetUnits nms
+nms     stringmat m 1
+units   stringmat mo 1
+
+ezgetunits nms m units mo
+nms     Cstringv
+m       integer
+units   Cstringv
+mo      integer
+
+out	sequence units
+***********************
+ezcaGetRetryCount
+res     scalar
+
+ezgetretrycount res
+res     integer
+
+out sequence res
+***********************
+ezcaSetRetryCount count
+count   scalar
+
+ezsetretrycount count
+count   integer
+
+out empty
+***********************
+ezcaGetTimeout
+res     scalar
+
+ezgettimeout res
+res     real
+
+out sequence res
+***********************
+ezcaSetTimeout tout
+tout    scalar
+
+ezsettimeout tout
+tout    real
+
+out empty
 ***********************
 ezcaDebugOn
 
-ezcaDebugOn
+ezdebugon
 
 out	empty
 ***********************
-ezcaLibInit
+ezcaDebugOff
 
-ezcaLibInit
+ezdebugoff
 
 out	empty
 ***********************
-ecdrGet name
-name	string l
-res	vector n
+ezcaSetSeverityWarnLevel level
+level scalar
 
-ecdrget name l res n
-name	char
-l	integer
-res	cintf
-n	integer
+ezsetseveritywarnlevel level
+level integer
 
-out  sequence res
+out empty
+***********************
+ezcaLibInit
+
+ezlibinit
+
+out	empty
 ***********************

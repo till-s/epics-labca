@@ -1,12 +1,12 @@
 IS_3_14=YES
 ifeq ($(IS_3_14),YES)
-EPICS_TOP = /afs/slac/g/spear/epics/
-EPICS_BASE = $(EPICS_TOP)/base/
+EPICS_TOP = /usr/local/epics
+EPICS_BASE = $(EPICS_TOP)//
 EPICS_EXTENSIONS = .
-HARCH = linux-x86
+HARCH = $(EPICS_HOST_ARCH)
 TARCH = Linux
 else
-EPICS_TOP = /home/till/epics
+EPICS_TOP = /home/till_tp/till/epics/R3.13.6
 EPICS_BASE = $(EPICS_TOP)/base-3.13.6/
 EPICS_EXTENSIONS = /afs/slac/g/spear/epics/extensions
 HARCH = Linux
@@ -16,7 +16,8 @@ SCIDIR = /usr/lib/scilab-2.7
 
 ifeq ($(IS_3_14),YES)
 PTHREAD = -lpthread
-LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -lreadline -ltermcap -lrt
+LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -lrt
+#-lreadline -ltermcap -lrt
 else
 LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -L/lib -L/usr/lib -lm -lrt
 endif
@@ -26,7 +27,7 @@ ELIBS = -L$(EPICS_EXTENSIONS)/lib/$(HARCH)/ -lezca
 
 INTERSCI = $(SCIDIR)/bin/intersci
 
-all: ezcalib ezca.o ecget
+all: ezca.o ecget ecget.o ezcaWrap.o
 
 ezca.o: ezca.tmp.f
 	$(FC) -c $(FFLAGS) -o $@ $<
@@ -45,7 +46,7 @@ ecget.o: ecget.c
 	$(CC) -c $(CFLAGS) -fPIC -DSCILAB_APP $(INCS) $(EINCS) -I$(SCIDIR) $<
 
 ezcaWrap.o: ezcaWrap.c
-	$(CC) -c $(CFLAGS) -fPIC $(INCS) $(EINCS) -I$(SCIDIR) $<
+	$(CC) -c $(CFLAGS) -fPIC $(INCS) $(EINCS) -I$(SCIDIR)/routines $<
 
 ezcaWrap.occ: ezcaWrap.cc
 	$(CXX) -c -o $@ $(CFLAGS) -fPIC $(INCS) $(EINCS) -I$(SCIDIR) $<
