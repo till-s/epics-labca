@@ -12,18 +12,18 @@
 TOP = ..
 include $(TOP)/config/CONFIG_APP
 
-HELPS+=help/ezcaDebugOn.html
-HELPS+=help/ezcaGetControlLimits.html
-HELPS+=help/ezcaGetGraphicLimits.html
-HELPS+=help/ezcaGet.html
-HELPS+=help/ezcaGetNelem.html
-HELPS+=help/ezcaGetPrecision.html
-HELPS+=help/ezcaGetRetryCount.html
-HELPS+=help/ezcaGetStatus.html
-HELPS+=help/ezcaGetTimeout.html
-HELPS+=help/ezcaGetUnits.html
-HELPS+=help/ezcaPut.html
-HELPS+=help/ezcaSetSeverityWarnLevel.html
+HELPS+=help/lcaDebugOn.html
+HELPS+=help/lcaGetControlLimits.html
+HELPS+=help/lcaGetGraphicLimits.html
+HELPS+=help/lcaGet.html
+HELPS+=help/lcaGetNelem.html
+HELPS+=help/lcaGetPrecision.html
+HELPS+=help/lcaGetRetryCount.html
+HELPS+=help/lcaGetStatus.html
+HELPS+=help/lcaGetTimeout.html
+HELPS+=help/lcaGetUnits.html
+HELPS+=help/lcaPut.html
+HELPS+=help/lcaSetSeverityWarnLevel.html
 HELPS+=help/whatis.htm
 
 MHELPS=$(HELPS:%.html=%.m)

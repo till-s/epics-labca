@@ -50,7 +50,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.10 2004/01/03 21:06:55 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.11 2004/01/05 19:35:49 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -112,8 +112,8 @@ the \sca{} call. Consider the following example:%
 In \matlab{}, the square brackets (``[]'') must be replaced
 by curly braces (``\{\}'').}
 \begin{verbatim}
-ezcaPut( 'trigger', 1 ) \\
-data=ezcaGet( ['sensor1' ; 'sens2'] );
+lcaPut( 'trigger', 1 ) \\
+data=lcaGet( ['sensor1' ; 'sens2'] );
 \end{verbatim}
 \begin{itemize}
 %
@@ -143,11 +143,11 @@ full accuracy.
 
 \vspace*{\fill}
 
-\subsection{ezcaGet}
-\label{ezcaget}
+\subsection{lcaGet}
+\label{lcaget}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-[value, timestamp] = ezcaGet(pvs, nmax, type)
+[value, timestamp] = lcaGet(pvs, nmax, type)
 \end{verbatim}
 \subsubsection{Description}
 Read a number of \m{} PVs, which may be scalars or arrays of
@@ -242,30 +242,30 @@ and fractional nanoseconds (imaginary part) elapsed since
 \subsubsection{Examples}
 \begin{verbatim}
 // read a PV
-    ezcaGet( 'thepv' )
+    lcaGet( 'thepv' )
 // get EPICS timestamp as well
-    [ val, tstamp ] = ezcaGet( 'thepv' )
+    [ val, tstamp ] = lcaGet( 'thepv' )
 // read multiple PVs
-    ezcaGet( [ 'aPV' ; 'anotherPV' ] )
+    lcaGet( [ 'aPV' ; 'anotherPV' ] )
 // read an 'ENUM/STRING'
-    ezcaGet( 'thepv.SCAN' )
+    lcaGet( 'thepv.SCAN' )
 // read an 'ENUM/STRING' as a number (server converts)
-    ezcaGet( 'thepv.SCAN', 0, 'float' )
+    lcaGet( 'thepv.SCAN', 0, 'float' )
 // enforce reading all PVs as strings (server converts)
 // NOTE: necessary if native num/nonnum types are mixed
-    ezcaGet( [ 'apv.SCAN', 'numericalPV' ] , 0, 'char' )
+    lcaGet( [ 'apv.SCAN', 'numericalPV' ] , 0, 'char' )
 // limit reading a waveform to its NORD elements
-    nord = ezcaGet( 'waveform.NORD' )
+    nord = lcaGet( 'waveform.NORD' )
 	if nord > 0 then
-      ezcaGet( 'waveform', nord )
+      lcaGet( 'waveform', nord )
 	end
 \end{verbatim}
 
-\subsection{ezcaPut}
-\label{ezcaput}
+\subsection{lcaPut}
+\label{lcaput}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-ezcaPut(pvs, value, type)
+lcaPut(pvs, value, type)
 \end{verbatim}
 \subsubsection{Description}
 Write to a number of PVs which may be scalars or arrays of different
@@ -310,27 +310,27 @@ explicitely request different types for different PVs (i.e. the
 \subsubsection{Examples}
 \begin{verbatim}
 // write a PV
-    ezcaPut( 'thepv', 1.234 )
+    lcaPut( 'thepv', 1.234 )
 // write as a string (server converts)
-    ezcaPut( 'thepv', '1.234' )
+    lcaPut( 'thepv', '1.234' )
 // write/transfer as a short integer (server converts)
-    ezcaPut( 'thepv', 12, 'short' )
+    lcaPut( 'thepv', 12, 'short' )
 // write multiple PVs (use { } on matlab)
-    ezcaPut( [ 'pvA'; 'pvB' ], [ 'a'; 'b' ] );
+    lcaPut( [ 'pvA'; 'pvB' ], [ 'a'; 'b' ] );
 // write array PV
-    ezcaPut( 'thepv' , [ 1, 2, 3, 4 ] )
+    lcaPut( 'thepv' , [ 1, 2, 3, 4 ] )
 // write same value to a group of PVs (string
 // concatenation differs on matlab)
-    ezcaPut( [ 'pvA'; 'pvB' ] + '.SCAN', '1 second' )
+    lcaPut( [ 'pvA'; 'pvB' ] + '.SCAN', '1 second' )
 // write array and scalar PV (using NaN as a delimiter)
     tab = [ 1, 2, 3, 4 ;   5, %nan, 0, 0 ]
-	ezcaPut( [ 'arrayPV'; 'scalarPV' ], tab )
+	lcaPut( [ 'arrayPV'; 'scalarPV' ], tab )
 \end{verbatim}
 
-\subsection{ezcaGetNelem}
+\subsection{lcaGetNelem}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-numberOfElements = ezcaGetNelem(pvs)
+numberOfElements = lcaGetNelem(pvs)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve the element count of a number of PVs. Note that this is not
@@ -345,10 +345,10 @@ of elements a PV can hold.
 of elements (``array dimension'').
 \end{description}
 
-\subsection{ezcaGetControlLimits}
+\subsection{lcaGetControlLimits}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-[lowLimit, hiLimit] = ezcaGetControlLimits(pvs)
+[lowLimit, hiLimit] = lcaGetControlLimits(pvs)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve the control limits associated with a number of PVs.
@@ -361,10 +361,10 @@ Retrieve the control limits associated with a number of PVs.
 \end{description}
 
 
-\subsection{ezcaGetGraphicLimits}
+\subsection{lcaGetGraphicLimits}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-[lowLimit, hiLimit] = ezcaGetGraphicLimits(pvs)
+[lowLimit, hiLimit] = lcaGetGraphicLimits(pvs)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve the graphic limits associated with a number of PVs.
@@ -377,10 +377,10 @@ Retrieve the graphic limits associated with a number of PVs.
 \end{description}
 
 
-\subsection{ezcaGetStatus}
+\subsection{lcaGetStatus}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-[severity, status, timestamp] = ezcaGetStatus(pvs)
+[severity, status, timestamp] = lcaGetStatus(pvs)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve the alarm severity and status of a number of PVs along
@@ -396,10 +396,10 @@ PV \hyperref[ref]{timestamps}{timestamps (see }{ about the timestamp format)}{ts
 \end{description}
 
 
-\subsection{ezcaGetPrecision}
+\subsection{lcaGetPrecision}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-precision = ezcaGetPrecision(pvs)
+precision = lcaGetPrecision(pvs)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve the precision of a number of PVs.
@@ -410,10 +410,10 @@ Retrieve the precision of a number of PVs.
 \item[precisiom] \mxl{} column vector of the PV's precision.
 \end{description}
 
-\subsection{ezcaGetUnits}
+\subsection{lcaGetUnits}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-units = ezcaGetUnits(pvs)
+units = lcaGetUnits(pvs)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve the engineering units of a number of PVs.
@@ -425,44 +425,44 @@ Retrieve the engineering units of a number of PVs.
 of strings holding the PV EGUs.
 \end{description}
 
-\subsection{ezcaGetRetryCount, ezcaSetRetryCount}
+\subsection{lcaGetRetryCount, lcaSetRetryCount}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-currentRetryCount = ezcaGetRetryCount()
-ezcaSetRetryCount(newRetryCount)
+currentRetryCount = lcaGetRetryCount()
+lcaSetRetryCount(newRetryCount)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve / set the \ezca{} library retryCount parameter (consult the \ezca{}
 documentation for more information).
 
 
-\subsection{ezcaGetTimeout, ezcaSetTimeout}
+\subsection{lcaGetTimeout, lcaSetTimeout}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-currentTimeout = ezcaGetTimeout()
-ezcaSetTimeout(newTimeout)
+currentTimeout = lcaGetTimeout()
+lcaSetTimeout(newTimeout)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve / set the \ezca{} library timeout parameter (consult the \ezca{}
 documentation for more information).
 
-\subsection{ezcaDebugOn, ezcaDebugOff}
+\subsection{lcaDebugOn, lcaDebugOff}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-ezcaDebugOn()
-ezcaDebugOff()
+lcaDebugOn()
+lcaDebugOff()
 \end{verbatim}
 \subsubsection{Description}
 Switch the \ezca{} library's debugging facility on and off, respectively.
 
-\subsection{ezcaSetSeverityWarnLevel}
+\subsection{lcaSetSeverityWarnLevel}
 \label{swarnlevel}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
-ezcaSetSeverityWarnLevel(newlevel)
+lcaSetSeverityWarnLevel(newlevel)
 \end{verbatim}
 \subsubsection{Description}
-Set the warning threshold for \com{ezcaGet()} operations.
+Set the warning threshold for \com{lcaGet()} operations.
 A warning message is printed when retrieving a PV with a severity bigger
 or equal to the warning level. Supported values are \sevrange{} (No alarm,
 minor alarm, major alarm, invalid alarm). The initial/default value is 3.
@@ -570,8 +570,8 @@ has no influence on the system search path.
 
 \subsubsection{Using \sca{} with \scilab}
 Set up the shared library search path (as described above) and start
-\scilab. Run the \com{ezca.sce} script which was generated by the build process
-(\com{<\sca-top>/bin/<system>/ezca.sce}) to load the \sca{} interface.
+\scilab. Run the \com{\sca.sce} script which was generated by the build process
+(\com{<\sca-top>/bin/<system>/\sca.sce}) to load the \sca{} interface.
 The script also adds to the \com{\%helps} variable making on-line
 help available.
 
@@ -582,7 +582,7 @@ It is also possible to permanently link \sca{} to \scilab{}. Consult
 the \scilab{} documentation for more information.
 
 \subsubsection{Using \sca{} with \matlab}
-Every entry point / \com{ezcaXXX} routine is contained in a separate
+Every entry point / \com{lcaXXX} routine is contained in a separate
 shared object file in the \com{<\sca-top>/bin/<system>/} directory
 which must be added to the \matlab{} search path.
 Note that this is in \ita{addition}
