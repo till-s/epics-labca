@@ -46,7 +46,6 @@
 extern char *strdup(const char *s1);
 #endif
 
-
 #include <epicsVersion.h>
 #if 1 && (EPICS_VERSION > 3 || (EPICS_VERSION == 3 && EPICS_REVISION >= 14))
 #define EPICS_THREE_FOURTEEN
@@ -58,7 +57,7 @@ static epicsMutexId	ezcaMutex = 0;
 
 #define	EZCA_LOCK() \
 	do { \
-		if (DEBUG_LOCK) \
+		if (DEBUG_LOCK)								\
 		printf("Thread %s (0x%x) tries to lock\n",	\
 			epicsThreadGetNameSelf(),				\
 			epicsThreadGetIdSelf()); 				\
@@ -70,11 +69,15 @@ static epicsMutexId	ezcaMutex = 0;
 		printf("Thread %s (0x%x) unlocks\n",		\
 			epicsThreadGetNameSelf(),				\
 			epicsThreadGetIdSelf()); 				\
-		epicsMutexUnlock(ezcaMutex); \
+		epicsMutexUnlock(ezcaMutex); 				\
 	} while (0)
 #else
-#define EZCA_LOCK()	do {} while (0)
-#define EZCA_UNLOCK()	do {} while (0)
+#define EZCA_LOCK() \
+	do { \
+	} while (0)
+#define EZCA_UNLOCK() \
+	do { \
+	} while (0)
 #endif
 
 
@@ -491,6 +494,42 @@ void epicsShareAPI ezcaLock()
 void epicsShareAPI ezcaUnlock()
 {
 	EZCA_LOCK();
+}
+
+/* this is intended to be called from a signal handler
+ * which must not do any memory management nor access
+ * any internal data structures.
+ *
+ * Usage:
+ *
+ *   static int aborted;
+ *
+ *   static void sighandler()
+ *   {
+ *      if ( !aborted )
+ *         aborted = ezcaAbort();
+ *   }
+ *
+ *   main()
+ *   {
+ *      aborted = 0;
+ *      orig = signal(SIGINT, handler);
+ *       / * "interruptable" ezca calls go here * /
+ *      signal(SIGINT, orig);
+ *       / * restore retry count * /
+ *      if (aborted)
+ *        ezcaSetRetryCount(aborted);
+ *
+ *   }
+ */
+unsigned ezcaAbort()
+{
+unsigned rval;
+	EZCA_LOCK();
+	rval = RetryCount;
+	RetryCount = 0;
+	EZCA_UNLOCK();
+	return rval;
 }
 
 int epicsShareAPI ezcaEndGroup()

@@ -28,7 +28,8 @@ LIBSRCS := ezca.c
 #       Library to build:
 #       lib$(LIBRARY).a  or   ..dll/..exp/..lib
 #
-LIBRARY := ezca
+# use different name for multi-threaded fit version
+LIBRARY := ezcamt
 
 # need additional libs
 PROD_LIBS := ca Com

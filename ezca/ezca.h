@@ -36,6 +36,12 @@ extern "C" {
 
 epicsShareFunc void epicsShareAPI ezcaLock(void);	/* lock library mutex    */
 epicsShareFunc void epicsShareAPI ezcaUnlock(void);	/* release library mutex */
+/* Abort polling by setting retryCount to 0;
+ * NOTE: this routine does NO memory management and is meant to be
+ *       called from a signal handler (see comments in ezca.c).
+ * RETURNS: old 'retryCount' for restoring.
+ */
+epicsShareFunc unsigned epicsShareAPI ezcaAbort(void);
 epicsShareFunc int epicsShareAPI ezcaEndGroup(void);
 epicsShareFunc int epicsShareAPI ezcaEndGroupWithReport(int **rcs, int *nrcs);
 epicsShareFunc int epicsShareAPI ezcaGetErrorString(char *prefix, char **buff);

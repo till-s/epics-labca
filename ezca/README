@@ -1,0 +1,11 @@
+This directory contains a modified version of the 'ezca' library
+(version 20020802):
+
+ - thread-safeness added (mutex allows only one thread into ezca at
+   a time)
+ - enable preemptive callbacks with EPICS 3.14
+ - bugfix: GETNELEM should set *wp->inp
+ - fixed some signedness warnings
+ - added 'ezcaAbort()' to abort polling loops from a signal handler.
+
+Till Straumann, 2002,2003
