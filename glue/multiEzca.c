@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.7 2003/12/23 23:15:56 strauman Exp $ */
+/* $Id: multiEzca.c,v 1.8 2003/12/31 07:56:25 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -351,7 +351,7 @@ static int typesize(char type)
 	return -1;
 }
 
-static char nativeNumType(char *pv)
+static char nativeType(char *pv, int acceptString)
 {
 chid *pid;
 
@@ -368,6 +368,12 @@ chid *pid;
 			case DBF_LONG:   return ezcaLong;
 			case DBF_FLOAT:  return ezcaFloat;
 			case DBF_DOUBLE: return ezcaDouble;
+
+			case DBF_STRING:
+			case DBF_ENUM:
+							 if ( acceptString )
+									return ezcaString;
+							 break;
 		}
 	}
 	return ezcaFloat;
@@ -457,7 +463,7 @@ register char *bufp;
 	typesz = 0;
 	for ( i=0; i<m; i++ ) {
 		int tmp;
-		types[i] = ezcaNative == type ? nativeNumType(nms[i]) : type;
+		types[i] = ezcaNative == type ? nativeType(nms[i], 0) : type;
 		if ( (tmp = typesize(types[i])) > typesz ) {
 			typesz = tmp;
 		}
@@ -515,7 +521,7 @@ cleanup:
 }
 
 int
-multi_ezca_get(char **nms, char type, void **pres, int m, int *pn, TimeArg *pre, TimeArg *pim, int *hasImag)
+multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TimeArg *pre, TimeArg *pim, int *hasImag)
 {
 void          *cbuf  = 0;
 void          *fbuf  = 0;
@@ -525,8 +531,8 @@ short         *sevr  = 0;
 int           rval   = 0;
 char          *types = 0;
 TS_STAMP      *ts    = 0;
-int           rowsize,typesz,nreq;
 int           mo     = m;
+int           rowsize,typesz,nreq,nstrings;
 
 register int  i,n = 0;
 register char *bufp;
@@ -550,7 +556,7 @@ register char *bufp;
 		goto cleanup;
 
 	typesz = 0;
-	for ( n=i=0; i<m; i++) {
+	for ( nstrings=n=i=0; i<m; i++) {
 		int tmp;
 
 		/* clip to requested n */
@@ -559,11 +565,23 @@ register char *bufp;
 
 		if ( dims[i] > n )
 			n = dims[i];
-		/* nativeNumType uses ezcaPvToChid() which is non-groupable */
-		types[i] = ezcaNative == type ? nativeNumType( nms[i] ) : type;
+		/* nativeType uses ezcaPvToChid() which is non-groupable */
+		if ( ezcaString == (types[i] = ezcaNative == *type ? nativeType(nms[i], 1) : *type) )
+			nstrings++;
 
 		if ( (tmp = typesize(types[i])) > typesz )
 			typesz = tmp;
+	}
+
+	if ( nstrings ) {
+		if ( nstrings !=m ) {
+			sciprint("multi_ezca_get: type mismatch native 'string/enum' PVs cannot be\n");
+			sciprint("mixed with numericals -- use 'char' type to enforce conversion\n");
+			cerro("");
+			goto cleanup;
+		} else {
+			*type = ezcaString;
+		}
 	}
 
 	rowsize = n * typesz;
@@ -612,7 +630,7 @@ register char *bufp;
 	}
 
 	/* allocate the target buffer */
-	if ( ezcaString == type )
+	if ( ezcaString == *type )
 		/* Scilab expects NULL terminated char** list */
 		fbuf = calloc( m*n+1, sizeof(char*) );
 	else
@@ -684,7 +702,7 @@ register char *bufp;
 	rval  = m;
 
 cleanup:
-	if ( fbuf && ezcaString == type ) {
+	if ( fbuf && ezcaString == *type ) {
 		for ( i=0; i<n*m; i++)
 			free(((char**)fbuf)[i]);
 	}

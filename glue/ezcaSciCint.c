@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ezcaSciCint.c,v 1.2 2003/12/31 08:01:06 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -24,6 +24,9 @@ extern void C2F(cts_stampf_)();
 #define checkColumn(pos,m,n) \
 	( check_column(pos,m,n) )
 #endif
+
+/* there's a typo in the scilab header :-( */
+#define check_column check_col
 
 static void
 s2iInPlace(void *buf, int m)
@@ -78,7 +81,7 @@ char   type  = ezcaNative;
 	CheckLhs(1,2);
 
  	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
- 	CheckOneDim(1,2,ntmp,1);
+ 	CheckColumn(1,mpvs,ntmp);
 
 	if ( Rhs > 1 ) {
 		GetRhsVar(2, "i", &mtmp, &ntmp, &itmp);
@@ -88,7 +91,7 @@ char   type  = ezcaNative;
 			return 0;
 	}
 
-	if ( !multi_ezca_get( pvs, type, &buf, mpvs, &n, &re, &im, &hasImag ) ) {
+	if ( !multi_ezca_get( pvs, &type, &buf, mpvs, &n, &re, &im, &hasImag ) ) {
 		for ( itmp = 1; itmp <= Lhs; itmp++ )
 			LhsVar(itmp) = 0; 
 		return 0;
@@ -140,7 +143,7 @@ char type  = ezcaNative;
 	CheckLhs(1,1);
 
 	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
-	CheckOneDim(1,2,ntmp,1);
+	CheckColumn(1,mpvs,ntmp);
 
 	if ( 10 == VarType(2) ) {
 	GetRhsVar(2,"S",&mval,&n,&buf);
@@ -178,7 +181,7 @@ char  **pvs;
 	CheckLhs(1,1);
 
 	GetRhsVar(1,"S",&m,&n,&pvs);
-	CheckOneDim(1,2,n,1);
+	CheckColumn(1,m,n);
 
 	CreateVar(2,"i",&m,&n,&i);
 	if ( !multi_ezca_get_nelem(pvs, m, istk(i)) )
@@ -196,7 +199,7 @@ MultiArgRec args[2];
 	CheckLhs(1,2);
 
 	GetRhsVar(1,"S",&m,&n,&pvs);
-	CheckOneDim(1,2,n,1);
+	CheckColumn(1,m,n);
 
 	CreateVar(2, "d", &m, &n, &d1);
 	CreateVar(3, "d", &m, &n, &d2);
@@ -222,7 +225,7 @@ MultiArgRec args[2];
 	CheckLhs(1,2);
 
 	GetRhsVar(1,"S",&m,&n,&pvs);
-	CheckOneDim(1,2,n,1);
+	CheckColumn(1,m,n);
 
 	CreateVar(2, "d", &m, &n, &d1);
 	CreateVar(3, "d", &m, &n, &d2);
@@ -250,7 +253,7 @@ MultiArgRec args[3];
 	CheckRhs(1,1);
 	CheckLhs(1,3);
 	GetRhsVar(1,"S",&m,&n,&pvs);
-	CheckOneDim(1,2,n,1);
+	CheckColumn(1,m,n);
 
 	MSetArg(args[0], sizeof(TS_STAMP), 0, &ts);	/* timestamp */
 
@@ -296,7 +299,7 @@ MultiArgRec	args[1];
 	CheckRhs(1,1);
 	CheckLhs(1,1);
 	GetRhsVar(1,"S",&m,&n,&pvs);
-	CheckOneDim(1,2,n,1);
+	CheckColumn(1,m,n);
 
 	CreateVar(2,"i",&m,&n,&i);
 
@@ -322,7 +325,7 @@ MultiArgRec args[1];
 	CheckRhs(1,1);
 	CheckLhs(1,1);
 	GetRhsVar(1,"S",&m,&n,&pvs);
-	CheckOneDim(1,2,n,1);
+	CheckColumn(1,m,n);
 
 	MSetArg(args[0], sizeof(units_string), 0, &strbuf);
 

@@ -85,4 +85,8 @@ include $(TOP)/config/RULES.Host
 mkmezca.m: ../mkmezca.m.tmpl
 	sed -e 's/%%TARCH%%/$(T_A)/g' -e 's/%%ARCH%%/$(ARCH_CLASS)/g' -e 's$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g' < $^ >$@
 
+ezca.sce: ../ezca.sce.in
+	$(RM) $@
+	sed -e 's/THELIB/$(SHRLIBNAME)/g' <$^ >$@
+
 #	EOF Makefile.Host
