@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.8 2003/12/31 07:56:25 till Exp $ */
+/* $Id: multiEzca.c,v 1.9 2004/01/01 01:15:40 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -575,8 +575,8 @@ register char *bufp;
 
 	if ( nstrings ) {
 		if ( nstrings !=m ) {
-			sciprint("multi_ezca_get: type mismatch native 'string/enum' PVs cannot be\n");
-			sciprint("mixed with numericals -- use 'char' type to enforce conversion\n");
+			mexPrintf("multi_ezca_get: type mismatch native 'string/enum' PVs cannot be\n");
+			mexPrintf("mixed with numericals -- use 'char' type to enforce conversion\n");
 			cerro("");
 			goto cleanup;
 		} else {
