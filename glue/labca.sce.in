@@ -21,3 +21,8 @@ ezca_funs=[...
   'ecdrGet';
   ]  
 addinter('THELIB','ezca',ezca_funs);
+ezca_top=get_absolute_file_path('THEFILE')+'../../'
+if grep(%helps(:,1),ezca_top)== [] then
+   %helps=[%helps;[ezca_top+"/html/help", "EPICS CA Interface"]];
+end
+

@@ -87,6 +87,6 @@ mkmezca.m: ../mkmezca.m.tmpl
 
 ezca.sce: ../ezca.sce.in
 	$(RM) $@
-	sed -e 's/THELIB/$(SHRLIBNAME)/g' <$^ >$@
+	sed -e 's/THELIB/$(SHRLIBNAME)/g' -e 's/THEFILE/$@/g' <$^ >$@
 
 #	EOF Makefile.Host
