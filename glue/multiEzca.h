@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.10 2004/01/06 20:37:34 till Exp $ */
+/* $Id: multiEzca.h,v 1.11 2004/01/09 04:10:41 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -17,6 +17,10 @@
 
 #include <mex.h> /* fortran/C name conversion for scilab */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef MATLAB_APP
 #define C2F(name) name
 #define cerro(arg) mexPrintf("Error: %s\n",arg)
@@ -25,7 +29,7 @@
 #define calloc(n,s) mxCalloc((n),(s))
 /* #define C2F(name) name##_ */
 #else
-extern void cerro(const char*);
+void cerro(const char*);
 #endif
 
 /* CA includes */
@@ -73,5 +77,9 @@ typedef int (*MultiEzcaFunc)();
 
 int
 multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args);
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif
