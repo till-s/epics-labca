@@ -20,6 +20,9 @@ ezcaFree
 ezcaStartGroup
 ezcaEndGroup
 ezcaEndGroupWithReport
+ezcaSetMonitor
+ezcaClearMonitor
+ezcaNewMonitorValue
 ezcaDelay
 ezcaGetTimeout
 ezcaSetTimeout
