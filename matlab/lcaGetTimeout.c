@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: lcaGetTimeout.c,v 1.2 2003/12/23 23:06:56 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetTimeout */
 
@@ -13,6 +13,8 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
+	buildPVs(0,0); /* enforce initialization of mglue library */
+
 	if ( 1 < nlhs ) {
 		MEXERRPRINTF("Need one output arg");
 		return;

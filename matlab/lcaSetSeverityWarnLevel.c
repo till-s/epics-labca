@@ -1,4 +1,4 @@
-/* $Id: ezcaSetSeverityWarnLevel.c,v 1.1 2003/12/24 17:30:52 till Exp $ */
+/* $Id: lcaSetSeverityWarnLevel.c,v 1.2 2004/01/09 04:10:44 till Exp $ */
 
 /* matlab wrapper for ezcaSetSeverityWarnLevel */
 
@@ -14,6 +14,8 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
+	buildPVs(0,0); /* enforce initialization of mglue library */
+
 	if ( 1 < nlhs ) {
 		MEXERRPRINTF("Need one output arg");
 		return;
