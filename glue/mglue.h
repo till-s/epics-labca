@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.11 2004/03/01 19:36:00 till Exp $ */
+/* $Id: mglue.h,v 1.12 2004/03/23 23:52:11 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -52,10 +52,18 @@ marg2ezcaType(const mxArray *typearg);
  * Clean up the lhs args and flag an error condition.
  * If everyhing's OK, the caller passes nlhs == 0.
  */
-epicsShareFunc void epicsShareAPI
+epicsShareFunc int epicsShareAPI
 flagError(int nlhs, mxArray *plhs[]);
 
-epicsShareFunc void epicsShareAPI
+/* mexErrMsgTxt() should be called only from a routine
+ * that was compiled with the mex compiler in order to
+ * reduce C++ problems (mexErrMsgTxt throws a C++ exception)
+ */
+#define ERR_CHECK(nlhs, plhs) \
+	do { if (flagError((nlhs),(plhs))) \
+			mexErrMsgTxt("(see above error messages)"); \
+	} while (0)
+epicsShareFunc int epicsShareAPI
 theLcaPutMexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], int doWait);
 
 #ifdef __cplusplus

@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.16 2004/04/27 01:23:51 till Exp $ */
+/* $Id: mglue.c,v 1.17 2004/06/08 06:03:40 strauman Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -123,7 +123,7 @@ char typestr[2] = { 0 };
 	return ezcaInvalid;
 }
 
-void epicsShareAPI
+int epicsShareAPI
 flagError(int nlhs, mxArray *plhs[])
 {
 int i;
@@ -133,11 +133,12 @@ int i;
 			/* hope this doesn't fail... */
 			plhs[i] = 0;
 		}
-		mexErrMsgTxt("(see above error messages)");
+		return -1;
 	}
+	return 0;
 }
 
-void epicsShareAPI
+int epicsShareAPI
 theLcaPutMexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], int doWait)
 {
 char	**pstr = 0;
@@ -254,6 +255,5 @@ cleanup:
 		mxDestroyArray( dummy );
 	}
 	releasePVs(&pvs);
-	/* do this LAST (in case the use mexErrMsgTxt) */
-	flagError(nlhs, plhs);
+	return nlhs;
 }
