@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ezcaGet.c,v 1.3 2003/12/23 23:06:55 strauman Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -58,7 +58,7 @@ char	typestr[2] = { 'N', 0 };
 	if ( buildPVs(prhs[0],&pvs) )
 		goto cleanup;
 
-    multi_ezca_get( pvs.names, type, &pres, pvs.m, &n, &re, &im, &hasImag );
+    multi_ezca_get( pvs.names, &type, &pres, pvs.m, &n, &re, &im, &hasImag );
 
 	/* if pres != NULL, we have a valid reply... */
 	if ( pres ) {
