@@ -135,6 +135,7 @@ static epicsMutexId	ezcaMutex = 0;
 #define GETRETRYCOUNT       23
 #define GETTIMEOUT          24
 #define PUTOLDCA            25
+#define CLEARCHANNEL		26
 
 /********************************/
 /*                              */
@@ -178,6 +179,7 @@ static epicsMutexId	ezcaMutex = 0;
 #define SETRETRYCOUNT_MSG       "ezcaSetRetryCount()"
 #define GETRETRYCOUNT_MSG       "ezcaGetRetryCount()"
 #define GETTIMEOUT_MSG          "ezcaGetTimeout()"
+#define CLEARCHANNEL_MSG		"ezcaClearChannel()"
 /* Error Messages */
 #define INVALID_PVNAME_MSG  "invalid process variable name"
 #define INVALID_TYPE_MSG    "invalid EZCA data type"
@@ -428,7 +430,7 @@ static void epilogue(void);
 
 /* Channel Access Interface Functions */
 static int EzcaAddArrayEvent(struct work *, struct monitor *);
-static void EzcaClearChannel(struct channel *);
+static int EzcaClearChannel(struct channel *);
 static void EzcaClearEvent(struct monitor *);
 static BOOL EzcaConnected(struct channel *);
 static int EzcaArrayGetCallback(struct work *, struct channel *);
@@ -454,7 +456,7 @@ static struct channel *pop_channel(void);
 static struct monitor *pop_monitor(void);
 static struct work *pop_work(void);
 static void init_work(struct work *);
-static void push_channel(struct channel *);
+static void push_channel(struct channel *, struct channel**);
 static void push_monitor(struct monitor *);
 static void push_work(struct work *);
 
@@ -1000,6 +1002,7 @@ int rc;
 		    case PVTOCHID:         wtm = PVTOCHID_MSG;         break;
 		    case SETTIMEOUT:       wtm = SETTIMEOUT_MSG;       break;
 		    case STARTGROUP:       wtm = STARTGROUP_MSG;       break;
+		    case CLEARCHANNEL:     wtm = CLEARCHANNEL_MSG;     break;
 		    case TRACEOFF:         wtm = TRACEOFF_MSG;         break;
 		    case TRACEON:          wtm = TRACEON_MSG;          break;
 		    case SETRETRYCOUNT:    wtm = SETRETRYCOUNT_MSG;    break;
@@ -1061,6 +1064,7 @@ int rc;
 		    case PVTOCHID:         wtm = PVTOCHID_MSG;         break;
 		    case SETTIMEOUT:       wtm = SETTIMEOUT_MSG;       break;
 		    case STARTGROUP:       wtm = STARTGROUP_MSG;       break;
+		    case CLEARCHANNEL:     wtm = CLEARCHANNEL_MSG;     break;
 		    case TRACEOFF:         wtm = TRACEOFF_MSG;         break;
 		    case TRACEON:          wtm = TRACEON_MSG;          break;
 		    case SETRETRYCOUNT:    wtm = SETRETRYCOUNT_MSG;    break;
@@ -1150,6 +1154,8 @@ int rc;
 				wtm = SETTIMEOUT_MSG;          break;
 			    case STARTGROUP:       
 				wtm = STARTGROUP_MSG;          break;
+		    	case CLEARCHANNEL:
+			    wtm = CLEARCHANNEL_MSG;        break;
 			    case TRACEOFF:         
 				wtm = TRACEOFF_MSG;            break;
 			    case TRACEON:          
@@ -1262,6 +1268,8 @@ int rc;
 				wtm = SETTIMEOUT_MSG;          break;
 			    case STARTGROUP:       
 				wtm = STARTGROUP_MSG;          break;
+		    	case CLEARCHANNEL:
+			    wtm = CLEARCHANNEL_MSG;        break;
 			    case TRACEOFF:         
 				wtm = TRACEOFF_MSG;            break;
 			    case TRACEON:          
@@ -1500,6 +1508,7 @@ char *wtm;
 		case PVTOCHID:         wtm = PVTOCHID_MSG;         break;
 		case SETTIMEOUT:       wtm = SETTIMEOUT_MSG;       break;
 		case STARTGROUP:       wtm = STARTGROUP_MSG;       break;
+		case CLEARCHANNEL:     wtm = CLEARCHANNEL_MSG;     break;
 		case TRACEOFF:         wtm = TRACEOFF_MSG;         break;
 		case TRACEON:          wtm = TRACEON_MSG;          break;
 		case SETRETRYCOUNT:    wtm = SETRETRYCOUNT_MSG;    break;
@@ -1549,6 +1558,7 @@ char *wtm;
 		case PVTOCHID:         wtm = PVTOCHID_MSG;         break;
 		case SETTIMEOUT:       wtm = SETTIMEOUT_MSG;       break;
 		case STARTGROUP:       wtm = STARTGROUP_MSG;       break;
+		case CLEARCHANNEL:     wtm = CLEARCHANNEL_MSG;     break;
 		case TRACEOFF:         wtm = TRACEOFF_MSG;         break;
 		case TRACEON:          wtm = TRACEON_MSG;          break;
 		case SETRETRYCOUNT:    wtm = SETRETRYCOUNT_MSG;    break;
@@ -2504,6 +2514,129 @@ int rc;
     return rc;
 
 } /* end ezcaStartGroup() */
+
+int epicsShareAPI ezcaClearChannel(char *pvname)
+{
+
+struct channel *cp;
+struct work *wp;
+int rc;
+
+    prologue();
+
+    if ((wp = get_work_single()))
+    {
+	ErrorLocation = SINGLEWORK;
+
+	/* filling work */
+	wp->worktype = CLEARCHANNEL;
+
+    if (!pvname || !(cp=find_channel(pvname)))
+    {
+        wp->rc = EZCA_INVALIDARG;
+        wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
+
+        if (AutoErrorMessage)
+			print_error(wp);
+    }
+	else if (InGroup)
+	{
+	    /* already in a group */
+	    wp->rc = EZCA_INGROUP;
+	    wp->error_msg = ErrorMsgs[INGROUP_MSG_IDX];
+
+	    if (AutoErrorMessage)
+			print_error(wp);
+	}
+	else
+	{
+	    /* not in a group */
+
+
+		if ( cp ) {
+	    if (Trace || Debug)
+	printf("ezcaClearChannel() about to call clean_and_push_channel()\n");
+			clean_and_push_channel(cp);
+	    	wp->rc = EZCA_OK;
+		}
+	} /* endif */
+
+	rc = wp->rc;
+    }
+    else
+    {
+	rc = EZCA_FAILEDMALLOC;
+
+	if (AutoErrorMessage)
+	    printf("%s\n", FAILED_MALLOC_MSG);
+
+    } /* endif */
+
+    epilogue();
+    return rc;
+
+} /* end ezcaClearChannel() */
+
+/* clear all channels */
+int epicsShareAPI ezcaPurge(int disconnectedOnly)
+{
+
+struct channel *cp;
+struct work *wp;
+int rc,i;
+
+    prologue();
+
+    if ((wp = get_work_single()))
+    {
+	ErrorLocation = SINGLEWORK;
+
+	/* filling work */
+	wp->worktype = CLEARCHANNEL;
+
+	if (InGroup)
+	{
+	    /* already in a group */
+	    wp->rc = EZCA_INGROUP;
+	    wp->error_msg = ErrorMsgs[INGROUP_MSG_IDX];
+
+	    if (AutoErrorMessage)
+			print_error(wp);
+	}
+	else
+	{
+	    /* not in a group */
+		for ( i = 0; i < HASHTABLESIZE; i++ ) {
+			for ( cp = Channels[i]; cp; ) {
+				if ( !disconnectedOnly || !EzcaConnected(cp) ) {
+					clean_and_push_channel(cp);
+					/* start over */
+					cp = Channels[i];
+				} else {
+					cp = cp->next;
+				}
+			}
+		}
+
+	   	wp->rc = EZCA_OK;
+	} /* endif */
+
+	rc = wp->rc;
+    }
+    else
+    {
+	rc = EZCA_FAILEDMALLOC;
+
+	if (AutoErrorMessage)
+	    printf("%s\n", FAILED_MALLOC_MSG);
+
+    } /* endif */
+
+    epilogue();
+    return rc;
+
+} /* end ezcaClearChannel() */
+
 
 /****************************************************************
 *
@@ -4909,10 +5042,14 @@ int rc;
 *
 ****************************************************************/
 
-static void EzcaClearChannel(struct channel *cp)
+static int EzcaClearChannel(struct channel *cp)
 {
-    if (cp && cp->ever_successfully_searched)
-	ca_clear_channel(cp->cid);
+    if (cp
+#ifndef EPICS_THREE_FOURTEEN
+ && cp->ever_successfully_searched
+#endif
+		)
+	return ECA_NORMAL == ca_clear_channel(cp->cid) ? 0 : -1;
 
 } /* end EzcaClearChannel() */
 
@@ -6854,6 +6991,7 @@ EZCA_UNLOCK();
 static void clean_and_push_channel(struct channel *cp)
 {
 
+int    clear_failed;
 struct monitor *mp;
 
     if (cp)
@@ -6886,10 +7024,10 @@ struct monitor *mp;
 
 	/* clearing the chid */
 
-	EzcaClearChannel(cp);
+	clear_failed = EzcaClearChannel(cp);
 	EzcaPendIO((struct work *) NULL, SHORT_TIME);
 
-	push_channel(cp);
+	push_channel(cp, clear_failed ? &Discarded_channels : &Channel_avail_hdr);
 
     } /* endif */
 
@@ -7199,8 +7337,9 @@ static void init_work(struct work *wp)
 *
 ****************************************************************/
 
-static void push_channel(struct channel *p)
+static void push_channel(struct channel *p, struct channel **plist)
 {
+struct channel **pc,*c;
 
     if (Debug)
     {
@@ -7212,11 +7351,19 @@ static void push_channel(struct channel *p)
     {
 	if (p->pvname)
 	{
+		for ( pc = &Channels[hash(p->pvname)]; *pc; pc = & (*pc)->next )
+			if ( !strcmp(p->pvname, (*pc)->pvname ) ) {
+				c = *pc;
+				*pc = c->next;
+				c->next = 0;
+				break;
+			}
+		
 	    free(p->pvname);
 	    p->pvname = (char *) NULL;
 	} /* endif */
-	p->next = Discarded_channels;
-	Discarded_channels = p;
+	p->next = *plist;
+	*plist = p;
     } /* endif */
 
     if (Debug)
@@ -7350,11 +7497,13 @@ struct channel *cp;
 static void print_channels()
 {
 
+int            i;
 struct channel *cp;
 struct monitor *mp;
 
     printf("Start Channels:\n");
-    for (cp = Channels[0]; cp; cp = cp->next) 
+	for ( i=0; i<HASHTABLESIZE; i++ )
+    for (cp = Channels[i]; cp; cp = cp->next) 
     {
 	printf(">%s< %p (nxt %p) ml %p ", 
 	    cp->pvname, cp, cp->next, cp->monitor_list);

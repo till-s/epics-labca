@@ -56,7 +56,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.19 2004/02/12 02:29:11 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.20 2004/03/23 23:52:02 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -510,6 +510,31 @@ Set the warning threshold for \com{lcaGet()} operations.
 A warning message is printed when retrieving a PV with a severity bigger
 or equal to the warning level. Supported values are \sevrange{} (No alarm,
 minor alarm, major alarm, invalid alarm). The initial/default value is 3.
+
+\subsection{lcaClear}
+\label{lcaclear}
+\subsubsection{Calling Syntax}
+\begin{verbatim}
+lcaClear(pvs)
+\end{verbatim}
+\subsubsection{Description}
+Clear / release (disconnect) channels. This is particularly useful with
+EPICS 3.14 to clean up invalid PVs (e.g., due to typos). Nonexisting PVs are
+continuously searched for by a CA background task which may result
+in cluttered IOC consoles and resource consumption.
+\subsubsection{Parameters}
+\begin{description}
+\PVITEM
+Alternatively, \com{lcaClear} may be called with {\em no} rhs argument
+thus clearing {\em all} channels.
+\end{description}
+\subsubsection{Examples}
+\begin{verbatim}
+\\ clear a number of channels
+  lcaClear( ['aUseless_PV'; 'misTyppedPV' ] )
+\\ purge all channels
+  lcaClear()
+\end{verbatim}
 
 \pbrkf
 \section{Building and Using \sca{}}

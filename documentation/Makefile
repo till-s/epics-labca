@@ -23,7 +23,9 @@ HELPS+=help/lcaGetStatus.html
 HELPS+=help/lcaGetTimeout.html
 HELPS+=help/lcaGetUnits.html
 HELPS+=help/lcaPut.html
+HELPS+=help/lcaPutNoWait.html
 HELPS+=help/lcaSetSeverityWarnLevel.html
+HELPS+=help/lcaClear.html
 
 MHELPS=$(HELPS:%.html=%.m)
 

@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.19 2004/02/27 01:21:44 till Exp $ */
+/* $Id: multiEzca.h,v 1.20 2004/03/23 23:52:12 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -86,6 +86,14 @@ typedef epicsShareFunc int (epicsShareAPI *MultiEzcaFunc)();
 
 epicsShareFunc int epicsShareAPI
 multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args);
+
+/* destroy a number (column vector) of channels;
+ * if 'nms==NULL', 'm' has a special meaning:
+ *  m == 0 : all currently disconnected channels are cleared
+ *  m <  0 : all channels are cleared
+ */
+epicsShareFunc int epicsShareAPI
+multi_ezca_clear_channels(char **nms, int m);
 
 #ifdef __cplusplus
 };

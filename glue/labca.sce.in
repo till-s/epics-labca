@@ -19,6 +19,7 @@ ezca_funs=[...
   'lcaDebugOn';
   'lcaDebugOff';
   'lcaSetSeverityWarnLevel';
+  'lcaClear';
   'lecdrGet';
   ];
 addinter('THELIB','ezca',ezca_funs);

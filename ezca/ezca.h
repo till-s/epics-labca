@@ -66,6 +66,8 @@ epicsShareFunc int epicsShareAPI ezcaSetMonitor(char *pvname, char ezcatype);
 epicsShareFunc int epicsShareAPI ezcaSetRetryCount(int retry);
 epicsShareFunc int epicsShareAPI ezcaSetTimeout(float sec);
 epicsShareFunc int epicsShareAPI ezcaStartGroup(void);
+epicsShareFunc int epicsShareAPI ezcaClearChannel(char *pvname);
+epicsShareFunc int epicsShareAPI ezcaPurge(int disconnectedOnly);
 epicsShareFunc void epicsShareAPI ezcaTraceOff(void);
 epicsShareFunc void epicsShareAPI ezcaTraceOn(void);
 

@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.15 2004/03/04 21:57:39 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.16 2004/03/23 23:52:10 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -432,6 +432,28 @@ static int intsezcaDebugOff(char *fname)
 	return 0;
 }
 
+static int intsezcaClearChannels(char *fname)
+{
+int m,n;
+char **s;
+	CheckRhs(0,1);
+	CheckLhs(1,1);
+	if ( Rhs > 0 ) {
+		GetRhsVar(1, "S", &m, &n, &s);
+		CheckColumn(1,m,n);
+		if ( 1 == m && 0 == *s[0] ) {
+			s = 0;
+			m = 0;
+		}
+	} else {
+		s = 0;
+		m = -1;
+	}
+	multi_ezca_clear_channels(s,m);
+		
+	return 0;
+}
+
 static int intsezcaSetSeverityWarnLevel(char *fname)
 {
 int m,n,i;
@@ -490,6 +512,7 @@ static GenericTable Tab[]={
   {(Myinterfun)sci_gateway, intsezcaDebugOn,				"lcaDebugOn"},
   {(Myinterfun)sci_gateway, intsezcaDebugOff,				"lcaDebugOff"},
   {(Myinterfun)sci_gateway, intsezcaSetSeverityWarnLevel,	"lcaSetSeverityWarnLevel"},
+  {(Myinterfun)sci_gateway, intsezcaClearChannels,			"lcaClear"},
 #ifdef WITH_ECDRGET
   {(Myinterfun)sci_gateway, intsecdrGet,					"lecdrGet"},
 #endif

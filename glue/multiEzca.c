@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.18 2004/02/27 01:21:35 till Exp $ */
+/* $Id: multiEzca.c,v 1.19 2004/03/23 23:52:11 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -789,3 +789,26 @@ ezcaSetSeverityWarnLevel(int level)
 {
 ezcaSeverityWarnLevel = level;
 }
+
+int epicsShareAPI
+multi_ezca_clear_channels(char **nms, int m)
+{
+int rval = EZCA_OK, i, r = EZCA_OK;
+
+	if ( !nms ) {
+		if ( (rval = ezcaPurge( m<0 ? 0 : 1 )) )
+			ezErr("multi_ezca_clear_channels - ", 0);
+	} else {
+
+		for ( i=0; i<m; i++ ) {
+			if ( EZCA_OK != (r = ezcaClearChannel(nms[i])) )
+				ezErr("multi_ezca_clear_channels - ", 0);
+
+			if ( EZCA_OK == rval )
+				rval = r;
+		}
+	}
+
+	return rval;
+}
+

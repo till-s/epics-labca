@@ -36,6 +36,7 @@ lcaSetRetryCount_OBJS        := lcaSetRetryCount.c
 lcaGetTimeout_OBJS           := lcaGetTimeout.c
 lcaSetTimeout_OBJS           := lcaSetTimeout.c
 lcaSetSeverityWarnLevel_OBJS := lcaSetSeverityWarnLevel.c
+lcaClear_OBJS                := lcaClear.c
 
 # on generic system
 USR_CPPFLAGS += -DMATLAB_APP
@@ -52,6 +53,7 @@ MEXF += lcaSetRetryCount
 MEXF += lcaGetTimeout
 MEXF += lcaSetTimeout
 MEXF += lcaSetSeverityWarnLevel
+MEXF += lcaClear
 ifeq ($(CONFIG_ECDRGET),YES)
 MEXF += ecget
 endif
