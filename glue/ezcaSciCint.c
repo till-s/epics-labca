@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.17 2004/03/24 04:05:17 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.18 2004/06/19 01:57:52 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -413,6 +413,20 @@ int m,n,i;
 	return 0;
 }
 
+static int intsezcaDelay(char *fname)
+{
+int m,n,i;
+	CheckRhs(1,1);
+	CheckLhs(1,1);
+	GetRhsVar(1,"r",&m,&n,&i);
+	CheckScalar(1,m,n);
+	if ( ezcaDelay(*sstk(i)) )
+		cerro("Error encountered (need 1 arg > 0.0)");
+	LhsVar(1)=0;
+	return 0;
+}
+
+
 static int intsezcaDebugOn(char *fname)
 {
 	CheckRhs(0,0);
@@ -566,6 +580,7 @@ static GenericTable Tab[]={
   {(Myinterfun)sci_gateway, intsezcaClearChannels,			"lcaClear"},
   {(Myinterfun)sci_gateway, intsezcaSetMonitor,			    "lcaSetMonitor"},
   {(Myinterfun)sci_gateway, intsezcaNewMonitorValue,	    "lcaNewMonitorValue"},
+  {(Myinterfun)sci_gateway, intsezcaDelay,	    			"lcaDelay"},
 #ifdef WITH_ECDRGET
   {(Myinterfun)sci_gateway, intsecdrGet,					"lecdrGet"},
 #endif

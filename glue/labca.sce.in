@@ -22,6 +22,7 @@ ezca_funs=[...
   'lcaClear';
   'lcaSetMonitor';
   'lcaNewMonitorValue';
+  'lcaDelay';
   'lecdrGet';
   ];
 addinter('THELIB','ezca',ezca_funs);

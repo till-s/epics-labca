@@ -39,6 +39,7 @@ lcaSetSeverityWarnLevel_OBJS := lcaSetSeverityWarnLevel.c
 lcaClear_OBJS                := lcaClear.c
 lcaSetMonitor_OBJS           := lcaSetMonitor.c
 lcaNewMonitorValue_OBJS      := lcaNewMonitorValue.c
+lcaDelay_OBJS                := lcaDelayValue.c
 
 # on generic system
 USR_CPPFLAGS += -DMATLAB_APP
@@ -58,6 +59,7 @@ MEXF += lcaSetSeverityWarnLevel
 MEXF += lcaClear
 MEXF += lcaSetMonitor
 MEXF += lcaNewMonitorValue
+MEXF += lcaDelay
 ifeq ($(CONFIG_ECDRGET),YES)
 MEXF += ecget
 endif
