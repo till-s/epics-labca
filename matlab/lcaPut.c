@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ezcaPut.c,v 1.2 2003/12/23 23:06:56 strauman Exp $ */
 
 /* matlab wrapper for ezcaPut */
 
@@ -81,7 +81,7 @@ mxArray *dummy = 0;
 		if ( ezcaInvalid == (tmptype = marg2ezcaType(prhs[2])) ) {
 			goto cleanup;
 		}
-		if ( ezcaString == type && ezcaString != tmptype ) {
+		if ( (ezcaString == type) != (ezcaString == tmptype) ) {
 			MEXERRPRINTF("string value type conversion not implemented, sorry");
 			goto cleanup;
 		}
