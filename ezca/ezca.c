@@ -306,14 +306,17 @@ struct channel
     BOOL ever_successfully_searched;
 }; /* end struct channel */
 
+/* map to easily printable chars at offset 'U'... */
+typedef enum { usable=0, trashed='T'-'U', recyclable='R'-'U' } Trash_t;
+
 struct work
 {
     struct work *next;
-    struct channel *cp;
+    struct channel *cxp;
     int rc;
     char *error_msg;
     char *aux_error_msg;
-    BOOL trashme;
+    Trash_t trashme;
     BOOL needs_work;
     /* the rest filled in based on type of work */
     char dbr_type;
@@ -755,7 +758,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 				/* callback fires off later      */
 
 				wp->needs_work = FALSE;
-				wp->trashme = TRUE;
+				wp->trashme = trashed;
 				if (Debug)
 				    printf("trashing wp %p\n", wp);
 
@@ -842,7 +845,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 		{
 		    if (wp->rc == EZCA_OK && wp->needs_work)
 		    {
-			wp->trashme = TRUE;
+			wp->trashme = trashed;
 
 			if (Debug)
 			    printf("trashing wp %p\n", wp);
@@ -881,7 +884,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 			    if (AutoErrorMessage)
 				print_error(wp);
 
-			    wp->trashme = TRUE;
+			    wp->trashme = trashed;
 
 			    if (Debug)
 				printf("trashing wp %p\n", wp);
@@ -3907,7 +3910,7 @@ int rc;
 
 				    error = TRUE;
 
-				    wp->trashme = TRUE;
+				    wp->trashme = trashed;
 
 				    if (Debug)
 					printf("trashing wp\n");
@@ -3936,7 +3939,7 @@ int rc;
 
 				    if (AutoErrorMessage)
 					print_error(wp);
-				    wp->trashme = TRUE;
+				    wp->trashme = trashed;
 
 				    if (Debug)
 					printf("trashing wp\n");
@@ -3952,7 +3955,7 @@ int rc;
 			    /* never used again in case the  */
 			    /* callback fires off later      */
 
-			    wp->trashme = TRUE;
+			    wp->trashme = trashed;
 			    if (Debug)
 				printf("trashing wp\n");
 			} /* endif */
@@ -4671,7 +4674,7 @@ struct work *rc;
 
     if (Workp)
     {
-	if (Workp->trashme)
+	if (usable != Workp->trashme)
 	{
 	    /* must trash this one and get a new one */
 
@@ -4797,7 +4800,7 @@ BOOL rc;
 
 		    rc = FALSE;
 
-		    wp->trashme = TRUE;
+		    wp->trashme = trashed;
 		    if (Debug)
 			printf("trashing wp %p\n", wp);
 		} /* endif */
@@ -4863,7 +4866,7 @@ unsigned attempts;
 
 		error = TRUE;
 
-		wp->trashme = TRUE;
+		wp->trashme = trashed;
 
 		if (Debug)
 		    printf("trashing wp %p\n", wp);
@@ -4884,7 +4887,7 @@ unsigned attempts;
 
 	    if (AutoErrorMessage)
 		print_error(wp);
-	    wp->trashme = TRUE;
+	    wp->trashme = trashed;
 
 	    if (Debug)
 		printf("trashing wp %p\n", wp);
@@ -5059,13 +5062,20 @@ int rc;
 
 static int EzcaClearChannel(struct channel *cp)
 {
+int rval = 0;
     if (cp
 #ifndef EPICS_THREE_FOURTEEN
  && cp->ever_successfully_searched
 #endif
-		)
-	return ECA_NORMAL == ca_clear_channel(cp->cid) ? 0 : -1;
-
+		) {
+	/* ca_clear_channel() waits for user CB to complete;
+	 * we must unlock to prevent deadlock.
+	 */
+	EZCA_UNLOCK();
+	rval = ECA_NORMAL == ca_clear_channel(cp->cid) ? 0 : -1;
+	EZCA_LOCK();
+	}
+	return rval;
 } /* end EzcaClearChannel() */
 
 /****************************************************************
@@ -5687,6 +5697,9 @@ int rc;
 static void my_connection_callback(struct connection_handler_args arg)
 {
 EZCA_LOCK();
+/* TODO: should we try to recycle trashed work nodes
+ *       referring to disconnected channels here?
+ */
 EZCA_UNLOCK();
 } /* end my_connection_callback() */
 
@@ -5732,7 +5745,7 @@ EZCA_LOCK();
 
     if ((wp = (struct work *) arg.usr))
     {
-	if (!(wp->trashme))
+	if (usable == wp->trashme)
 	{
 	    if (Trace || Debug)
 		printf("my_get_callback() pvname >%s<\n", wp->pvname);
@@ -6952,7 +6965,7 @@ EZCA_LOCK();
 
     if ((wp = (struct work *) arg.usr))
     {
-	if (!(wp->trashme))
+	if (usable == wp->trashme)
 	{
 	    wp->reported = TRUE;
 
@@ -7321,7 +7334,7 @@ static void init_work(struct work *wp)
 	    free(wp->aux_error_msg);
 	    wp->aux_error_msg = (char *) NULL;
 	} /* endif */
-	wp->trashme = FALSE;
+	wp->trashme = usable;
 	wp->needs_work = FALSE;
 	if (wp->pvname)
 	{
@@ -7461,9 +7474,9 @@ struct work **ppw, *pw;
 		;
 	if ( pw || Workp == wp ) {
 		/* simply reset trashme */
-		wp->trashme = FALSE;
+		wp->trashme = recyclable;
 		if (Debug) {
-			printf("Success; %p found in work list or Workp; resetting trashme\n", wp);
+			printf("Success; %p found in work list or Workp; recycling trashme\n", wp);
 			printf("exiting recycle_work()\n");
 		}
 		return;
@@ -7478,7 +7491,7 @@ static void push_work(struct work *p)
     if (Debug)
     {
 	printf("entering push_work() p %p trashme %c\n", 
-	    p, (p ? (p->trashme ? 'T' : 'F') : 'X'));
+	    p, (p ? (p->trashme + 'U') : 'X'));
 	print_state();
     } /* endif */
 
@@ -7496,13 +7509,14 @@ static void push_work(struct work *p)
 	    p->aux_error_msg = (char *) NULL;
 	} /* endif */
 
-	if (p->trashme)
+	if (trashed == p->trashme)
 	{
 	    p->next = Discarded_work;
 	    Discarded_work = p;
 	}
 	else
 	{
+		/* usable and recyclable work nodes appear here */
 	    p->next = Work_avail_hdr;
 	    Work_avail_hdr = p;
 	} /* endif */
@@ -7627,7 +7641,7 @@ struct work *wp;
     printf("Discarded_work %p : ", Discarded_work); 
     for (wp = Discarded_work; wp; wp = wp->next) 
 	printf("%p trashme %c (nxt %p) ", 
-	    wp, (wp->trashme ? 'T' : 'F'), wp->next); 
+	    wp, (wp->trashme + 'U'), wp->next); 
     printf("\n");
 
 } /* end print_discarded_work() */
@@ -7711,7 +7725,7 @@ struct work *wp;
     printf("Work_list head %p tail %p : ", Work_list.head, Work_list.tail); 
     for (wp = Work_list.head; wp; wp = wp->next) 
 	printf("%p trashme %c (nxt %p)", 
-	    wp, (wp->trashme ? 'T' : 'F'), wp->next); 
+	    wp, (wp->trashme + 'U'), wp->next); 
     printf("\n");
 
 } /* end print_work_list() */
@@ -7727,7 +7741,7 @@ static void print_workp()
     printf("Workp : "); 
     if (Workp)
 	printf("%p trashme %c (nxt %p)\n", 
-	    Workp, (Workp->trashme ? 'T' : 'F'), Workp->next); 
+	    Workp, (Workp->trashme + 'U'), Workp->next); 
     else
 	printf("0\n");
 
