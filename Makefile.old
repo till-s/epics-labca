@@ -4,7 +4,7 @@ MAKEFOR=SCILAB
 ifeq ($(IS_3_14),YES)
 		EPICS_TOP = /usr/local/epics/
 EPICS_BASE = $(EPICS_TOP)//
-EPICS_EXTENSIONS = .
+EPICS_EXTENSIONS = ./ezca
 HARCH = $(EPICS_HOST_ARCH)
 TARCH = Linux
 else
