@@ -280,13 +280,13 @@ static char *ErrorMsgs[] =
 struct channel
 {
     struct channel	*next;
-    char 			*pvname;
-    chid			cid;
-	int				refcnt;
-    BOOL			ever_successfully_searched;
+    char 		*pvname;
+    chid		cid;
+    int			refcnt;
+    BOOL		ever_successfully_searched;
 }; /* end struct channel */
 
-/* map to easily printable chars at offset 'U'... */
+/* map to printable chars at offset 'U'... */
 typedef enum { usable=0, trashed='T'-'U', recyclable='R'-'U' } Trash_t;
 
 struct work
@@ -2113,6 +2113,10 @@ int rc,i;
 		for ( i = 0; i < HASHTABLESIZE; i++ ) {
 			for ( cp = Channels[i]; cp; ) {
 				if ( !disconnectedOnly || !EzcaConnected(cp) ) {
+					if ( cp->refcnt ) {
+						fprintf(stderr,"EZCA FATAL ERROR: ezcaClearChannel() -- refcnt is not 0\n");
+						exit(1);
+					}
 					/* normal get_channel() or find_channel() increment the
 					 * refcnt...
 					 */
@@ -3987,7 +3991,7 @@ release_channel( struct channel **cpp )
 		fprintf(stderr,"EZCA FATAL ERROR: release_channel() called with refcnt <= 0\n");
 		exit(1);
 	}
-	(*cpp)->refcnt++;
+	(*cpp)->refcnt--;
 	*cpp = 0;
 }
 
@@ -6102,7 +6106,7 @@ int    clear_failed;
 
 
     } /* endif */
-	*cpp = 0;
+    *cpp = 0;
 
 } /* end clean_and_push_channel() */
 
@@ -6510,6 +6514,7 @@ struct channel *cp;
     printf("Discarded_channels %p : ", Discarded_channels); 
     for (cp = Discarded_channels; cp; cp = cp->next) 
 	printf("%p (nxt %p)\n", cp, cp->next);
+	printf("\n");
 
 } /* end print_discarded_channels() */
 
