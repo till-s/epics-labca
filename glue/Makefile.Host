@@ -89,6 +89,13 @@ PROD_LIBS += LibScilab
 endif
 endif
 
+# matlab tries to unload MEX files on exit;
+# since we cannot exit ezca/CA cleanly, this
+# might crash! These options enforce locking
+# our library stack into memory..
+USR_LDFLAGS_solaris+=-z nodelete
+USR_LDFLAGS_Linux+=-z nodelete
+
 libmx_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 
