@@ -3,6 +3,7 @@
 %
 %   lcaGet                   - read one or multiple EPICS PVs
 %   lcaPut                   - write one or multiple EPICS PVs
+%   lcaPutNoWait             - write one or multiple EPICS PVs without waiting for record processing to complete on the server
 %   lcaGetNelem              - retrieve max. number of elements of EPICS PVs
 %   lcaGetStatus             - read status, severity and timestamp of EPICS PVs
 %   lcaGetControlLimits      - read control limits of EPICS PVs

@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.17 2004/02/11 23:03:14 till Exp $ */
+/* $Id: multiEzca.c,v 1.18 2004/02/27 01:21:35 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -381,7 +381,7 @@ int i;
 	}
 
 int epicsShareAPI
-multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n)
+multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n, int doWait4Callback)
 {
 void          *cbuf  = 0;
 int           *dims  = 0;
@@ -462,7 +462,10 @@ register char *bufp;
 	ezcaStartGroup();
 
 		for ( i=0, bufp = cbuf; i<m; i++, bufp += rowsize ) {
-			ezcaPut(nms[i], types[i], dims[i], bufp);
+			if (doWait4Callback)
+				ezcaPut(nms[i], types[i], dims[i], bufp);
+			else
+				ezcaPutOldCa(nms[i], types[i], dims[i], bufp);
 		}
 
 	if ( EZCA_OK != do_end_group(0, m, 0) ) {

@@ -56,7 +56,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.18 2004/02/12 02:24:34 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.19 2004/02/12 02:29:11 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -102,13 +102,13 @@ PVs are plain ASCII strings. \sca{} is capable of handling
 multiple PVs in a single call; they are simply passed as a
 column vector:
 \begin{verbatim}
-pvs = [ 'PVa'; 'b'; 'anotherone']
+pvs = [ 'PVa'; 'b'; 'anotherone' ]
 \end{verbatim}
 Because \matlab{} doesn't allow the rows of
 a string vector to be of different size, the \matlab{}
 wrapper expects a \ita{cell-} array of strings:
 \begin{verbatim}
-pvs = { 'PVa'; 'b'; 'anotherone'}
+pvs = { 'PVa'; 'b'; 'anotherone' }
 \end{verbatim}
 
 All channel access activities for the PVs
@@ -335,6 +335,24 @@ explicitely request different types for individual PVs (i.e.
     tab = [ 1, 2, 3, 4 ;   5, %nan, 0, 0 ]
 	lcaPut( [ 'arrayPV'; 'scalarPV' ], tab )
 \end{verbatim}
+
+\subsection{lcaPutNoWait}
+\label{lcaputnowait}
+\subsubsection{Calling Syntax}
+\begin{verbatim}
+lcaPutNoWait(pvs, value, type)
+\end{verbatim}
+\subsubsection{Description}
+\com{lcaPutNoWait} is a variant of \com{lcaPut} that does {\em not wait}
+for the channel access put request to complete on the server prior to
+returning control to the command line.
+This call can be useful to set PVs that are known to take a long
+or indefinite time to complete processing, e.g., arming a waveform record
+which is triggered by a hardware event in the future or starting a stepper
+motor.
+
+\subsubsection{Parameters}
+See \com{lcaPut}.
 
 \pbrk
 \subsection{lcaGetNelem}

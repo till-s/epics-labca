@@ -24,13 +24,12 @@ HELPS+=help/lcaGetTimeout.html
 HELPS+=help/lcaGetUnits.html
 HELPS+=help/lcaPut.html
 HELPS+=help/lcaSetSeverityWarnLevel.html
-HELPS+=help/whatis.htm
 
 MHELPS=$(HELPS:%.html=%.m)
 
 DOCS+=manual.pdf
 MANHTMLS=$(wildcard manual/*)
-HTMLS+=$(HELPS) $(MANHTMLS)
+HTMLS+=$(HELPS) help/whatis.htm $(MANHTMLS)
 
 $(INSTALL_HTML)/$(HTMLS_DIR)/%: manual/%
 	@echo "Installing Html Documentation $@"
@@ -53,15 +52,24 @@ $(sort manual/index.html $(wildcard manual/*.html)): manual.aux
 $(HELPS): manual.aux
 	if [ ! -x help ] ; then mkdir help; fi
 	latex2html -no_footnode -split 5 -link 0 -no_navigation -no_antialias_text -long_titles 1 -dir help manual
-	cp whatis.htm help
-	cp Contents.m help
+
+help/whatis.htm: whatis.htm
+	if [ ! -x help ] ; then mkdir help; fi
+	$(RM) $@
+	cp $< $@
+
+help/Contents.m: Contents.m
+	if [ ! -x help ] ; then mkdir help; fi
+	$(RM) $@
+	cp $< $@
+
 
 # html->text, add leading '%' and remove long URLs, just leave filename
 %.m:%.html
 	$(RM) $@
 	lynx -dump $^ | sed -e 's/^/%/g'  -e 's/\([0-9]*[.][ ]*\)\(file:\([^/]*[/]\)*\)/\1/g'  > $@
 
-build:: manual/index.html $(MHELPS)
+build:: manual/index.html $(MHELPS) help/Contents.m
 
 # make again for the HTMLS wildcard expansion to find the newly created files
 ifeq ($(MANHTMLS)xx,xx)

@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.10 2004/02/27 01:21:44 till Exp $ */
+/* $Id: mglue.h,v 1.11 2004/03/01 19:36:00 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -54,6 +54,9 @@ marg2ezcaType(const mxArray *typearg);
  */
 epicsShareFunc void epicsShareAPI
 flagError(int nlhs, mxArray *plhs[]);
+
+epicsShareFunc void epicsShareAPI
+theLcaPutMexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], int doWait);
 
 #ifdef __cplusplus
 };

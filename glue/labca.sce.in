@@ -5,6 +5,7 @@
 ezca_funs=[...
   'lcaGet';
   'lcaPut';
+  'lcaPutNoWait';
   'lcaGetNelem';
   'lcaGetControlLimits';
   'lcaGetGraphicLimits';

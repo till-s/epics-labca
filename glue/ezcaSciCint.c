@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.14 2004/02/27 01:21:44 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.15 2004/03/04 21:57:39 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -138,7 +138,7 @@ char      type  = ezcaNative;
 	return 0;
 }
 
-static int intsezcaPut(char *fname)
+static int dosezcaPut(char *fname, int doWait)
 {
 int mpvs, mval, ntmp, n, i;
 void *buf;
@@ -179,10 +179,21 @@ char type  = ezcaNative;
 	/* cross variable size checking */
 	*sstk(i) =
 #endif
-		multi_ezca_put(pvs, mpvs, type, buf, mval, n);
+		multi_ezca_put(pvs, mpvs, type, buf, mval, n, doWait);
 
 	return 0;
 }
+
+static int intsezcaPutNoWait(char *fname)
+{
+	return dosezcaPut(fname, 0);
+}
+
+static int intsezcaPut(char *fname)
+{
+	return dosezcaPut(fname, 1);
+}
+
 
 static int intsezcaGetNelem(char *fname)
 {
@@ -465,6 +476,7 @@ char **s;
 static GenericTable Tab[]={
   {(Myinterfun)sci_gateway, intsezcaGet,					"lcaGet"},
   {(Myinterfun)sci_gateway, intsezcaPut,					"lcaPut"},
+  {(Myinterfun)sci_gateway, intsezcaPutNoWait,				"lcaPutNoWait"},
   {(Myinterfun)sci_gateway, intsezcaGetNelem,				"lcaGetNelem"},
   {(Myinterfun)sci_gateway, intsezcaGetControlLimits,		"lcaGetControlLimits"},
   {(Myinterfun)sci_gateway, intsezcaGetGraphicLimits,		"lcaGetGraphicLimits"},

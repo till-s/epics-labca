@@ -10,5 +10,5 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	theLcaPutMexFunction(nlhs,plhs,nrhs,prhs,1);
+	theLcaPutMexFunction(nlhs,plhs,nrhs,prhs,0);
 }
