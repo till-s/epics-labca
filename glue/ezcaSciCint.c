@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.3 2004/01/01 01:15:39 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.4 2004/01/05 19:37:12 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -101,9 +101,6 @@ char   type  = ezcaNative;
 		return 0;
 	}
 
-	multi_ezca_ts_cvt( mpvs, ts, stk(itmp), stk(jtmp) );
-	FreePtr( &ts );
-
 	/* NOTE: if CreateVarxxx fails, there is a memory leak
 	 *       (macro returns without chance to clean up)
 	 */
@@ -116,6 +113,7 @@ char   type  = ezcaNative;
 		LhsVar(1)=Rhs + 2;
 
 		if ( Lhs >= 2 ) {
+			multi_ezca_ts_cvt( mpvs, ts, stk(itmp), stk(jtmp) );
 			LhsVar(2)=Rhs + 1;
 		}
 	}
@@ -127,6 +125,10 @@ char   type  = ezcaNative;
 			FreePtr(&buf);
 		}
  	}
+
+	if ( ts ) {
+		FreePtr( &ts );
+	}
 
 	return 0;
 }
