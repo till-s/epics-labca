@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ezcaGetNelem.c,v 1.2 2003/12/23 23:06:56 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetNelem */
 
@@ -17,6 +17,9 @@
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 PVs     pvs = { 0 };
+
+	if ( 0 == nlhs )
+		nlhs = 1;
 
 	if ( 1 < nlhs ) {
 		MEXERRPRINTF("Need one output arg");
@@ -38,10 +41,12 @@ PVs     pvs = { 0 };
 	}
 
     if ( multi_ezca_get_nelem( pvs.names, pvs.m, mxGetData(plhs[0])) ) {
-		mxDestroyArray( plhs[0] );
-		plhs[0] = 0;
+		goto cleanup;
 	}
+	nlhs = 0;
 
 cleanup:
 	releasePVs(&pvs);
+	/* do this LAST (in case the use mexErrMsgTxt) */
+	flagError(nlhs, plhs);
 }

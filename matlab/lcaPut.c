@@ -1,4 +1,4 @@
-/* $Id: ezcaPut.c,v 1.2 2003/12/23 23:06:56 strauman Exp $ */
+/* $Id: ezcaPut.c,v 1.3 2003/12/31 07:53:07 till Exp $ */
 
 /* matlab wrapper for ezcaPut */
 
@@ -18,12 +18,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 char	**pstr = 0;
 int     i, m = 0, n = 0;
+int		rval;
 const	mxArray *tmp, *strval;
 PVs     pvs = { 0 };
 char	type = ezcaNative;
 mxArray *dummy = 0;
+	
+	if ( nlhs == 0 )
+		nlhs = 1;
 
-	if ( nlhs ) {
+	if ( nlhs > 1 ) {
 		MEXERRPRINTF("Too many output args");
 		goto cleanup;
 	}
@@ -93,7 +97,16 @@ mxArray *dummy = 0;
 
 	assert( (pstr != 0) == (ezcaString ==  type) );
 
-	multi_ezca_put( pvs.names, pvs.m, type, (pstr ? (void*)pstr : (void*)mxGetPr(prhs[1])), m, n);
+	rval = multi_ezca_put( pvs.names, pvs.m, type, (pstr ? (void*)pstr : (void*)mxGetPr(prhs[1])), m, n);
+
+	if ( rval > 0 ) {
+		if ( !(plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL)) ) {
+			MEXERRPRINTF("Not enough memory");
+			goto cleanup;
+		}
+		*mxGetPr(plhs[0]) = (double)rval;
+		nlhs = 0;
+	}
 
 cleanup:
 	if ( pstr ) {
@@ -108,4 +121,6 @@ cleanup:
 		mxDestroyArray( dummy );
 	}
 	releasePVs(&pvs);
+	/* do this LAST (in case the use mexErrMsgTxt) */
+	flagError(nlhs, plhs);
 }

@@ -1,4 +1,4 @@
-/* $Id: lcaGet.c,v 1.5 2004/01/05 19:37:15 till Exp $ */
+/* $Id: lcaGet.c,v 1.6 2004/02/20 22:44:40 till Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -24,6 +24,9 @@ PVs     pvs = { 0 };
 char	type = ezcaNative;
 char	typestr[2] = { 'N', 0 };
 TS_STAMP *ts = 0;
+
+	if ( nlhs == 0 )
+		nlhs = 1;
 
 	for ( i=0; i<nlhs; i++ )
 		plhs[i] = 0;
@@ -59,45 +62,47 @@ TS_STAMP *ts = 0;
 
     multi_ezca_get( pvs.names, &type, &pres, pvs.m, &n, &ts );
 
+	if ( !pres )
+		goto cleanup;
+
 	/* if pres != NULL, we have a valid reply... */
-	if ( pres ) {
-		if ( ezcaString == type ) {
-			/* convert string array to a matlab cell array of matlab strings */
-			if ( !(clean0 = plhs[0] = mxCreateCellMatrix(pvs.m, n)) ) {
-				MEXERRPRINTF("Not enough memory");
-				goto cleanup;
-			}
-			for ( i = 0; i < pvs.m * n; i++ ) {
-				if ( !(tmp = mxCreateString(((const char**)pres)[i])) ) {
-					MEXERRPRINTF("Not enough memory");
-					goto cleanup;
-				}
-				mxSetCell(plhs[0], i, (mxArray*)tmp);
-			}
-		} else {
-			/* create a double matrix and copy (we don't know the dimension
-			 * prior to calling multi_ezca_get() - otherwise we could directly
-			 * pass the mxGetPr() handle to multi_ezca_get()...
-			 */
-
-			if ( !(clean0 = plhs[0] = mxCreateDoubleMatrix(pvs.m,n,mxREAL)) ) {
-				MEXERRPRINTF("Not enough memory");
-				goto cleanup;
-			}
-			memcpy(mxGetPr(plhs[0]), pres, sizeof(double) * pvs.m * n);
+	if ( ezcaString == type ) {
+		/* convert string array to a matlab cell array of matlab strings */
+		if ( !(clean0 = plhs[0] = mxCreateCellMatrix(pvs.m, n)) ) {
+			MEXERRPRINTF("Not enough memory");
+			goto cleanup;
 		}
-
-		/* If requested, generate the timestamp matrix */
-		if ( nlhs > 1 ) {
-			/* give them the time stamps */
-			if ( !(clean1 = plhs[1] = mxCreateDoubleMatrix(pvs.m,1,mxCOMPLEX)) ) {
+		for ( i = 0; i < pvs.m * n; i++ ) {
+			if ( !(tmp = mxCreateString(((const char**)pres)[i])) ) {
 				MEXERRPRINTF("Not enough memory");
 				goto cleanup;
 			}
-			multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[1]), mxGetPi(plhs[1]) );
+			mxSetCell(plhs[0], i, (mxArray*)tmp);
 		}
+	} else {
+		/* create a double matrix and copy (we don't know the dimension
+		 * prior to calling multi_ezca_get() - otherwise we could directly
+		 * pass the mxGetPr() handle to multi_ezca_get()...
+		 */
+
+		if ( !(clean0 = plhs[0] = mxCreateDoubleMatrix(pvs.m,n,mxREAL)) ) {
+			MEXERRPRINTF("Not enough memory");
+			goto cleanup;
+		}
+		memcpy(mxGetPr(plhs[0]), pres, sizeof(double) * pvs.m * n);
+	}
+
+	/* If requested, generate the timestamp matrix */
+	if ( nlhs > 1 ) {
+		/* give them the time stamps */
+		if ( !(clean1 = plhs[1] = mxCreateDoubleMatrix(pvs.m,1,mxCOMPLEX)) ) {
+			MEXERRPRINTF("Not enough memory");
+			goto cleanup;
+		}
+		multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[1]), mxGetPi(plhs[1]) );
 	}
 	clean0 = clean1 = 0;
+	nlhs = 0;
 
 cleanup:
 	if ( clean0 ) {
@@ -117,4 +122,6 @@ cleanup:
 	mxFree(pres);
 	mxFree(ts);
 	releasePVs(&pvs);
+	/* do this LAST (in case the use mexErrMsgTxt) */
+	flagError(nlhs, plhs);
 }

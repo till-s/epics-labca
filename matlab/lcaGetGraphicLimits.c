@@ -1,4 +1,4 @@
-/* $Id: ezcaGetGraphicLimits.c,v 1.3 2003/12/31 07:53:58 till Exp $ */
+/* $Id: ezcaGetGraphicLimits.c,v 1.4 2004/01/07 00:51:57 till Exp $ */
 
 /* matlab wrapper for ezcaGetGraphicLimits */
 
@@ -67,4 +67,6 @@ cleanup:
 			mxFree(*args[i].pres);
 	}
 	releasePVs(&pvs);
+	/* do this LAST (in case the use mexErrMsgTxt) */
+	flagError(nlhs, plhs);
 }

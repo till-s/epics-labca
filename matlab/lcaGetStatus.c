@@ -1,4 +1,4 @@
-/* $Id: lcaGet.c,v 1.5 2004/01/05 19:37:15 till Exp $ */
+/* $Id: lcaGetStatus.c,v 1.1 2004/02/20 22:57:10 till Exp $ */
 
 /* matlab wrapper for ezcaGetStatus */
 
@@ -22,6 +22,9 @@ TS_STAMP	*ts = 0;
 MultiArgRec	args[3];
 mxArray		*res[2] = {0};
 short		*stat = 0, *sevr = 0;
+
+	if ( nlhs == 0 )
+		nlhs = 1;
 
 	for ( i=0; i<nlhs; i++ )
 		plhs[i] = 0;
@@ -52,25 +55,28 @@ short		*stat = 0, *sevr = 0;
 	MSetArg( args[1], sizeof(short),  mxGetData(res[0]), 0);	/* status    */
 	MSetArg( args[2], sizeof(short),  mxGetData(res[1]), 0);	/* severity  */
 
-    if ( multi_ezca_get_misc( pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args) ) {
-		/* set severity in result array */
-		plhs[0] = res[1]; res[1] = 0;
-
-		if ( nlhs > 1 ) {
-			/* add status to result array */
-			plhs[1] = res[0]; res[0] = 0;
-		}
-
-		/* If requested, generate the timestamp matrix */
-		if ( nlhs > 2 ) {
-			/* give them the time stamps */
-			if ( !(plhs[2] = mxCreateDoubleMatrix(pvs.m,1,mxCOMPLEX)) ) {
-				MEXERRPRINTF("Not enough memory");
-				goto cleanup;
-			}
-			multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[2]), mxGetPi(plhs[2]) );
-		}
+    if ( !multi_ezca_get_misc( pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args) ) {
+		goto cleanup;
 	}
+
+	/* set severity in result array */
+	plhs[0] = res[1]; res[1] = 0;
+
+	if ( nlhs > 1 ) {
+		/* add status to result array */
+		plhs[1] = res[0]; res[0] = 0;
+	}
+
+	/* If requested, generate the timestamp matrix */
+	if ( nlhs > 2 ) {
+		/* give them the time stamps */
+		if ( !(plhs[2] = mxCreateDoubleMatrix(pvs.m,1,mxCOMPLEX)) ) {
+			MEXERRPRINTF("Not enough memory");
+			goto cleanup;
+		}
+		multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[2]), mxGetPi(plhs[2]) );
+	}
+	nlhs = 0;
 
 cleanup:
 	for ( i=0; i<NumberOf(res); i++ ) {
@@ -84,4 +90,6 @@ cleanup:
 	if (sevr)
 		mxFree(sevr);
 	releasePVs(&pvs);
+	/* do this LAST (in case the use mexErrMsgTxt) */
+	flagError(nlhs, plhs);
 }
