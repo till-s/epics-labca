@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.14 2004/06/23 01:22:52 till Exp $ */
+/* $Id: ini.cc,v 1.15 2004/06/23 18:04:56 strauman Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -6,6 +6,7 @@
 #include <cadef.h>
 #include <ezca.h>
 #include <multiEzcaCtrlC.h>
+#include <multiEzca.h>
 
 /* This is now done via the '-z nodelete' linker option */
 #if !defined(WIN32) && !defined(_WIN32) && defined(MATLAB_APP) && defined(USE_DLOPEN)
@@ -22,7 +23,7 @@
 class multiEzcaInitializer {
 public:
 	multiEzcaInitializer();
-	~multiEzcaInitializer();
+//	~multiEzcaInitializer();
 };
 
 multiEzcaInitializer::
@@ -60,13 +61,16 @@ ezcaAutoErrorMessageOff(); /* calls ezca init() */
 multi_ezca_ctrlC_epilogue(&saved);
 }
 
+#if 0 /* this doesn't work properly */
 multiEzcaInitializer::
 ~multiEzcaInitializer()
 {
+multi_ezca_clear_channels(0,-1);
 ezcaLock();
 ca_context_destroy();
 mexPrintf("Leaving labca finalizer\n");
 }
+#endif
 
 static multiEzcaInitializer theini;
 
