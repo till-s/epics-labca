@@ -365,7 +365,40 @@ c       no output variable
        return
        end
 c
-c SCILAB function : ecdrGet, fin = 8
+c SCILAB function : ezcaLibInit, fin = 8
+       subroutine intsezcaLibInit(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,0,0)) return
+       if(.not.checklhs(fname,1,1)) return
+c     
+c       cross variable size checking
+c     
+       call ezcaLibInit()
+       if(err .gt. 0) then 
+        buf = fname // ' Internal Error' 
+        call error(999)
+        return
+       endif
+c
+       topk=top-rhs
+       topl=top+0
+c       no output variable
+       top=topk+1
+       call objvide(fname,top)
+       return
+       end
+c
+c SCILAB function : ecdrGet, fin = 9
        subroutine intsecdrGet(fname)
 c
        character*(*) fname

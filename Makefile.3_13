@@ -1,15 +1,15 @@
-EPICS_TOP = /home/till/epics/
+EPICS_TOP = /home/till_tp/till/epics/R3.13.6/
 EPICS_BASE = $(EPICS_TOP)/base/
 EPICS_EXTENSIONS = $(EPICS_TOP)/extensions
 SCIDIR = /usr/lib/scilab-2.6
 
 # 3.14: HARCH = linux-x86
 # 3.14: TARCH = Linux
-HARCH=linux-ppc
+HARCH=Linux
 TARCH=Linux
 PTHREAD = -lpthread
 #LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -lreadline -ltermcap -lrt
-LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -L/lib -L/usr/lib -lm -lrt
+LIBS = -L$(EPICS_BASE)/lib/$(HARCH)/ -lca -lCom -L/lib -L/usr/lib -lm 
 INCS = -I$(EPICS_BASE)/include/ -I$(EPICS_BASE)/include/os/$(TARCH)
 EINCS = -I$(EPICS_EXTENSIONS)/include/
 ELIBS = -L$(EPICS_EXTENSIONS)/lib/$(HARCH)/ -lezca
@@ -40,8 +40,8 @@ ezcaWrap.occ: ezcaWrap.cc
 
 #	$(CC) -Wl,"-Ur,-u ezcaGet" -o $@ $^ $(INCS) $(EINCS) -I$(SCIDIR) -L$(EPICS_BASE)/lib/$(HARCH)/ $(ELIBS) -lca -lCom -L/lib -L/usr/lib/
 ezcalib:  ezcaWrap.o ecget.o
-	$(CXX) -r -o $@ -fPIC $^ $(EPICS_EXTENSIONS)/lib/$(HARCH)/libezca.a -L/lib -L/usr/lib -lm
-#	$(LD) -i -o $@ $^ -L/usr/lib $(ELIBS) $(EPICS_BASE)/lib/$(HARCH)/libca.a $(EPICS_BASE)/lib/$(HARCH)/libCom.a
+#	$(CXX) -r -o $@ $^ $(ELIBS) $(LIBS)
+	$(LD) -i -o $@ $^ -L/usr/lib $(ELIBS) $(EPICS_BASE)/lib/$(HARCH)/libca.a $(EPICS_BASE)/lib/$(HARCH)/libCom.a
 
 ecget: ecget.c
 #	$(CC) -O2 -o $@ $^ $(INCS) $(LIBS)

@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.4 2001/09/21 01:15:15 strauman Exp $ */
+/* $Id: ecget.c,v 1.5 2001/09/21 20:00:33 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -38,7 +38,11 @@ typedef long buf_t;
 #undef DEBUG
 #endif
 
+#ifndef MACHHACK 
 #include <routines/machine.h> /* for C2F() macro */
+#else
+#define C2F(name) name##_
+#endif
 
 extern void cerro(char*);
 
@@ -157,7 +161,7 @@ static EcdrBoardC findConnectBoard(char *name)
 	memset(p,0,sizeof(*p));
 
 	/* copy the name */
-	if (!(p->name = SYS_MALLOC(strlen(name+1)))) {
+	if (!(p->name = (char*)SYS_MALLOC(strlen(name+1)))) {
 		ecErr("out of memory");
 		goto cleanup;
 	}
@@ -169,7 +173,7 @@ static EcdrBoardC findConnectBoard(char *name)
 		(sprintf(nbuf,"%s.NBRD",name), ECA_NORMAL!=ca_search(nbuf,&p->nbrd_id)) ||
 		(sprintf(nbuf,"%s.LOCK",name), ECA_NORMAL!=ca_search(nbuf,&p->lock_id)) ||
 		(sprintf(nbuf,"%s.BIDX",name), ECA_NORMAL!=ca_search(nbuf,&p->bidx_id)) ||
-		(ECA_NORMAL!=ca_pend_io(5.)) ) {
+		(ECA_NORMAL!=ca_pend_io(15.)) ) {
 		sprintf(nbuf,"PVs for '%s' not found",name);
 		ecErr(nbuf);
 		goto cleanup;
@@ -195,6 +199,7 @@ cleanup:
 	if (p->bidx_id)	ca_clear_channel(p->bidx_id);
 	if (p->nbrd_id)	ca_clear_channel(p->nbrd_id);
 	if (p->sg) 	ca_sg_delete(p->sg);
+	ca_pend_io(1.0);
 	if (p->name)	SYS_FREE(p->name);
 	if (p)		SYS_FREE(p);
 	return 0;

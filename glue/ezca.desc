@@ -80,6 +80,12 @@ ezcaDebugOn
 
 out	empty
 ***********************
+ezcaLibInit
+
+ezcaLibInit
+
+out	empty
+***********************
 ecdrGet name
 name	string l
 res	vector n

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <routines/machine.h> /* fortran/C name conversion for scilab */
 
 /* CA includes */
