@@ -56,7 +56,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.21 2004/03/24 04:05:20 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.22 2004/06/20 04:37:11 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -586,6 +586,34 @@ See \hyperref[ref]{here}{(}{)}{typearg} for more information.
 \subsubsection{Examples}
 \begin{verbatim}
 lcaNewMonitorValue('PV')
+\end{verbatim}
+
+\subsection{lcaDelay}
+\label{lcadelay}
+\subsubsection{Calling Syntax}
+\begin{verbatim}
+lcaDelay(timeout)
+\end{verbatim}
+\subsubsection{Description}
+Delay execution of \scilab{} or \matlab{} for the specified time
+to handle channel access activity (monitors). 
+{\em Using this call is not needed under EPICS-3.14} since monitors
+are transparently handled by separate threads. These ``worker threads''
+receive data from CA on monitored channels ``in the background'' while
+\scilab{}/\matlab{} are processing. You only need to poll the library
+if the data are ready (using {\tt lcaNewMonitorValue()}).
+
+Under 3.13, however, the user must periodically call {\tt lcaDelay()} or
+an other  \sca{} routine in order to yield the CPU to the channel access
+library.
+\subsubsection{Parameters}
+\begin{description}
+\item[timeout]
+A timeout value in seconds.
+\end{description}
+\subsubsection{Examples}
+\begin{verbatim}
+lcaTimeout(2.0)
 \end{verbatim}
 
 \pbrkf
