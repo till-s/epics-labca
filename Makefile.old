@@ -1,5 +1,5 @@
-EPICS_TOP = /usr/local/epics-3.14_a2/
-EPICS_BASE = $(EPICS_TOP)/base
+EPICS_TOP = /home/till/epics/
+EPICS_BASE = $(EPICS_TOP)/base-3.14.beta1/
 EPICS_EXTENSIONS = $(EPICS_TOP)/extensions
 SCIDIR = /usr/lib/scilab-2.5
 
@@ -34,7 +34,7 @@ ezcaWrap.o: ezcaWrap.cc
 
 #	$(CC) -Wl,"-Ur,-u ezcaGet" -o $@ -L/usr/local/epics-3.14_a2/base/lib/$(HARCH)/ $(ELIBS) -lca -lCom
 ezcalib:  ezcaWrap.o ecget.o
-	$(CC) -r -o $@ $^ $(ELIBS) $(LIBS)
+	$(CXX) -r -o $@ $^ $(ELIBS) $(LIBS)
 #	$(LD) -i -o $@ $^ -L/usr/lib $(ELIBS) -lezca /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libca.a /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libCom.a /usr/lib/libpthread.a /usr/lib/libreadline.a /usr/lib/libtermcap.a /usr/lib/librt.a /usr/lib/gcc-lib/i386-redhat-linux/2.96/libgcc.a 
 
 ecget: ecget.c
