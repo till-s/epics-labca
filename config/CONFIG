@@ -6,6 +6,9 @@
 
 MAKEFOR=SCILAB
 
+# optionally, set installation top directory
+#INSTALL_LOCATION=/install/everything/here
+
 # No need to change anything below here
 # (except for adding more matlab extensions for
 # other platforms...)
