@@ -1,0 +1,21 @@
+Documentation and build/install instructions
+can be found in the manual (documentation/manual.pdf).
+
+Quick instructions:
+
+ - edit config/CONFIG and set target application
+   (MAKEFOR=MATLAB  or MAKEFOR=SCILAB)
+   and (optionally) the installation directory.
+ - edit config/RELEASE to point to your
+    o EPICS base
+    o MATLAB
+    o SCILAB
+   installation directories and (WIN32 only)
+    o set MATLIB_SUBDIR to point to your compiler
+      dependent libmx/libmex versions.
+ - set EPICS_HOST_ARCH (EPICS 3.13: HOST_ARCH) environment
+   variable.
+ - run GNU make from this directory.
+    
+
+T.S, 2004/1
