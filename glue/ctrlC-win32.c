@@ -1,6 +1,13 @@
-#if defined(WIN32) || defined(_WIN32)
+/* $Id$ */
+
+/* Ctrl-C processing for WIN32 */
+
+/* Author: Till Straumann <strauman@slac.stanford.edu>, 2004
+ * This file is subject to the EPICS open license, consult the LICENSE file for
+ * more information. This header must not be removed.
+ */
+
 #include <Windows.h> /* must include this first */
-#endif
 
 #include <cadef.h>
 #include <ezca.h>
@@ -12,10 +19,7 @@
 #endif
 
 
-#if defined(WIN32) || defined(_WIN32)
-
 #ifdef MATLAB_APP
-#define sciprint mexPrintf
 #define WM_MTLBHACK (WM_USER + 10)
 #endif
 
@@ -89,13 +93,9 @@ static int procMsg(PMSG pmsg)
 }
 
 #define MYPEEK (PeekMessage(&m, 0, WM_MTLBHACK, WM_MTLBHACK, PM_NOREMOVE))
-#endif
 
+#else /* SCILAB_APP */
 
-
-
-
-#ifdef SCILAB_APP
 static int procMsg(PMSG pmsg)
 {
 DWORD m = pmsg->message;
@@ -125,7 +125,7 @@ DWORD m = pmsg->message;
 #define MYPEEK (PeekMessage (&m, 0, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
 #endif
 
-int multi_ezca_pollCb()
+static int multi_ezca_pollCb()
 {
 MSG m;
 	while ( MYPEEK ) {
@@ -152,70 +152,9 @@ multi_ezca_ctrlC_epilogue(unsigned long saved)
 {
 }
 
-
-#else /* just use signals */
-
-#include <signal.h>
-#include <stdio.h>
-#ifdef EPICS_THREE_FOURTEEN
-#include <epicsThread.h>
-#include <unistd.h>
-
-static void
-sigthread(void *arg)
-{
-sigset_t om,nm;
-	sigemptyset(&nm);
-	pthread_sigmask(SIG_BLOCK, &nm, &om);
-	fprintf(stderr,"SIG thread id: 0x%08x, mask 0x%08x\n", pthread_self(), om);
-	while (1) {
-		if ( usleep(1000000) )
-			perror("sigthread usleep");
-	}
-}
-
-#else
-#define epicsThreadGetIdSelf() 0
-#endif
-
-static void
-handler(int num)
-{
-	signal(SIGINT, handler);
-
-fprintf(stderr,"thread 0x%08x got signal\n",pthread_self());
-
-	ezcaAbort(); 
-}
-
-unsigned long
-multi_ezca_ctrlC_prologue()
-{
-unsigned long rval = (unsigned long) signal(SIGINT, handler);
-	return rval;
-}
-
+/* Install a callback to detect windoze activity (Ctrl-C) */
 void
-multi_ezca_ctrlC_epilogue(unsigned long restore)
+multi_ezca_ctrlC_initialize();
 {
-void (*old)(int) = (void (*)(int)) restore;
-	if ( SIG_ERR != old ) {
-		signal(SIGINT, old);
-	}
+ezcaPollCbInstall( multi_ezca_pollCb );
 }
-
-void
-multi_ezca_ctrlC_initialize()
-{
-#ifdef EPICS_THREE_FOURTEEN
-sigset_t m,om;
-	sigemptyset(&m);
-	sigaddset(&m, SIGINT);
-	epicsThreadCreate("sighdlr",epicsThreadPriorityLow,epicsThreadStackSmall,
-			sigthread, 0);
-	pthread_sigmask(SIG_BLOCK, &m, &om);
-	fprintf(stderr,"ctrlC-init: current thread: 0x%08x, mask 0x%08x\n",pthread_self(),om);
-#endif
-}
-
-#endif /* WIN32 */
