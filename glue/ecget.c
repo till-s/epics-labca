@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.15 2004/01/10 00:46:25 till Exp $ */
+/* $Id: ecget.c,v 1.16 2004/01/15 00:49:10 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -19,8 +19,6 @@
 #include <string.h>
 
 #include <cadef.h>
-
-#include <signal.h>
 
 /* our local buffer is an array of buf_t */
 typedef long buf_t;
@@ -219,10 +217,9 @@ void C2F(ecdrget)(char *pv_name, int *l, buf_t **result, int *nord)
 long		i,j,blsz,zero=0,nelms,chunk,elsz;
 char		lock=1;
 buf_t		*buf=0;
-EcdrBoardC	p;
+EcdrBoardC	p=0;
 char		msgbuf[100], *isSVAL;
 chid		valID;
-int			mask = sigblock( sigmask(SIGINT) );
 
 	/* reset return values */
 	*result = 0;
@@ -379,7 +376,6 @@ cleanup:
 		ca_pend_event(1.);
 	}
 	if (buf) SYS_FREE(buf);
-	sigsetmask( mask );
 }
 
 #ifdef CMDLINE_APP
