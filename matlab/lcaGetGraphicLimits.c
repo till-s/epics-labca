@@ -34,7 +34,7 @@ int     i,nargs = 0;
 	if ( buildPVs(prhs[0],&pvs) )
 		goto cleanup;
 	
-	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (int(*)())ezcaGetControlLimits, NumberOf(args), args) )
+	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (int (*)())ezcaGetGraphicLimits, NumberOf(args), args) )
 		goto cleanup;
 
 	for ( i=0; i<nlhs; i++ ) {
