@@ -1,10 +1,13 @@
-/* $Id: ini.cc,v 1.4 2003/12/23 23:15:56 strauman Exp $ */
+/* $Id: ini.cc,v 1.5 2003/12/31 07:58:17 till Exp $ */
 
 /* xlabcaglue library initializer */
 
 #include <cadef.h>
 #include <ezca.h>
 #include <mex.h>
+
+#define DEF_TIMEOUT 0.2
+#define DEF_RETRIES 20
 
 static int
 ezlibinit()
@@ -15,8 +18,10 @@ ezlibinit()
 mexPrintf((char*)"Initializing labCA Release '$Name:  $'...\n");
 mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 ezcaAutoErrorMessageOff();
-ezcaSetTimeout((float)0.2);
-ezcaSetRetryCount(20);
+mexPrintf((char*)"Polling interval is %.2fs; max. timeout: %.2fs\n",
+				DEF_TIMEOUT, DEF_RETRIES*DEF_TIMEOUT);
+ezcaSetTimeout((float)DEF_TIMEOUT);
+ezcaSetRetryCount(DEF_RETRIES);
 return 0;
 }
 
