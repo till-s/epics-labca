@@ -8,7 +8,7 @@ ezlibinit()
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
-mexPrintf("Hello World\n");
+mexPrintf("Initializing labca...\n");
 ezcaAutoErrorMessageOff();
 ezcaSetTimeout(0.2);
 ezcaSetRetryCount(20);
