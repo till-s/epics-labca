@@ -1,3 +1,6 @@
+Changes since labca_1_5pre_beta (T.S):
+	- set shared library version numbers in anticipation of future
+      releases.
 Changes since labca_1_4_beta (T.S):
 	- Have the matlab version call 'errMsgTxt()' on error to 
       trigger the standard way of error flagging. I finally
