@@ -1,4 +1,4 @@
-/* $Id: ezcaWrap.c,v 1.10 2003/12/10 00:57:55 till Exp $ */
+/* $Id: multiEzca.c,v 1.1 2003/12/11 05:33:08 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <assert.h>
+#include <math.h>
 
 #ifndef MACHHACK
 #include <mex.h> /* fortran/C name conversion for scilab */
@@ -179,6 +180,20 @@ unsigned idx,i;
 
 #endif
 
+/* our 'strdup' implementation (*IMPORTANT*, in order for the matlab implementation using mxMalloc!!)
+ * also, strdup is no POSIX...
+ */
+char *
+my_strdup(const char *str)
+{
+char *rval = 0;
+	/* under matlab, 'malloc' will be replaced by mxMalloc by means of macro uglyness */ 
+	if ( str && (rval = malloc(sizeof(*rval) * (strlen(str) + 1) )) ) {
+		strcpy(rval, str);
+	}
+	return rval;
+}
+
 
 /* scilab external type converters */
 
@@ -264,7 +279,7 @@ ezErr(char *nm)
 }
 
 /* determine the size of an ezcaXXX type */
-static int typesize(int type)
+static int typesize(char type)
 {
 	switch (type) {
 		case ezcaByte:		return sizeof(char);
@@ -342,11 +357,10 @@ int i;
 
 /* for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) */
 #define CVTVEC(Forttyp, check, Ctyp, assign)			\
-	{ Ctyp *cpt = (Ctyp*)bufp; Forttyp *fpt = (Forttyp*)fbuf + i;	\
-		for ( j = 0; j<n && !(check) ; j++, cpt++, fpt+=mo ) {	\
+	{ Ctyp *cpt = (Ctyp*)bufp; Forttyp *fpt = (Forttyp*)fbuf + (mo > 1 ? i : 0);	\
+		for ( j = 0; j<n && !(check) ; j++, cpt++, fpt+=mo ) { \
 			assign;	\
 		}	\
-		dims[i] = j; \
 	}
 
 void
@@ -377,7 +391,7 @@ register char *bufp;
      * hoping that batching ca connects is faster than looping
      * through a number of PvToChids
      */
-	if ( type < 0 ) {
+	if ( ezcaNative == type ) {
 		if ( multi_ezca_get_nelem( nms, m, dims ) )
 			goto cleanup;
 	}
@@ -386,7 +400,7 @@ register char *bufp;
 	typesz = 0;
 	for ( i=0; i<m; i++ ) {
 		int tmp;
-		types[i] = type >=0 ? type : nativeNumType(nms[i]);
+		types[i] = ezcaNative == type ? nativeNumType(nms[i]) : type;
 		if ( (tmp = typesize(types[i])) > typesz ) {
 			typesz = tmp;
 		}
@@ -407,11 +421,11 @@ register char *bufp;
 	/* transpose and convert */
 	for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) {
 	switch ( types[i] ) {
-		case ezcaByte:    CVTVEC( double, isnan(*fpt), char,   *cpt=*fpt ); break;
-		case ezcaShort:   CVTVEC( double, isnan(*fpt), short,  *cpt=*fpt ); break;
-		case ezcaLong :   CVTVEC( double, isnan(*fpt), long,   *cpt=*fpt ); break;
-		case ezcaFloat:   CVTVEC( double, isnan(*fpt), float,  *cpt=*fpt ); break;
-		case ezcaDouble:  CVTVEC( double, isnan(*fpt), double, *cpt=*fpt ); break;
+		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), char,   *cpt=*fpt ); break;
+		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), short,  *cpt=*fpt ); break;
+		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), long,   *cpt=*fpt ); break;
+		case ezcaFloat:   CVTVEC( double, isnan(*(double*)fpt), float,  *cpt=*fpt ); break;
+		case ezcaDouble:  CVTVEC( double, isnan(*(double*)fpt), double, *cpt=*fpt ); break;
 		case ezcaString:  CVTVEC( char*,
 								    (!*fpt || !**fpt),
 									dbr_string_t,
@@ -423,11 +437,12 @@ register char *bufp;
 									);
 						  break;
 	}
+	dims[i] = j;
 	}
 
 	ezcaStartGroup();
 
-		for ( i=0, bufp = cbuf; i<m; i++, bufp += mo>1 ? rowsize : 0 ) {
+		for ( i=0, bufp = cbuf; i<m; i++, bufp += rowsize ) {
 			ezcaPut(nms[i], types[i], dims[i], bufp);
 		}
 
@@ -487,7 +502,7 @@ register char *bufp;
 		if ( dims[i] > n )
 			n = dims[i];
 		/* nativeNumType uses ezcaPvToChid() which is non-groupable */
-		types[i] = type >= 0 ? type : nativeNumType( nms[i] );
+		types[i] = ezcaNative == type ? nativeNumType( nms[i] ) : type;
 
 		if ( (tmp = typesize(types[i])) > typesz )
 			typesz = tmp;
@@ -591,7 +606,7 @@ register char *bufp;
 										(0),
 										dbr_string_t,
 										do {  \
-										  if ( !(*fpt=strdup(j>=dims[i] ? \
+										  if ( !(*fpt=my_strdup(j>=dims[i] ? \
 																"" :      \
 															    ( INVALID_ALARM == sevr[i] ?  \
 																    "<INVALID_ALARM>" :       \
@@ -606,6 +621,7 @@ register char *bufp;
 							  );
 							  break;
 	}
+	dims[i] = j;
 	}
 
 	*pres = fbuf; fbuf  = 0;

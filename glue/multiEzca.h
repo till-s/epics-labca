@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: ezcaWrap.c,v 1.10 2003/12/10 00:57:55 till Exp $ */
+/* $Id: multiEzca.h,v 1.1 2003/12/11 05:33:08 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -61,6 +61,9 @@ void C2F(cts_stampf_)(int *n, TimeArg *ip, double *op);
 
 int
 multi_ezca_get_nelem(char **nms, int m, int *dims);
+
+#define ezcaNative  ((char)-1)
+#define ezcaInvalid ((char)-2)
 
 void
 multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n);

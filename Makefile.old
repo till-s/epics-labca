@@ -65,7 +65,7 @@ ezcaWrap.o: ezcaWrap.c multiEzca.h
 	$(CC) -c $(CFLAGS) -fPIC $(INCS) $(EINCS) -I$(SCIINC) $<
 
 mglue.o: mglue.c mglue.h
-	$(CC) -c $(CFLAGS) -fPIC $(INCS) $(EINCS) -I$(SCIINC) $<
+	$(CC) -c $(CFLAGS) -fPIC $(INCS) $(MAKEFORDEF) $(EINCS) -I$(SCIINC) $<
 
 #ezcaWrap.occ: ezcaWrap.cc
 #	$(CXX) -c -o $@ $(CFLAGS) -fPIC $(INCS) $(EINCS) -I$(SCIINC) $<
@@ -73,7 +73,7 @@ mglue.o: mglue.c mglue.h
 #	$(CC) -Wl,"-Ur,-u ezcaGet" -o $@ $^ $(INCS) $(EINCS) -I$(SCIINC) -L$(EPICS_BASE)/lib/$(HARCH)/ $(ELIBS) -lca -lCom -L/lib -L/usr/lib/
 
 libmezcaglue.so:  multiEzca.o mglue.o
-	$(CXX) -shared -o $@ -fPIC $^ -Lezca/lib/$(HARCH) -L$(EPICS_BASE)/lib/$(HARCH) -Wl,-rpath,ezca/lib/$(HARCH) -Wl,-rpath,$(EPICS_BASE)/lib/$(HARCH) -lezca314 -lca -lCom 
+	$(CXX) -shared -o $@ -fPIC $^ -Lezca/lib/$(HARCH) -L$(EPICS_BASE)/lib/$(HARCH) -Wl,-rpath,ezca/lib/$(HARCH) -Wl,-rpath,$(EPICS_BASE)/lib/$(HARCH) -lezca314 -lca -lCom  -lm
 #	$(LD) -i -o $@ $^ -L/usr/lib $(ELIBS) $(EPICS_BASE)/lib/$(HARCH)/libca.a $(EPICS_BASE)/lib/$(HARCH)/libCom.a
 
 ecget: ecget.c
@@ -84,4 +84,4 @@ caInf: caInf.c
 	$(CC) -O2 -o $@ $^ $(EINCS) $(INCS) $(ELIBS) $(LIBS) $(PTHREAD)
 
 clean:
-	$(RM) libmezcaglue.so *.o ezca.f ecget caInf ezca.tmp.f ezca.sce
+	$(RM) libmezcaglue.so *.o ezca.f ecget caInf ezca.tmp.f ezca.sce *.mex???

@@ -1,9 +1,12 @@
-/* $Id$ */
+/* $Id: mglue.c,v 1.1 2003/12/11 05:33:54 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 /* Author: Till Straumann <strauman@slac.stanford.edu> */
 
 #include "mglue.h"
+#include "multiEzca.h"
+#include <cadef.h>
+#include <ezca.h>
 
 void
 releasePVs(PVs *pvs)
@@ -28,7 +31,12 @@ int	rval = -1;
 	pvs->names = 0;
 	pvs->m     = 0;
 
-	m = mxIsCell(pin) ? mxGetNumberOfElements(pin) : 1;
+	if ( mxIsCell(pin) &&  1 != mxGetN(pin) ) {
+			MEXERRPRINTF("Need a column vector of PV names\n");
+			goto cleanup;
+	}
+
+	m = mxIsCell(pin) ? mxGetM(pin) : 1;
 
 	if ( (! mxIsCell(pin) && ! mxIsChar(pin)) || m < 1 ) {
 		MEXERRPRINTF("Need a cell array argument with PV names");
@@ -60,7 +68,6 @@ int	rval = -1;
 			MEXERRPRINTF("not a PV name?");
 			goto cleanup;
 		}
-mexPrintf("TSILL %s\n",mem[i]);
 	}
 
 	pvs->names = mem;
@@ -72,3 +79,32 @@ cleanup:
 	releasePVs(pvs);
 	return rval;	
 }
+
+char
+marg2ezcaType(const mxArray *typearg)
+{
+char typestr[2] = { 0 };
+
+	if ( ! mxIsChar(typearg) ) {
+		MEXERRPRINTF("(optional) type argument must be a string");
+	} else {
+		mxGetString( typearg, typestr, sizeof(typestr) );
+		switch ( toupper(typestr[0]) ) {
+			default:
+				MEXERRPRINTF("argument specifies an invalid data type");
+ 				return ezcaInvalid;
+
+			case 'N':	return ezcaNative;
+			case 'B':	return ezcaByte;
+			case 'S':	return ezcaShort;
+			case 'I':
+			case 'L':	return ezcaLong;
+			case 'F':	return ezcaFloat;
+			case 'D':	return ezcaDouble;
+			case 'C':	return ezcaString;
+		}
+	}
+	return ezcaInvalid;
+}
+
+

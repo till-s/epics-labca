@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.8 2003/11/25 02:43:36 till Exp $ */
+/* $Id: ecget.c,v 1.9 2003/12/11 02:38:52 sebek Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -39,7 +39,7 @@ typedef long buf_t;
 #endif
 
 #ifndef MACHHACK 
-#include <routines/machine.h> /* for C2F() macro */
+#include <mex.h> /* for C2F() macro */
 #else
 #define C2F(name) name##_
 #endif
