@@ -1,4 +1,4 @@
-/* $Id: ctrlC-def.c,v 1.1 2004/01/28 05:44:58 till Exp $ */
+/* $Id: ctrlC-def.c,v 1.2 2004/01/29 05:42:28 till Exp $ */
 
 /* default Ctrl-C handling (none) */
 
@@ -13,7 +13,6 @@
 void
 multi_ezca_ctrlC_prologue(CtrlCState psave)
 {
-	return -1;
 }
 
 void

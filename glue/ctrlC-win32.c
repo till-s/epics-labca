@@ -1,4 +1,4 @@
-/* $Id: ctrlC-win32.c,v 1.1 2004/01/28 05:44:58 till Exp $ */
+/* $Id: ctrlC-win32.c,v 1.2 2004/01/29 05:42:29 till Exp $ */
 
 /* Ctrl-C processing for WIN32 */
 
@@ -145,7 +145,6 @@ multi_ezca_ctrlC_prologue(CtrlCState psave)
 	rec    = 0;
 #endif
 	ctrl   = -1;
-	return 0;
 }
 
 void
@@ -155,7 +154,7 @@ multi_ezca_ctrlC_epilogue(CtrlCState prest)
 
 /* Install a callback to detect windoze activity (Ctrl-C) */
 void
-multi_ezca_ctrlC_initialize();
+multi_ezca_ctrlC_initialize()
 {
-ezcaPollCbInstall( multi_ezca_pollCb );
+	ezcaPollCbInstall( multi_ezca_pollCb );
 }
