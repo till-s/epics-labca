@@ -33,9 +33,19 @@
 #include <shareLib.h>
 
 #include <ezca.h> /* what all users of EZCA include */
-#if !defined(linux)
+
+/*
+#if defined(WIN32) || defined(_WIN32)
+#undef __STDC__
+#define __STDC__ 0
+#define strdup _strdup
+#endif
+*/
+
+#if !defined(linux) && !defined(WIN32) && !defined(_WIN32)
 extern char *strdup(const char *s1);
 #endif
+
 
 #include <epicsVersion.h>
 #if 1 && (EPICS_VERSION > 3 || (EPICS_VERSION == 3 && EPICS_REVISION >= 14))
@@ -43,17 +53,21 @@ extern char *strdup(const char *s1);
 #include <epicsMutex.h>
 #include <epicsThread.h>
 static epicsMutexId	ezcaMutex = 0;
-#define LCK_DEBUG_PRINTF(fmt...)
+
+#define DEBUG_LOCK 0
+
 #define	EZCA_LOCK() \
 	do { \
-		LCK_DEBUG_PRINTF("Thread %s (0x%x) tries to lock\n",	\
+		if (DEBUG_LOCK) \
+		printf("Thread %s (0x%x) tries to lock\n",	\
 			epicsThreadGetNameSelf(),				\
 			epicsThreadGetIdSelf()); 				\
 		epicsMutexLock(ezcaMutex);					\
 	} while (0)
 #define	EZCA_UNLOCK()	\
 	do { \
-		LCK_DEBUG_PRINTF("Thread %s (0x%x) unlocks\n",		\
+		if (DEBUG_LOCK) \
+		printf("Thread %s (0x%x) unlocks\n",		\
 			epicsThreadGetNameSelf(),				\
 			epicsThreadGetIdSelf()); 				\
 		epicsMutexUnlock(ezcaMutex); \
