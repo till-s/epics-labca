@@ -15,4 +15,6 @@
 %   lcaGetTimeout            - read/set the EZCA library timeout parameter
 %   lcaDebugOn               - NOT IMPLEMENTED YET (toggle EZCA library debugging messages on/off)
 %   lcaSetSeverityWarnLevel  - set the warning threshold used when reading EPICS 'VAL' PVs
-%   lcaClear                 - clear (destroy/cleanup) channels
+%   lcaClear                 - clear (destroy/cleanup) channels and associated monitors
+%   lcaSetMonitor            - monitor a channel
+%   lcaNewMonitorValue       - check if a monitored channel has new data

@@ -26,6 +26,8 @@ HELPS+=help/lcaPut.html
 HELPS+=help/lcaPutNoWait.html
 HELPS+=help/lcaSetSeverityWarnLevel.html
 HELPS+=help/lcaClear.html
+HELPS+=help/lcaSetMonitor.html
+HELPS+=help/lcaNewMonitorValue.html
 
 MHELPS=$(HELPS:%.html=%.m)
 

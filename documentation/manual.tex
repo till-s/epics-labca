@@ -56,7 +56,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.20 2004/03/23 23:52:02 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.21 2004/03/24 04:05:20 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -176,7 +176,8 @@ the `type' argument described below.
 \PVITEM
 %
 %
-\item[nmax] (\ita{optional argument}) Maximum number of elements
+\item[nmax] \label{nmaxarg}
+(\ita{optional argument}) Maximum number of elements
 (per PV) to retrieve (i.e. limit the number of columns of \com{value} to
 \ita{nmax}).
 If set to 0 (default), all elements are fetched
@@ -187,7 +188,8 @@ CA does not return the valid elements (``NORD'') of
 an array only --- it always ships \ita{all} elements).
 %
 %
-\item[type] (\ita{optional argument}) A string specifying the
+\item[type] \label{typearg}
+(\ita{optional argument}) A string specifying the
 data type to be used for the channel access data transfer. Note
 that unless the PVs are of native ``string'' type or conversion to
 ``string'' is enforced explicitely (type = \com{char}), \sca{}
@@ -532,8 +534,58 @@ thus clearing {\em all} channels.
 \begin{verbatim}
 \\ clear a number of channels
   lcaClear( ['aUseless_PV'; 'misTyppedPV' ] )
-\\ purge all channels
+\\ purge all channels (dont use parenthesis in matlab)
   lcaClear()
+\end{verbatim}
+
+\subsection{lcaSetMonitor}
+\label{lcasetmonitor}
+\subsubsection{Calling Syntax}
+\begin{verbatim}
+lcaSetMonitor(pvs, nmax, type)
+\end{verbatim}
+\subsubsection{Description}
+\subsubsection{Parameters}
+\begin{description}
+\PVITEM
+\item[nmax]
+(\ita{optional argument}) Maximum number of elements
+(per PV) to monitor/retrieve. If set to 0 (default), all elements are fetched.
+See \hyperref[ref]{here}{(}{)}{nmaxarg} for more information.
+\item[type]
+(\ita{optional argument}) A string specifying the
+data type to be used for the channel access data transfer. The
+native type is used by default.
+See \hyperref[ref]{here}{(}{)}{typearg} for more information.
+\end{description}
+\subsubsection{Examples}
+\begin{verbatim}
+lcaSetMonitor('PV')
+// monitor 'PV'. Reduce network traffic by just have the
+// library retrieve the first 20 elements. Use DBR_SHORT
+// for transfer.
+lcaSetMonitor('PV', 20, 's')
+\end{verbatim}
+
+\subsection{lcaNewMonitorValue}
+\label{lcanewmonitorvalue}
+\subsubsection{Calling Syntax}
+\begin{verbatim}
+lcaNewMonitorValue(pvs, type)
+\end{verbatim}
+\subsubsection{Description}
+\subsubsection{Parameters}
+\begin{description}
+\PVITEM
+\item[type]
+(\ita{optional argument}) A string specifying the
+data type to be used for the channel access data transfer. The
+native type is used by default.
+See \hyperref[ref]{here}{(}{)}{typearg} for more information.
+\end{description}
+\subsubsection{Examples}
+\begin{verbatim}
+lcaNewMonitorValue('PV')
 \end{verbatim}
 
 \pbrkf
