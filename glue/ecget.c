@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.7 2002/12/05 04:26:56 till Exp $ */
+/* $Id: ecget.c,v 1.8 2003/11/25 02:43:36 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -83,6 +83,16 @@ double   *dptr;
     assert(nlhs>=1);
     
     *plhs=0;
+
+	// check for one argument of type string
+	if ( nrhs != 1 ) {
+		mexErrMsgTxt( "usage:  data = ecget( PVName );\n" );
+		return;
+	}
+	if ( mxIsChar( prhs[0] ) != 1 ) {
+		mexErrMsgTxt( "usage:  data = ecget( PVName );\n" );
+		return;
+	}
 
     namelen = (mxGetM(prhs[0]) * mxGetN(prhs[0]) * sizeof(mxChar)) + 1;
     
@@ -325,6 +335,12 @@ chid		valID;
 
 	/* calculate the total number of elements from the byte count */
 	nelms /= elsz;
+
+	// verify element count is non-zero
+	if (nelms == 0) {
+		ecErr("No elements to acquire");
+		goto cleanup;
+	}
 
 	/* allocate buffer space */
 	buf = (buf_t *)SYS_MALLOC(nelms * sizeof(buf_t));
