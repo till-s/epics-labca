@@ -18,7 +18,7 @@
 # Tell us where SCILAB is installed (only
 # needed if MAKEFOR != MATLAB [in CONFIG])
 
-SCILABDIR=/usr/lib/scilab-2.7
+#SCILABDIR=/usr/lib/scilab-2.7
 
 ##########################################
 # Tell us where MATLAB is installed (only
@@ -47,10 +47,10 @@ SCILABDIR=/usr/lib/scilab-2.7
 
 #EPICS_BASE=C:\epics\base
 #MATLABDIR=C:\matlabR14beta2
-MATLIB_SUBDIR=win32/microsoft/msvc60
+#MATLIB_SUBDIR=win32/microsoft/msvc60
 #MATLIB_SUBDIR=win32/microsoft/msvc70
 #EPICS_BASE=N:/g/spear/3.14.2epics/base
-EPICS_BASE=/afs/slac/g/spear/3.14.2epics/base
+#EPICS_BASE=/afs/slac/g/spear/3.14.2epics/base
 #EPICS_BASE=/afs/slac/package/epics/R3.13.2/base
 #MATLABDIR=/afs/slac/package/matlab/linux/14B2/
-MATLABDIR=/afs/slac/package/matlab/14B2/
+#MATLABDIR=/afs/slac/package/matlab/14B2/

@@ -4,7 +4,7 @@
 # 'MATLAB' or 'SCILAB' (any string other
 # than 'MATLAB' builds 'SCILAB')
 
-MAKEFOR=MATLAB
+MAKEFOR=SCILAB
 
 # No need to change anything below here
 # (except for adding more matlab extensions for
