@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.15 2004/01/30 01:45:06 till Exp $ */
+/* $Id: multiEzca.c,v 1.16 2004/02/11 18:51:53 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -13,19 +13,15 @@
 #include <assert.h>
 #include <math.h>
 #include <time.h>
-/*#include <unistd.h>*/
 
 #if defined(WIN32) || defined(_WIN32)
 #include <float.h>
 #define isnan _isnan
-#endif
-
-#ifndef MACHHACK
-#include <mex.h> /* fortran/C name conversion for scilab */
 #else
-#define C2F(name) name##_
+#include <unistd.h> /* _POSIX_TIMERS */
 #endif
 
+#include <mex.h> /* fortran/C name conversion for scilab */
 
 /* CA includes */
 #include <tsDefs.h> 
