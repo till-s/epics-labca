@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.11 2004/02/12 00:23:59 till Exp $ */
+/* $Id: mglue.c,v 1.12 2004/02/27 01:21:44 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -133,10 +133,6 @@ int i;
 			/* hope this doesn't fail... */
 			plhs[i] = 0;
 		}
-		/*mxCreateDoubleMatrix(0,0,mxREAL); */
-#if !defined(__linux__)
-		/* this crashes matlab 14 beta on linux :-( */
 		mexErrMsgTxt("(see above error messages)");
-#endif
 	}
 }
