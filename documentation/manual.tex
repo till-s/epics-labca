@@ -13,6 +13,8 @@
 \newcommand{\ezca}{\ita{ezca}}
 \newcommand{\com}[1]{{\tt #1}}
 \newcommand{\NAN}{\mbox{NaN}}
+\newcommand{\pbrk}{\pagebreak[3]}
+\newcommand{\pbrkf}{\pagebreak}
 
 \newcommand{\ita}[1]{\emph{#1}}
 
@@ -35,6 +37,8 @@
 \renewcommand{\lxn}{\ita{1 x n}}
 \renewcommand{\calimit}{\~{} 16kB}
 \renewcommand{\sevrange}{0..3}
+\renewcommand{\pbrk}{}
+\renewcommand{\pbrkf}{}
 \end{htmlonly}
 
 
@@ -50,7 +54,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.13 2004/01/09 04:09:55 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.14 2004/01/14 01:16:31 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -87,6 +91,7 @@ return values do not exactly correspond to the respective
 \ezca{} originals but have been adapted to make sense
 in the  \scilab{} environment.
 
+\pbrk
 \subsection{Common Arguments and Return Values}
 \subsubsection{PV Argument}
 All \sca{} calls take a \ita{PV} argument identifying
@@ -143,6 +148,7 @@ full accuracy.
 
 \vspace*{\fill}
 
+\pbrk
 \subsection{lcaGet}
 \label{lcaget}
 \subsubsection{Calling Syntax}
@@ -160,9 +166,9 @@ filled with \NAN.
 If all PVs are of native type DBF\_STRING or DBF\_ENUM, the
 values are returned as character strings; otherwise,
 all values are converted into double precision numbers.
-
 Explicit type conversion into strings can be enforced by submitting
 the `type' argument described below.
+
 \subsubsection{Parameters}
 \begin{description}
 \PVITEM
@@ -173,13 +179,13 @@ the `type' argument described below.
 \ita{nmax}).
 If set to 0 (default), all elements are fetched
 and the number of columns, \n, in the result matrix is set to the
-maximum number of elements among all submitted PVs. This is useful
-to limit the transfer time of very large waveforms (unfortunately,
-CA is not capable to return only the valid elements (``NORD'') of
-an array --- it will always ship \ita{all} elements).
+maximum number of elements among the PVs. The option is useful
+to limit the transfer time of large waveforms (unfortunately,
+CA does not return the valid elements (``NORD'') of
+an array only --- it always ships \ita{all} elements).
 %
 %
-\item[type] (\ita{optional argument}) A string describing the
+\item[type] (\ita{optional argument}) A string specifying the
 data type to be used for the channel access data transfer. Note
 that unless the PVs are of native ``string'' type or conversion to
 ``string'' is enforced explicitely (type = \com{char}), \sca{}
@@ -203,24 +209,23 @@ is enforced by specifying this argument.
 
 Note that while \com{native}{} might result in different types
 being used for different PVs, it is currently not possible to
-explicitely request different types for different PVs (i.e. the
-\com{type}{} argument currently cannot be a column vector).
+explicitely request different types for individual PVs (i.e.
+\com{type}{} can't be a vector).
 %
 %
 \item[value] The \mxn{} result matrix. \n{} is automatically
-assigned to accomodate the PV with most elements. If the \com{nmax}{}
+assigned to accomodate the PV with the most elements. If the \com{nmax}{}
 argument is given and is nonzero but less than the automatically
 determined \n, then \n{} is clipped to \com{nmax}.
-
 Excess elements of PVs with less than \n{} elements are filled with
 \NAN{} values.
 
 The result is either a `double' or a (\matlab: \ita{cell-}) `string'
-matrix (if all PVs are of native string type of explicit conversion
+matrix (if all PVs are of native string type or explicit conversion
 was requested by setting the `type' argument to `\com{char}').
 
 \sca{} checks the channel access severity of the retrieved PVs and
-fills the rows of \ita{INVALID} PVs with \NAN%
+fills the rows corresponding to \ita{INVALID} PVs with \NAN%
 \footnote{
 Actually, all fields of an EPICS database record share a common
 severity, (which itself is a field/PV --- the .SEVR field). However,
@@ -233,11 +238,11 @@ messages are printed to the console if a PV's alarm status exceeds
 a \hyperref[ref]{configurable threshold}{configurable threshold (see }{ )}{swarnlevel}.
 %
 %
-\item[timestamp] (\ita{optional return value}) Returns a \mxl{}
+\item[timestamp] (\ita{optional result}) A \mxl{}
 column vector of \ita{complex} numbers holding the CA timestamps of
 the requested PVs. The timestamps count the number of seconds (real part)
 and fractional nanoseconds (imaginary part) elapsed since
-00:00:00 UTC, January 1, 1970.
+00:00:00 UTC, Jan. 1, 1970.
 \end{description}
 \subsubsection{Examples}
 \begin{verbatim}
@@ -261,6 +266,7 @@ and fractional nanoseconds (imaginary part) elapsed since
 	end
 \end{verbatim}
 
+\pbrk
 \subsection{lcaPut}
 \label{lcaput}
 \subsubsection{Calling Syntax}
@@ -269,7 +275,7 @@ lcaPut(pvs, value, type)
 \end{verbatim}
 \subsubsection{Description}
 Write to a number of PVs which may be scalars or arrays of different
-dimensions. It is possible to write the same value to a number of PVs.
+dimensions. It is possible to write the same value to a collection of PVs.
 \subsubsection{Parameters}
 \begin{description}
 \PVITEM
@@ -288,7 +294,7 @@ for \NAN{} values and only transfers up to the last non-\NAN{} element in each
 row.
 %
 %
-\item[type] (\ita{optional argument}) A string describing the
+\item[type] (\ita{optional argument}) A string specifying the
 data type to be used for the channel access data transfer. Note
 that \sca{} always converts numerical data from ``double'' locally.
 
@@ -303,10 +309,11 @@ is automatically set to \com{char}.
 
 Note that while \com{native}{} might result in different types
 being used for different PVs, it is currently not possible to
-explicitely request different types for different PVs (i.e. the
-\com{type}{} argument currently cannot be a column vector).
+explicitely request different types for individual PVs (i.e. 
+\com{type}{} cannot be a vector).
 %
 \end{description}
+
 \subsubsection{Examples}
 \begin{verbatim}
 // write a PV
@@ -327,6 +334,7 @@ explicitely request different types for different PVs (i.e. the
 	lcaPut( [ 'arrayPV'; 'scalarPV' ], tab )
 \end{verbatim}
 
+\pbrk
 \subsection{lcaGetNelem}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
@@ -361,6 +369,7 @@ Retrieve the control limits associated with a number of PVs.
 \end{description}
 
 
+\pbrk
 \subsection{lcaGetGraphicLimits}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
@@ -377,6 +386,7 @@ Retrieve the graphic limits associated with a number of PVs.
 \end{description}
 
 
+\pbrk
 \subsection{lcaGetStatus}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
@@ -396,6 +406,7 @@ PV \hyperref[ref]{timestamps}{timestamps (see }{ about the timestamp format)}{ts
 \end{description}
 
 
+\pbrk
 \subsection{lcaGetPrecision}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
@@ -410,6 +421,7 @@ Retrieve the precision of a number of PVs.
 \item[precisiom] \mxl{} column vector of the PV's precision.
 \end{description}
 
+\pbrk
 \subsection{lcaGetUnits}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
@@ -425,6 +437,7 @@ Retrieve the engineering units of a number of PVs.
 of strings holding the PV EGUs.
 \end{description}
 
+\pbrk
 \subsection{lcaGetRetryCount, lcaSetRetryCount}
 \label{retrycnt}
 \subsubsection{Calling Syntax}
@@ -439,6 +452,7 @@ documentation for more information). The retry count multiplied by the
 determines the maximum time the interface waits for connections and data
 transfers, respectively.
 
+\pbrk
 \subsection{lcaGetTimeout, lcaSetTimeout}
 \label{timeout}
 \subsubsection{Calling Syntax}
@@ -453,6 +467,8 @@ actually the {\em minimum} timeout the library pends for activity. The
 {\em maximal} time spent waiting for connections and/or data equals the
 timeout multiplied by the
 \hyperref[ref]{retry count}{retry count (see }{ )}{retrycnt}.
+
+\pbrk
 \subsection{lcaDebugOn, lcaDebugOff}
 \subsubsection{Calling Syntax}
 \begin{verbatim}
@@ -462,6 +478,7 @@ lcaDebugOff()
 \subsubsection{Description}
 Switch the \ezca{} library's debugging facility on and off, respectively.
 
+\pbrk
 \subsection{lcaSetSeverityWarnLevel}
 \label{swarnlevel}
 \subsubsection{Calling Syntax}
@@ -474,6 +491,7 @@ A warning message is printed when retrieving a PV with a severity bigger
 or equal to the warning level. Supported values are \sevrange{} (No alarm,
 minor alarm, major alarm, invalid alarm). The initial/default value is 3.
 
+\pbrkf
 \section{Building and Using \sca{}}
 \subsection{Build}
 \sca{} comes with a `\com{config}' subdirectory and Makefiles conforming to the
@@ -542,6 +560,7 @@ Under \windoze, the \ita{msvc} compiler features a \com{.BAT} file for
 setting up the necessary environment.
 }.
 
+\pbrk
 \subsection{Using \sca{}}
 \sca{} consists of a set of shared libraries which in turn reference
 other shared libraries (most notably the channel access client libraries
@@ -553,12 +572,17 @@ in \matlab) at the prompt with obscure error messages.
 
 Under \ita{linux} or \ita{solaris}, the \com{LD\_LIBRARY\_PATH} environment
 variable or the \com{ld.so.conf / ldconfig} facility are used to point
-to the executable shared libraries.
+to the executable shared libraries (located in \com{lib/<system>}).
 
 Under \windoze{}, the \com{PATH} environment variable must point to the
-correct EPICS BASE and \sca{} DLLs.
+correct EPICS BASE and \sca{} DLLs (located in \com{bin/<system>} for
+\scilab{} and \com{bin/<system>/labca}%
+\footnote{
+the extra subdirectory was added in order for the \matlab{} \com{help} command
+to easily locate the \com{Contents.m} file when the user types \com{help labca}.
+} for \matlab, respectively).
 
-Note that the paths to the correct EPICS BASE \sca{} shared libraries
+Note that the paths to the correct EPICS BASE and \sca{} shared libraries
 must be set up \ita{prior} to starting the \scilab{} or \matlab{} application.
 It is usually not possible to change the system search
 path from within an application.
@@ -590,7 +614,7 @@ the \scilab{} documentation for more information.
 
 \subsubsection{Using \sca{} with \matlab}
 Every entry point / \com{lcaXXX} routine is contained in a separate
-shared object file in the \com{<\sca-top>/bin/<system>/} directory
+shared object file in the \com{<\sca-top>/bin/<system>/labca} directory
 which must be added to the \matlab{} search path.
 Note that this is in \ita{addition}
 to setting the system library search path which must be performed prior
