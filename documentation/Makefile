@@ -54,6 +54,7 @@ $(HELPS): manual.aux
 	if [ ! -x help ] ; then mkdir help; fi
 	latex2html -no_navigation -no_footnode -no_antialias_text -long_titles 1 -dir help manual
 	cp whatis.htm help
+	cp Contents.m help
 
 %.m:%.html
 	$(RM) $@
