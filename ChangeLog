@@ -1,4 +1,4 @@
-Changes since labca_1_4_beta (T.S):
+Changes since labca_1_5 (T.S):
     2004/3/24 (TS):
 	- EZCA modifications:
        o try to recycle work nodes marked as 'trashme'.
@@ -14,6 +14,10 @@ Changes since labca_1_4_beta (T.S):
     - provide 'lcaClear()'.
 	- Provided 'lcaPutNoWait()' for setting values without waiting for
       record processing to complete on the server.
+Changes since labca_1_5pre_beta (T.S):
+	- set shared library version numbers in anticipation of future
+      releases.
+Changes since labca_1_4_beta (T.S):
 	2004/3/8 (TS):
 	- Have the matlab version call 'errMsgTxt()' on error to 
       trigger the standard way of error flagging. I finally
