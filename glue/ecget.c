@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.13 2003/12/23 20:29:49 till Exp $ */
+/* $Id: ecget.c,v 1.14 2003/12/23 23:15:56 strauman Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -262,7 +262,10 @@ chid		valID;
 	if ((ECA_NORMAL!=ca_array_get(DBR_CHAR, 1, p->lock_id, &lock)) ||
 		(ECA_NORMAL!=ca_pend_io(10.)) ||
 		lock) {
-		ecErr("Unable to acquire lock, try again\n");
+		if ( lock == 3 )
+			ecErr("Lock has value 3 -- IOC supports large CA transfers but not the locking protocol\n");
+		else
+			ecErr("Unable to acquire lock, try again\n");
 		goto cleanup;
 	}
 

@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.6 2004/01/07 01:20:24 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.7 2004/01/09 04:10:41 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -427,13 +427,19 @@ int intsecdrGet(char *fname)
 long *buf;
 extern void C2F(ecdrget)(char *, int *, long **, int *);
 
-int m,n,i,nord;
+int m,n,nord;
+char **s;
 
 	CheckRhs(1,1);
 	CheckLhs(1,1);
+	GetRhsVar(1, "S", &m, &n, &s);
+#if 0 /* storage of a string -> matrix is strange:
+       * I get 'blah' m:1/n:4...
+	   */
 	GetRhsVar(1,"c",&m,&n,&i);
+#endif
 	CheckRow(1,m,n);
-	C2F(ecdrget)(cstk(i),&n,&buf,&nord);
+	C2F(ecdrget)(s[0], &n,&buf,&nord);
 	CreateVarFromPtr(2,"i",&m,&nord,&buf);
 	if (buf) {
  		LhsVar(1)=2;
