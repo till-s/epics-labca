@@ -23,7 +23,7 @@ ezca_funs=[...
   'ezcaLibInit';
   'ecdrGet']
 ifile='ezca.o' 
-ufiles=['ecget.o ezcaWrap.o -L./lib/linux-x86 -L/afs/slac/g/spear/epics/base/lib/linux-x86 -lezca -lca -lCom']
+ufiles=['ecget.o ezcaWrap.o multiEzca.o -L./lib/linux-x86 -L/afs/slac/g/spear/epics/base/lib/linux-x86 -lezca -lca -lCom']
 // NOTE
 // NOTE LD_LIBRARY_PATH must be set to the base and extensions dirs as 
 // NOTE in the ufiles line above...
