@@ -17,3 +17,4 @@ my_strdup
 releasePVs
 timeArgsAlloc
 timeArgsRelease
+ecdrget
