@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.16 2004/02/11 18:51:53 till Exp $ */
+/* $Id: multiEzca.c,v 1.17 2004/02/11 23:03:14 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -263,13 +263,26 @@ struct timespec ts;
 	}
 }
 
+#define CHUNK 100
+
 static void
 ezErr(char *nm, int warnflag)
 {
-	char *msg;
+	char *msg,*b,ch;
+	int	 l;
 	ezcaGetErrorString(nm,&msg);
 	if (msg) {
-		mexPrintf(msg);
+		/* long strings passed to sciprint crash
+		 * scilab :-(, so we break them up...
+		 */
+		for ( b=msg, l=strlen(msg); l > CHUNK; b+=CHUNK, l-=CHUNK ) {
+			ch = b[CHUNK];
+			b[CHUNK]=0;
+			mexPrintf(b);
+			b[CHUNK]=ch;
+		}
+		mexPrintf(b);
+		
 		if ( !warnflag )
 			cerro("Errors encountered...");
 	}
@@ -367,13 +380,14 @@ int i;
 		}	\
 	}
 
-void epicsShareAPI
+int epicsShareAPI
 multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n)
 {
 void          *cbuf  = 0;
 int           *dims  = 0;
 char		  *types = 0;
 int           rowsize,typesz;
+int           rval = -1;
 
 register int  i;
 register char *bufp;
@@ -453,12 +467,15 @@ register char *bufp;
 
 	if ( EZCA_OK != do_end_group(0, m, 0) ) {
 		ezErr("multi_ezca_put - ", 0);
+	} else {
+		rval = m;
 	}
 
 cleanup:
 	free(types);
 	free(cbuf);
 	free(dims);
+	return rval;
 }
 
 int epicsShareAPI
