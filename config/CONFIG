@@ -15,6 +15,7 @@ MAKEFOR=SCILAB
 # API for this.
 # You can try it -- if you run into problems (e.g.
 # crashes/aborts) disable this feature...
+# Set the following variable to YES or NO
 CONFIG_USE_CTRLC=NO
 
 # optionally, set installation top directory
