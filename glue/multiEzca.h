@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.1 2003/12/11 05:33:08 till Exp $ */
+/* $Id: multiEzca.h,v 1.2 2003/12/12 10:28:22 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -31,7 +31,6 @@
 extern int ezcaSeverityWarnLevel;
 
 /* MACROS */
-#define NAN (0./0.)
 #define NumberOf(arr) (sizeof(arr)/sizeof(arr[0]))
 
 /* scilab external type converters */
@@ -54,7 +53,7 @@ typedef struct TimeArgRec_ {
 int
 timeArgsAlloc(TimeArg *pre, TimeArg *pim, int *phasImag);
 
-int
+void
 timeArgsRelease(TimeArg *pre, TimeArg *pim, int *phasImag);
 
 void C2F(cts_stampf_)(int *n, TimeArg *ip, double *op);
