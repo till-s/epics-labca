@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.6 2004/01/15 00:50:45 till Exp $ */
+/* $Id: mglue.c,v 1.7 2004/01/27 03:38:04 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -11,8 +11,6 @@
 
 #include "multiEzca.h"
 #include "mglue.h"
-
-#include <signal.h>
 
 static unsigned long saved;
 
