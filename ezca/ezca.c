@@ -7429,7 +7429,7 @@ static void push_monitor(struct monitor *p)
 
 static void recycle_work(struct work *wp)
 {
-struct work **ppw;
+struct work **ppw, *pw;
 
     if (Debug)
     {
@@ -7450,9 +7450,23 @@ struct work **ppw;
 			if (Debug) {
 				printf("Success; %p moved from Discarded to Avail list\n", wp);
 				printf("exiting recycle_work()\n");
-				return;
 			}
+			return;
 		}
+	}
+	/* If we get here, the node is still on the work list
+	 * or in Workp...
+	 */
+	for ( pw = Work_list.head; pw && pw != wp; pw = pw->next )
+		;
+	if ( pw || Workp == wp ) {
+		/* simply reset trashme */
+		wp->trashme = FALSE;
+		if (Debug) {
+			printf("Success; %p found in work list or Workp; resetting trashme\n", wp);
+			printf("exiting recycle_work()\n");
+		}
+		return;
 	}
 	fprintf(stderr,"EZCA FATAL ERROR: recycle_work() didn't find wp in Discarded list!\n");
 	exit(1);
