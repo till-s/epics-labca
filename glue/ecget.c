@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.9 2003/12/11 02:38:52 sebek Exp $ */
+/* $Id: ecget.c,v 1.10 2003/12/12 10:28:21 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -76,7 +76,7 @@ void mexFunction(	int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 int      namelen,i;
 char     name[100];
 buf_t    *buf=0;
-long     nelems=0;
+int      nelems=0;
 mxArray  *mxa;
 double   *dptr;
 
@@ -84,7 +84,7 @@ double   *dptr;
     
     *plhs=0;
 
-	// check for one argument of type string
+	/* check for one argument of type string */
 	if ( nrhs != 1 ) {
 		mexErrMsgTxt( "usage:  data = ecget( PVName );\n" );
 		return;
@@ -104,7 +104,7 @@ double   *dptr;
     mxGetString(prhs[0], name, namelen);
     
     ecdrget(name,&namelen,&buf,&nelems);
-    
+
     if (!buf) {
         return;
     }
@@ -123,6 +123,9 @@ double   *dptr;
 
 cleanup:
     if (buf) SYS_FREE(buf);
+	if (mxa) {
+		mxDestroyArray(mxa);
+	}
 }
 
 #else
@@ -261,7 +264,7 @@ cleanup:
  *              the result is always a properly converted array of LONG
  *
  *              NOTE however, that the user still must read the correct
- *              PV according to whether the data is to interpreted as
+ *              PV according to whether the data are to interpreted as
  *              SHORT or LONG!
  *
  *   FAILURE:   all resources are released; *result and *nord are
@@ -336,7 +339,7 @@ chid		valID;
 	/* calculate the total number of elements from the byte count */
 	nelms /= elsz;
 
-	// verify element count is non-zero
+	/* verify element count is non-zero */
 	if (nelms == 0) {
 		ecErr("No elements to acquire");
 		goto cleanup;
