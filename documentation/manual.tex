@@ -50,7 +50,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.11 2004/01/05 19:35:49 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.12 2004/01/07 01:19:53 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -253,7 +253,7 @@ and fractional nanoseconds (imaginary part) elapsed since
     lcaGet( 'thepv.SCAN', 0, 'float' )
 // enforce reading all PVs as strings (server converts)
 // NOTE: necessary if native num/nonnum types are mixed
-    lcaGet( [ 'apv.SCAN', 'numericalPV' ] , 0, 'char' )
+    lcaGet( [ 'apv.SCAN'; 'numericalPV' ] , 0, 'char' )
 // limit reading a waveform to its NORD elements
     nord = lcaGet( 'waveform.NORD' )
 	if nord > 0 then
