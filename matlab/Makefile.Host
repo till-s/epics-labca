@@ -48,6 +48,11 @@ PROD += ezcaGetTimeout
 PROD += ezcaSetTimeout
 PROD += ezcaSetSeverityWarnLevel
 PROD += ecget
+
+MATDOCS=$(wildcard $(TOP)/documentation/help/*.m)
+
+SCRIPTS+=$(notdir $(MATDOCS))
+
 ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
 ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
 
@@ -86,6 +91,9 @@ endif
 endif
 
 include $(TOP)/config/RULES.Host
+
+$(notdir $(MATDOCS)):%.m:$(TOP)/documentation/help/%.m 
+	$(CP) $^ $@
 
 %$(MEXEXT): %.c
 	$(MATLABDIR)/bin/$(MEX) $(MEXFLAGS) $(CPPFLAGS) $^ $(INCLUDES) $(sort $(USR_DIRS:%=-L%)) $(LDLIBS)
