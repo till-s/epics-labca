@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.5 2003/12/23 22:08:34 till Exp $ */
+/* $Id: multiEzca.h,v 1.6 2003/12/23 23:15:56 strauman Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -86,7 +86,9 @@ typedef struct MultiArgRec_ {
     (a).pres = (void**)(p); \
 	} while (0)
 
+typedef int (*MultiEzcaFunc)();
+
 int
-multi_ezca_get_misc(char **nms, int m, int (*ezcaProc)(), int nargs, MultiArg args);
+multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args);
 
 #endif

@@ -1,3 +1,6 @@
+/* $Id$ */
+
+/* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
 #include "stack-c.h"
 #include <string.h>
@@ -201,7 +204,7 @@ MultiArgRec args[2];
 	MSetArg(args[0], sizeof(double), stk(d1), 0); 
 	MSetArg(args[1], sizeof(double), stk(d2), 0); 
 
-	if ( multi_ezca_get_misc(pvs, m, ezcaGetControlLimits, NumberOf(args), args) ) {
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetControlLimits, NumberOf(args), args) ) {
 		for ( n=1; n<=Lhs; n++ )
 			LhsVar(n) = Rhs + n;
 	}
@@ -227,7 +230,7 @@ MultiArgRec args[2];
 	MSetArg(args[0], sizeof(double), stk(d1), 0); 
 	MSetArg(args[1], sizeof(double), stk(d2), 0); 
 
-	if ( multi_ezca_get_misc(pvs, m, ezcaGetGraphicLimits, NumberOf(args), args) ) {
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetGraphicLimits, NumberOf(args), args) ) {
 		for ( n=1; n<=Lhs; n++ )
 			LhsVar(n) = Rhs + n;
 	}
@@ -260,7 +263,7 @@ MultiArgRec args[3];
 	if ( timeArgsAlloc(&re, &im, &hasImag) )
 		return 0;
 
-	if ( multi_ezca_get_misc(pvs, m, ezcaGetStatus, NumberOf(args), args) ) {
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args) ) {
 		re->pts = im->pts = ts;
 
 		s2iInPlace(args[2].buf, m);
@@ -299,7 +302,7 @@ MultiArgRec	args[1];
 
 	MSetArg(args[0], sizeof(short), istk(i), 0);
 
-	if ( multi_ezca_get_misc(pvs, m, ezcaGetPrecision, NumberOf(args), args) ) {
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetPrecision, NumberOf(args), args) ) {
 		s2iInPlace(istk(i),m);
 		LhsVar(1) = 2;
 	}
@@ -323,11 +326,13 @@ MultiArgRec args[1];
 
 	MSetArg(args[0], sizeof(units_string), 0, &strbuf);
 
-	if ( multi_ezca_get_misc(pvs, m, ezcaGetUnits, NumberOf(args), args) &&
-		 (tmp = malloc(sizeof(char*) * m)) ) {
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetUnits, NumberOf(args), args) &&
+		 /* scilab expects NULL terminated char** list */
+		 (tmp = malloc(sizeof(char*) * (m+1))) ) {
 		for ( i=0; i<m; i++ ) {
 			tmp[i] = strbuf[i];
 		}
+		tmp[m] = 0;
  		CreateVarFromPtr(2, "S",&m,&n,tmp);
 		FreePtr(&tmp);
  		LhsVar(1)= 2;

@@ -1,4 +1,4 @@
-/* $Id: ezcaWrap.c,v 1.16 2003/12/23 23:15:56 strauman Exp $ */
+/* $Id: ezcaWrap.c,v 1.17 2003/12/31 03:29:11 till Exp $ */
 
 /* SCILAB - EZCA interface */
 
@@ -189,7 +189,8 @@ int				i,dim;
 	*mo    = 0;
 
 	if ( (dim = multi_ezca_get_misc(*nms, *m, (MultiEzcaFunc)ezcaGetUnits, NumberOf(args), args)) ) {
-		if ( !(buf = calloc( *m, sizeof(*buf) )) ) {
+		/* scilab expects NULL terminated char ** */
+		if ( !(buf = calloc( *m + 1, sizeof(*buf) )) ) {
 			cerro("no memory");
 			goto cleanup;
 		}
