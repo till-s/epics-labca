@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.5 2001/09/21 20:00:33 till Exp $ */
+/* $Id: ecget.c,v 1.6 2002/08/05 16:03:51 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -134,6 +134,34 @@ typedef struct EcdrBoardCRec_ {
 /* linked list of all known boards */
 static EcdrBoardC	ecdrList=0;
 
+/* release all resources related to a EcdrBoardCRec (including the
+ * data structure itself).
+ * Returns the 'next' field for convenience.
+ */
+static EcdrBoardC
+ecdrBoardCdestroy(EcdrBoardC p)
+{
+EcdrBoardC rval;
+
+	if (!p)
+		return 0;
+
+	if (p->val_id)	ca_clear_channel(p->val_id);
+	if (p->sval_id)	ca_clear_channel(p->sval_id);
+	if (p->lock_id)	ca_clear_channel(p->lock_id);
+	if (p->bidx_id)	ca_clear_channel(p->bidx_id);
+	if (p->nbrd_id)	ca_clear_channel(p->nbrd_id);
+	if (p->sg) 		ca_sg_delete(p->sg);
+	ca_pend_io(1.0);
+	if (p->name)	SYS_FREE(p->name);
+
+	rval = p->next;
+
+	SYS_FREE(p);
+
+	return rval;
+}
+
 /* search for a board 'name' in the cache. If the lookup fails,
  * try to create a new info struct and connection.
  *
@@ -193,15 +221,7 @@ static EcdrBoardC findConnectBoard(char *name)
 
 cleanup:
 	/* FAILURE: release all resources and return 0 */
-	if (p->val_id)	ca_clear_channel(p->val_id);
-	if (p->sval_id)	ca_clear_channel(p->sval_id);
-	if (p->lock_id)	ca_clear_channel(p->lock_id);
-	if (p->bidx_id)	ca_clear_channel(p->bidx_id);
-	if (p->nbrd_id)	ca_clear_channel(p->nbrd_id);
-	if (p->sg) 	ca_sg_delete(p->sg);
-	ca_pend_io(1.0);
-	if (p->name)	SYS_FREE(p->name);
-	if (p)		SYS_FREE(p);
+	ecdrBoardCdestroy(p);
 	return 0;
 }
 
@@ -287,7 +307,7 @@ chid		valID;
 
 	/* try to acquire the LOCK field */
 	if ((ECA_NORMAL!=ca_array_get(DBR_CHAR, 1, p->lock_id, &lock)) ||
-		(ECA_NORMAL!=ca_pend_io(2.)) ||
+		(ECA_NORMAL!=ca_pend_io(10.)) ||
 		lock) {
 		ecErr("Unable to acquire lock, try again\n");
 		goto cleanup;
@@ -298,7 +318,7 @@ chid		valID;
 	 */
 	if ( (ECA_NORMAL!=ca_sg_array_get(p->sg, DBR_LONG, 1, p->nbrd_id, &nelms)) ||
 	     (ECA_NORMAL!=ca_sg_array_put(p->sg, DBR_LONG, 1, p->bidx_id, &zero)) ||
-	     (ECA_NORMAL!=ca_sg_block(p->sg,4.)) ) {
+	     (ECA_NORMAL!=ca_sg_block(p->sg,20.)) ) {
 		ecErr("Unable to get/setup associated array PVs");
 		goto cleanup;
 	}
@@ -388,7 +408,7 @@ cleanup:
 		char unlock[2]={0,0};
 		if ( (ECA_NORMAL!=ca_sg_array_put(p->sg, DBR_CHAR, 2, p->lock_id, unlock)) ||
 /*			(ECA_NORMAL!=ca_array_get(DBR_LONG, 1, p->nbrd_id, &nbrd)) ||  */
-			(ECA_NORMAL!=ca_sg_block(p->sg,3.))) {
+			(ECA_NORMAL!=ca_sg_block(p->sg,10.))) {
 			ecErr("OOps, unable to release lock...");
 		}
 		ca_pend_event(1.);
@@ -405,6 +425,7 @@ usage(char *nm)
 	fprintf(stderr,"          -h        -- this message\n");
 	fprintf(stderr,"          -c        -- verify counter data\n");
 	fprintf(stderr,"          -d <fmt>  -- dump to stdout using (printf) format <fmt>\n");
+	fprintf(stderr,"          -u		-- force unlocking the lock field\n");
 	fputc('\n',stderr);
 }
 
@@ -432,11 +453,11 @@ int
 main(int argc, char **argv)
 {
 buf_t	*buf=0;
-int	nord=0,i;
-int	ch,rval=0,test=0;
+int		nord=0,i;
+int		ch,rval=0,test=0,forceunlock=0;
 char	*fmt=0;
 
-	while ((ch=getopt(argc,argv,"hcd:"))>=0) {
+	while ((ch=getopt(argc,argv,"hcud:"))>=0) {
 		switch (ch) {
 			default:	fprintf(stderr,"unknown option '%c'\n",ch);
 					rval=1;
@@ -444,6 +465,9 @@ char	*fmt=0;
 					return rval;
 
 			case 'c':	test=1;	
+					break;
+
+			case 'u':   forceunlock=1;
 					break;
 
 			case 'd':
@@ -460,35 +484,56 @@ char	*fmt=0;
 
 	ca_task_initialize();
 
-	ecdrget(argv[optind],0,&buf,&nord);
-
-	fprintf(stderr,"MAIN: %i elements read\n",nord);
-
-	if (!nord) return 2;
-
-	if (fmt) {
-		if (!strchr(fmt,'%')) {
-			fprintf(stderr,"ERROR format has no %%\n");
-			exit(1);
+	if (forceunlock) {
+		char unlock[2]={0,0};
+		EcdrBoardC	p = findConnectBoard(argv[optind]);
+		if ( !p ||
+			(ECA_NORMAL!=ca_sg_array_put(p->sg, DBR_CHAR, 2, p->lock_id, unlock)) ||
+			(ECA_NORMAL!=ca_sg_block(p->sg,10.))) {
+			ecErr("OOps, unable to release lock...");
 		}
-		bssubst(fmt, 'n', '\n');
-		bssubst(fmt, 'r', '\r');
-		bssubst(fmt, 't', '\t');
-		bssubst(fmt, '\\', '\\');
-		bssubst(fmt, '0', '\0');
-		for(i=0; i< nord; i++)
-			printf(fmt,buf[i]);
+	} else {
+		/* normal operation */
+
+		ecdrget(argv[optind],0,&buf,&nord);
+	
+		fprintf(stderr,"MAIN: %i elements read\n",nord);
+	
+		if (!nord) return 2;
+	
+		if (fmt) {
+			if (!strchr(fmt,'%')) {
+				fprintf(stderr,"ERROR format has no %%\n");
+				exit(1);
+			}
+			bssubst(fmt, 'n', '\n');
+			bssubst(fmt, 'r', '\r');
+			bssubst(fmt, 't', '\t');
+			bssubst(fmt, '\\', '\\');
+			bssubst(fmt, '0', '\0');
+			for(i=0; i< nord; i++)
+				printf(fmt,buf[i]);
+		}
+	
+		if (test) {
+			for(i=0; i<nord; i++)
+				if (4*(i+1) % (1<<8*sizeof(short)) !=(int)(unsigned short)buf[i]) {
+					fprintf(stderr,"mismatch at %i (buf[i]==%i (0x%08x) , should be %i)\n",i,buf[i],buf[i],4*(i+1));
+					rval=2;
+					break;
+				}
+			if (i>=nord)
+					fprintf(stderr,"Comparison of %i counter values was SUCCESSFUL\n",nord);
+		}
+	
 	}
 
-	if (test) {
-		for(i=0; i<nord; i++)
-			if (4*(i+1) % (1<<8*sizeof(short)) !=(int)(unsigned short)buf[i]) {
-				fprintf(stderr,"mismatch at %i (buf[i]==%i (0x%08x) , should be %i)\n",i,buf[i],buf[i],4*(i+1));
-				rval=2;
-				break;
-			}
-		if (i>=nord)
-				fprintf(stderr,"Comparison of %i counter values was SUCCESSFUL\n",nord);
+	{
+	/* delete all channels */
+	EcdrBoardC p;
+		for (p = ecdrList; p;) {
+			p = ecdrBoardCdestroy(p);
+		}
 	}
 
 	ca_task_exit();

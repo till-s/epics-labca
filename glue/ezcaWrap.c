@@ -98,6 +98,8 @@ C2F(ezcalibinit)(void)
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
+/* allow processing of beacons by background tasks */
+ca_context_create(ca_enable_preemptive_callback);
 ezcaAutoErrorMessageOff();
 fprintf(stderr,"HELLO\n");
 ezcaSetTimeout(0.1);
