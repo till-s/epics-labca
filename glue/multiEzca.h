@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.14 2004/01/28 05:46:42 till Exp $ */
+/* $Id: multiEzca.h,v 1.15 2004/01/29 05:42:29 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -34,6 +34,7 @@ void cerro(const char*);
 
 /* CA includes */
 #include <tsDefs.h> 
+#include <shareLib.h>
 
 void ezcaSetSeverityWarnLevel(int level);
 
@@ -73,7 +74,7 @@ typedef struct MultiArgRec_ {
     (a).pres = (void**)(p); \
 	} while (0)
 
-typedef int (*MultiEzcaFunc)();
+typedef epicsShareFunc int (epicsShareAPI *MultiEzcaFunc)();
 
 int
 multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args);
