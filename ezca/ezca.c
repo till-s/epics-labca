@@ -163,8 +163,6 @@ static epicsMutexId	ezcaMutex = 0;
 #define GETCONTROLLIMITS_MSG    "ezcaGetControlLimits()"
 #define GETSTATUS_MSG           "ezcaGetStatus()"
 #define GETWITHSTATUS_MSG       "ezcaGetWithStatus()"
-#define SETMONITOR_MSG          "ezcaSetMonitor()"
-#define CLEARMONITOR_MSG        "ezcaClearMonitor()"
 #define AUTOERRORMESSAGEOFF_MSG "ezcaAutoErrorMessageOff()"
 #define AUTOERRORMESSAGEON_MSG  "ezcaAutoErrorMessageOn()"
 #define DEBUGOFF_MSG            "ezcaDebugOff()"
@@ -279,30 +277,11 @@ static char *ErrorMsgs[] =
 /*                 */
 /*******************/
 
-struct monitor
-{
-    struct monitor *left;
-    struct monitor *right;
-    struct channel *cp; /* for debugging printing only */
-    char ezcadatatype;
-    char dbr_type;
-    evid evd;
-    BOOL needs_reading;
-    BOOL active; /* only goes active after OK add_event and OK pend_io */
-    int last_nelem;
-    void *pval;
-    /* other info */
-    short status;
-    short severity;
-    TS_STAMP time_stamp;
-}; /* end struct monitor */
-
 struct channel
 {
     struct channel *next;
     char *pvname;
     chid cid;
-    struct monitor *monitor_list;
     BOOL ever_successfully_searched;
 }; /* end struct channel */
 
@@ -312,7 +291,7 @@ typedef enum { usable=0, trashed='T'-'U', recyclable='R'-'U' } Trash_t;
 struct work
 {
     struct work *next;
-    struct channel *cxp;
+    struct channel *cp;
     int rc;
     char *error_msg;
     char *aux_error_msg;
@@ -360,11 +339,9 @@ static struct work *Workp;
 static struct channel *Channels[HASHTABLESIZE];
 
 static struct channel *Channel_avail_hdr;
-static struct monitor *Monitor_avail_hdr;
 static struct work *Work_avail_hdr;
 
 static struct channel *Discarded_channels;
-static struct monitor *Discarded_monitors;
 static struct work *Discarded_work;
 
 static char ErrorLocation;
@@ -420,7 +397,6 @@ static void copy_time_stamp(TS_STAMP *, TS_STAMP *); /* really should be */
 static void empty_work_list(void);
 static struct channel *find_channel(char *);
 static void get_channel(struct work *, struct channel **);
-static BOOL get_from_monitor(struct work *, struct channel *);
 static struct work *get_work(void);
 static struct work *get_work_single(void);
 static unsigned char hash(char *);
@@ -432,9 +408,7 @@ static void prologue(void);
 static void epilogue(void);
 
 /* Channel Access Interface Functions */
-static int EzcaAddArrayEvent(struct work *, struct monitor *);
 static int EzcaClearChannel(struct channel *);
-static void EzcaClearEvent(struct monitor *);
 static BOOL EzcaConnected(struct channel *);
 static int EzcaArrayGetCallback(struct work *, struct channel *);
 static int EzcaArrayPutCallback(struct work *, struct channel *);
@@ -449,18 +423,14 @@ static int EzcaQueueSearchAndConnect(struct work *, struct channel *);
 /* Callbacks */
 static void my_connection_callback(struct connection_handler_args);
 static void my_get_callback(struct event_handler_args);
-static void my_monitor_callback(struct event_handler_args);
 static void my_put_callback(struct event_handler_args);
 
 /* Memory Management */
 static void clean_and_push_channel(struct channel *);
-static void clean_and_push_monitor(struct monitor *);
 static struct channel *pop_channel(void);
-static struct monitor *pop_monitor(void);
 static struct work *pop_work(void);
 static void init_work(struct work *);
 static void push_channel(struct channel *, struct channel**);
-static void push_monitor(struct monitor *);
 static void push_work(struct work *);
 static void recycle_work(struct work *);
 
@@ -469,9 +439,7 @@ static void print_avails(void);
 static void print_channel_avail(void);
 static void print_channels(void);
 static void print_discarded_channels(void);
-static void print_discarded_monitors(void);
 static void print_discarded_work(void);
-static void print_monitor_avail(void);
 static void print_state(void);
 static void print_work_avail(void);
 static void print_work_list(void);
@@ -697,17 +665,9 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 		{
 		    case GET:
 		    case GETWITHSTATUS:
-			if (get_from_monitor(wp, wp->cp))
 			{
 			    if (Trace || Debug)
-    printf("ezcaEndGroupWithReport(): found an active monitor with a value for >%s<\n", 
-		wp->pvname);
-			    wp->needs_work = FALSE;
-			}
-			else
-			{
-			    if (Trace || Debug)
-printf("ezcaEndGroupWithReport(): did not find an active monitor with a value for >%s<\n",
+printf("ezcaEndGroupWithReport(): issuing get for >%s<\n",
 				wp->pvname);
 
 			    wp->needs_work = issue_get(wp, wp->cp);
@@ -725,17 +685,9 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 			wp->needs_work = FALSE;
 			break;
 		    case GETSTATUS:
-			if (get_from_monitor(wp, wp->cp))
 			{
 			    if (Trace || Debug)
-    printf("ezcaEndGroupWithReport(): found an active monitor with a value for >%s<\n", 
-		wp->pvname);
-			    wp->needs_work = FALSE;
-			}
-			else
-			{
-			    if (Trace || Debug)
-printf("ezcaEndGroupWithReport(): did not find an active monitor with a value for >%s<\n",
+printf("ezcaEndGroupWithReport(): issuing get for >%s<\n",
 				wp->pvname);
 
 			    wp->nelem = EzcaElementCount(wp->cp);
@@ -995,8 +947,6 @@ int rc;
 		    case GETCONTROLLIMITS: wtm = GETCONTROLLIMITS_MSG; break;
 		    case GETSTATUS:        wtm = GETSTATUS_MSG;        break;
 		    case GETWITHSTATUS:    wtm = GETWITHSTATUS_MSG;    break;
-		    case SETMONITOR:       wtm = SETMONITOR_MSG;       break;
-		    case CLEARMONITOR:     wtm = CLEARMONITOR_MSG;     break;
 		    case AUTOERRORMESSAGEOFF: 
 			wtm = AUTOERRORMESSAGEOFF_MSG;                 break;
 		    case AUTOERRORMESSAGEON:     
@@ -1057,8 +1007,6 @@ int rc;
 		    case GETCONTROLLIMITS: wtm = GETCONTROLLIMITS_MSG; break;
 		    case GETSTATUS:        wtm = GETSTATUS_MSG;        break;
 		    case GETWITHSTATUS:    wtm = GETWITHSTATUS_MSG;    break;
-		    case SETMONITOR:       wtm = SETMONITOR_MSG;       break;
-		    case CLEARMONITOR:     wtm = CLEARMONITOR_MSG;     break;
 		    case AUTOERRORMESSAGEOFF: 
 			wtm = AUTOERRORMESSAGEOFF_MSG;                 break;
 		    case AUTOERRORMESSAGEON:     
@@ -1138,10 +1086,6 @@ int rc;
 				wtm = GETSTATUS_MSG;           break;
 			    case GETWITHSTATUS:    
 				wtm = GETWITHSTATUS_MSG;       break;
-			    case SETMONITOR:       
-				wtm = SETMONITOR_MSG;          break;
-			    case CLEARMONITOR:     
-				wtm = CLEARMONITOR_MSG;        break;
 			    case AUTOERRORMESSAGEOFF: 
 				wtm = AUTOERRORMESSAGEOFF_MSG; break;
 			    case AUTOERRORMESSAGEON:     
@@ -1252,10 +1196,6 @@ int rc;
 				wtm = GETSTATUS_MSG;           break;
 			    case GETWITHSTATUS:    
 				wtm = GETWITHSTATUS_MSG;       break;
-			    case SETMONITOR:       
-				wtm = SETMONITOR_MSG;          break;
-			    case CLEARMONITOR:     
-				wtm = CLEARMONITOR_MSG;        break;
 			    case AUTOERRORMESSAGEOFF: 
 				wtm = AUTOERRORMESSAGEOFF_MSG; break;
 			    case AUTOERRORMESSAGEON:     
@@ -1378,94 +1318,6 @@ int rc;
 
 } /* end ezcaGetErrorString() */
 
-/****************************************************************
-*
-* because this function returns TRUE/FALSE, it does not conform to
-* the normal error message scheme of the rest of the functions.
-* for this reason it does not get a work node and is therefore
-* classified as an immediate function (rather than a non-groupable
-* work function).
-*
-* the user wishes to know if he needs to read the value that he
-* presumably set a monitor on.  this function returns TRUE (needs 
-* reading) or FALSE.
-*
-* It always error towards forcing the read ... if anything goes wrong,
-* it returns TRUE.
-*
-* It returns FALSE iff there is an existing monitor that does not 
-* need reading ... otherwise returns TRUE (no channel, invalid args, ...)
-*
-****************************************************************/
-
-int epicsShareAPI ezcaNewMonitorValue(char *pvname, char type)
-{
-
-struct channel *cp;
-struct monitor *mp;
-BOOL found;
-int rc;
-
-    prologue();
-
-    if (pvname)
-    {
-	if (VALID_EZCA_DATA_TYPE(type))
-	{
-	    if ((cp = find_channel(pvname)))
-	    {
-		mp = cp->monitor_list;
-		found = FALSE;
-		while (mp && !found)
-		    if (!(found = (type == mp->ezcadatatype)))
-			mp = mp->right;
-
-		if (found)
-		    rc = (int) mp->needs_reading;
-		else
-		{
-		    /* no monitor */
-
-		    if (Trace || Debug)
-	printf("ezcaNewMonitorValue() found no monitor name >%s< type %d\n",
-			pvname, type);
-
-		    rc = TRUE;
-		} /* endif */
-	    }
-	    else
-	    {
-		/* no channel */
-		rc = TRUE;
-
-		if (Trace || Debug)
-	printf("ezcaNewMonitorValue() found no channel name >%s< type %d\n",
-			pvname, type);
-	    } /* endif */
-	}
-	else
-	{
-	    /* invalid type */
-	    rc = TRUE;
-
-	    if (AutoErrorMessage)
-		printf("%s\n", INVALID_TYPE_MSG);
-	} /* endif */
-    }
-    else
-    {
-	/* invalid pvname */
-	rc = TRUE;
-
-	if (AutoErrorMessage)
-	    printf("%s\n", INVALID_PVNAME_MSG);
-
-    } /* endif */
-
-    epilogue();
-    return rc;
-
-} /* end ezcaNewMonitorValue() */
 
 /****************************************************************
 *
@@ -1501,8 +1353,6 @@ char *wtm;
 		case GETCONTROLLIMITS: wtm = GETCONTROLLIMITS_MSG; break;
 		case GETSTATUS:        wtm = GETSTATUS_MSG;        break;
 		case GETWITHSTATUS:    wtm = GETWITHSTATUS_MSG;    break;
-		case SETMONITOR:       wtm = SETMONITOR_MSG;       break;
-		case CLEARMONITOR:     wtm = CLEARMONITOR_MSG;     break;
 		case AUTOERRORMESSAGEOFF: 
 		    wtm = AUTOERRORMESSAGEOFF_MSG;                 break;
 		case AUTOERRORMESSAGEON:     
@@ -1551,8 +1401,6 @@ char *wtm;
 		case GETCONTROLLIMITS: wtm = GETCONTROLLIMITS_MSG; break;
 		case GETSTATUS:        wtm = GETSTATUS_MSG;        break;
 		case GETWITHSTATUS:    wtm = GETWITHSTATUS_MSG;    break;
-		case SETMONITOR:       wtm = SETMONITOR_MSG;       break;
-		case CLEARMONITOR:     wtm = CLEARMONITOR_MSG;     break;
 		case AUTOERRORMESSAGEOFF: 
 		    wtm = AUTOERRORMESSAGEOFF_MSG;                 break;
 		case AUTOERRORMESSAGEON:     
@@ -1666,138 +1514,6 @@ struct work *wp;
     epilogue();
 } /* end ezcaAutoErrorMessageOn() */
 
-/****************************************************************
-*
-*
-****************************************************************/
-
-int epicsShareAPI ezcaClearMonitor(char *pvname, char type)
-{
-
-struct channel *cp;
-struct monitor *mp;
-struct work *wp;
-BOOL found;
-int rc;
-
-    prologue();
-
-    if ((wp = get_work_single()))
-    {
-	ErrorLocation = SINGLEWORK;
-
-	/* filling work */
-	wp->worktype = CLEARMONITOR;
-	wp->ezcadatatype = type;
-
-	/* checking input args */
-
-	if (!pvname)
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	} 
-	else if (!(wp->pvname = strdup(pvname)))
-	{
-	    wp->rc = EZCA_FAILEDMALLOC;
-	    wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	} 
-	else if (!VALID_EZCA_DATA_TYPE(wp->ezcadatatype))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_TYPE_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	} 
-	else
-	{
-	    /* arguments are valid */
-	    wp->rc = EZCA_OK;
-	} /* endif */
-
-	if (wp->rc == EZCA_OK)
-	{
-	    /* all input args OK */
-	    if ((cp = find_channel(wp->pvname)))
-	    {
-		/* everything OK so far ... otherwise something */
-		/* went wrong and it is already explained in wp */
-
-		/* loop to check monitor list for monitor of the same type */
-		mp = cp->monitor_list;
-		found = FALSE;
-		while (mp && !found)
-		if (!(found = (wp->ezcadatatype == mp->ezcadatatype)))
-		    mp = mp->right;
-
-		if (found)
-		{
-		    if (Trace || Debug)
-		printf("ezcaClearMonitor(): found monitor ... clearing now\n");
-
-		    /* removing monitor from this channel's list */
-		    if (mp->left)
-			/* mp is NOT leftmost */
-			(mp->left)->right = mp->right;
-		    else
-			/* mp is leftmost */
-			cp->monitor_list = mp->right;
-
-		    if (mp->right)
-			/* mp is NOT rightmost */
-			(mp->right)->left = mp->left;
-
-		    /* clearing event, freeing memory, and */
-		    /* taking this monitor out of service  */
-
-		    mp->active = FALSE;
-
-		    clean_and_push_monitor(mp);
-
-		    wp->rc = EZCA_OK;
-		}
-		else
-		{
-		    /* no monitor to clear */
-
-		    wp->rc = EZCA_OK;
-
-		    if (Trace || Debug)
-		printf("ezcaClearMonitor(): found channel but no monitor\n");
-
-		} /* endif */
-	    } 
-	    else
-	    {
-		wp->rc = EZCA_OK;
-
-		if (Trace || Debug)
-		    printf("ezcaClearMonitor: found no channel\n");
-	    } /* endif */
-	} /* endif */
-
-	rc = wp->rc;
-	    
-    }
-    else
-    {
-	rc = EZCA_FAILEDMALLOC;
-
-	if (AutoErrorMessage)
-	    printf("%s\n", FAILED_MALLOC_MSG);
-    } /* endif */
-
-    epilogue();
-    return rc;
-
-} /* end ezcaClearMonitor() */
 
 /****************************************************************
 *
@@ -1871,12 +1587,6 @@ struct work *wp;
 
 /****************************************************************
 *
-* This is a function that we provide for users that use ezcaSetMonitor().
-* If they set a monitor and go a long time without calling another 
-* ezca function, they could lose important values.  
-*
-* Now all they have to do is call this function which allows us to check
-* the monitors.
 *
 ****************************************************************/
 
@@ -2130,236 +1840,6 @@ int rc;
     return rc;
 
 } /* end ezcaPvToChid() */
-
-/****************************************************************
-*
-*
-****************************************************************/
-
-int epicsShareAPI ezcaSetMonitor(char *pvname, char type)
-{
-
-struct channel *cp;
-struct monitor *mp;
-struct work *wp;
-BOOL found;
-int rc;
-
-    prologue();
-
-    if ((wp = get_work_single()))
-    {
-	ErrorLocation = SINGLEWORK;
-
-	/* filling work */
-
-	wp->worktype = SETMONITOR;
-	wp->ezcadatatype = type;
-
-	/* checking input args */
-
-        if (!pvname)
-        {
-            wp->rc = EZCA_INVALIDARG;
-            wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-        else if (!(wp->pvname = strdup(pvname)))
-        {
-            wp->rc = EZCA_FAILEDMALLOC;
-            wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-	else if (!VALID_EZCA_DATA_TYPE(wp->ezcadatatype))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_TYPE_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	} 
-	else
-	{
-	    /* arguments are valid */
-	    wp->rc = EZCA_OK;
-	} /* endif */
-
-	if (wp->rc == EZCA_OK)
-	{
-	    /* all input args OK */
-	    get_channel(wp, &cp);
-
-	    if (cp)
-	    {
-		/* everything OK so far ... otherwise something */
-		/* went wrong and it is already explained in wp */
-
-		/* loop to check monitor list for monitor of the same type */
-		mp = cp->monitor_list;
-		found = FALSE;
-		while (mp && !found)
-		    if (!(found = (wp->ezcadatatype == mp->ezcadatatype)))
-			mp = mp->right;
-
-		if (found)
-		{
-		    if (Trace || Debug)
-		printf("ezcaSetMonitor(): found monitor already existed\n");
-
-		    wp->rc = EZCA_OK;
-		}
-		else
-		{
-		    /* was not in the monitor list ... need to */
-		    /* place it there and start the monitor    */
-
-		    if (Trace || Debug)
-    printf("ezcaSetMonitor(): monitor did not exist. establishing one now\n");
-		    if ((mp = pop_monitor()))
-		    {
-			/* filling the mp here because ca_pend_io() could   */
-			/* cause my_monitor_callback() go be executed and   */
-			/* we need a full mp there in order for it to work. */
-
-			mp->ezcadatatype = wp->ezcadatatype;
-
-			mp->cp = cp;
-
-			if (Debug)
-			{
-    printf("ezcaSetMonitor() channels before pushing monitor onto channel\n");
-			    print_channels();
-			} /* endif */
-
-			/* pushing the monitor onto the monitor list */
-			if (cp->monitor_list)
-			{
-			    /* non-empty list */
-			    mp->right = cp->monitor_list;
-			    (cp->monitor_list)->left = mp;
-			}
-			else
-			    /* empty list */
-			    mp->right = (struct monitor *) NULL;
-
-			mp->left = (struct monitor *) NULL;
-			cp->monitor_list = mp;
-
-			if (Debug)
-			{
-    printf("ezcaSetMonitor() channels after pushing monitor onto channel\n");
-			    print_channels();
-			} /* endif */
-
-			if (EzcaAddArrayEvent(wp, mp) == ECA_NORMAL)
-			{
-			    mp->active = TRUE;
-
-			    if (EzcaPendIO(wp, SHORT_TIME) == ECA_NORMAL)
-				wp->rc = EZCA_OK;
-			    else
-			    {
-				/* something went wrong ... rc and */
-				/* error msg have already been set */
-
-				mp->active = FALSE;
-
-				/* need to take mp off of cp->monitor_list */
-				/* should be on top.                       */
-				if (cp->monitor_list)
-				{
-				    if ((cp->monitor_list)->right)
-				    {
-					/* more than one in the list */
-					cp->monitor_list = 
-					    (cp->monitor_list)->right;
-					(cp->monitor_list)->left = 
-					    (struct monitor *) NULL;
-				    }
-				    else
-					/* only one in the list */
-					cp->monitor_list = 
-					    (struct monitor *) NULL;
-				}
-				else
-				{
-				    /* cannot be NULL ... just pushed      */
-				    /* a monitor something has gone wrong. */
-
-				    fprintf(stderr,
-	    "EZCA FATAL ERROR: ezcaSetMonitor() found NULL cp->monitor_list\n");
-				    exit(1);
-				} /* endif */
-
-				clean_and_push_monitor(mp);
-			    } /* endif */
-			}
-			else
-			{
-			    /* something went wrong ... rc and */
-			    /* error msg have already been set */
-
-			    /* need to take mp off of cp->monitor_list */
-			    /* should be on top.                       */
-			    if (cp->monitor_list)
-			    {
-				if ((cp->monitor_list)->right)
-				{
-				    /* more than one in the list */
-				    cp->monitor_list = 
-					(cp->monitor_list)->right;
-				    (cp->monitor_list)->left = 
-					(struct monitor *) NULL;
-				}
-				else
-				    /* only one in the list */
-				    cp->monitor_list = (struct monitor *) NULL;
-			    }
-			    else
-			    {
-				/* cannot be NULL ... just pushed a monitor */
-				/* something has gone wrong.                */
-
-				fprintf(stderr, 
-	"EZCA FATAL ERROR: ezcaSetMonitor() found NULL cp->monitor_list\n");
-				exit(1);
-			    } /* endif */
-
-			    clean_and_push_monitor(mp);
-
-			} /* endif */
-		    }
-		    else
-		    {
-			wp->rc = EZCA_FAILEDMALLOC;
-			wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
-
-			if (AutoErrorMessage)
-			    print_error(wp);
-		    } /* endif */
-		} /* endif */
-	    } /* endif */
-	} /* endif */
-
-	rc = wp->rc;
-	    
-    }
-    else
-    {
-	rc = EZCA_FAILEDMALLOC;
-
-	if (AutoErrorMessage)
-	    printf("%s\n", FAILED_MALLOC_MSG);
-    } /* endif */
-
-    epilogue();
-    return rc;
-
-} /* end ezcaSetMonitor() */
 
 /****************************************************************
 *
@@ -2814,14 +2294,11 @@ int rc;
 		if (EzcaConnected(cp))
 		{
 		    /* channel is currently connected */
-		    if (!get_from_monitor(wp, cp))
 		    {
-			/* did not find an active   */
-			/* monitor that had a value */
 			/* need to do explicit get  */
 
 			if (Trace || Debug)
-	    printf("ezcaGet(): did not find an active monitor with a value\n");
+	    printf("ezcaGet(): issuing get\n");
 
 			if (issue_get(wp, cp))
 			{
@@ -3416,14 +2893,12 @@ int rc;
 		{
 		    /* channel is currently connected */
 
-		    if (!get_from_monitor(wp, cp))
 		    {
 			/* did not find an active   */
-			/* monitor that had a value */
 			/* need to do explicit get  */
 
 			if (Trace || Debug)
-    printf("ezcaGetStatus(): did not find an active monitor with a value\n");
+	    printf("ezcaGetStatus(): issuing get\n");
 
 			/* just requesting native element count for ease */
 			/* although will never look at count nor value   */
@@ -3698,14 +3173,12 @@ int rc;
 		if (EzcaConnected(cp))
 		{
 		    /* channel is currently connected */
-		    if (!get_from_monitor(wp, cp))
 		    {
 			/* did not find an active   */
-			/* monitor that had a value */
 			/* need to do explicit get  */
 
 			if (Trace || Debug)
-printf("ezcaGetWithStatus(): did not find an active monitor with a value\n");
+	    printf("ezcaGetWithStatus(): issuing get\n");
 
 			if (issue_get(wp, cp))
 			{
@@ -4451,190 +3924,6 @@ printf("get_channel(): could not find_channel(). must ca_search_and_connect() an
 
 /****************************************************************
 *
-* A user is doing some kind of get (ezcaGet, ezcaGetStatus, ezcaGetWithStatus).
-* This function checks the channel for a monitor of the type specified in wp.
-* If it finds one, it copies the appropriate value(s) to wp and return TRUE.
-* Any other condition it returns FALSE.
-*
-* The only way wp->rc and wp->error_msg get affected is if the user
-* wants to read the value and wants more values than are available.
-* That is only possible if the monitor was found (i.e. returns TRUE).
-*
-* NOTE: This function does not care whether or not the channel is 
-*       currently connected ... that is the responsibility of the caller.
-*
-****************************************************************/
-
-static BOOL get_from_monitor(struct work *wp, struct channel *cp)
-{
-
-struct monitor *mp;
-BOOL found_error;
-BOOL rc;
-
-    if (wp && cp)
-    {
-	/* loop to check monitor list for */
-	/* monitor of the same type       */
-	mp = cp->monitor_list;
-	rc = FALSE;
-	while (mp && !rc)
-	    if (!(rc = ((wp->ezcadatatype == mp->ezcadatatype)
-			    && mp->active && mp->pval)))
-		mp = mp->right;
-
-	if (rc)
-	{
-	    if (Trace || Debug)
-		printf("get_from_monitor(): found active monitor with value\n");
-
-	    found_error = FALSE;
-
-	    if (wp->pval)
-	    {
-		/* wants the value from the monitor */
-
-		if (wp->nelem <= mp->last_nelem)
-		{
-		    /* time to copy the data */
-		    switch (wp->ezcadatatype)
-		    {
-			case ezcaByte:
-			    memcpy((char *) (wp->pval), 
-				(char *) (mp->pval),
-				wp->nelem*dbr_value_size[DBR_TIME_CHAR]);
-
-			    if (Trace || Debug)
-	    printf("get_from_monitor() just memcpy %d bytes from %p to %p\n",
-				wp->nelem*dbr_value_size[DBR_TIME_CHAR],
-				mp->pval, wp->pval);
-
-			    break;
-			case ezcaString:
-			    memcpy((char *) (wp->pval), 
-				(char *) (mp->pval),
-			    wp->nelem*dbr_value_size[DBR_TIME_STRING]);
-
-			    if (Trace || Debug)
-	    printf("get_from_monitor() just memcpy %d bytes from %p to %p\n",
-			    wp->nelem*dbr_value_size[DBR_TIME_STRING], 
-				mp->pval, wp->pval);
-
-			    break;
-			case ezcaShort:
-			    memcpy((char *) (wp->pval), 
-				(char *) (mp->pval),
-			    wp->nelem*dbr_value_size[DBR_TIME_SHORT]);
-
-			    if (Trace || Debug)
-	    printf("get_from_monitor() just memcpy %d bytes from %p to %p\n",
-			    wp->nelem*dbr_value_size[DBR_TIME_SHORT], 
-				mp->pval, wp->pval);
-
-			    break;
-			case ezcaLong:
-			    memcpy((char *) (wp->pval), 
-				(char *) (mp->pval),
-			    wp->nelem*dbr_value_size[DBR_TIME_LONG]);
-
-			if (Trace || Debug)
-	    printf("get_from_monitor() just memcpy %d bytes from %p to %p\n",
-				wp->nelem*dbr_value_size[DBR_TIME_LONG],
-				mp->pval, wp->pval);
-
-			    break;
-			case ezcaFloat:
-			    memcpy((char *) (wp->pval), (char *) (mp->pval),
-				wp->nelem*dbr_value_size[DBR_TIME_FLOAT]);
-
-			    if (Trace || Debug)
-	    printf("get_from_monitor() just memcpy %d bytes from %p to %p\n",
-				wp->nelem*dbr_value_size[DBR_TIME_FLOAT], 
-				mp->pval, wp->pval);
-
-			    break;
-			case ezcaDouble:
-			    memcpy((char *) (wp->pval), (char *) (mp->pval),
-				wp->nelem*dbr_value_size[DBR_TIME_DOUBLE]);
-
-			    if (Trace || Debug)
-	    printf("get_from_monitor() just memcpy %d bytes from %p to %p\n",
-				wp->nelem*dbr_value_size[DBR_TIME_DOUBLE], 
-				mp->pval, wp->pval);
-
-			    break;
-			default:
-			    fprintf(stderr, 
-"EZCA FATAL ERROR: get_from_monitor() found unrecognizable ezcadatatype %d\n",
-				wp->ezcadatatype);
-			    exit(1);
-			    break;
-		    } /* end switch() */
-
-		    mp->needs_reading = FALSE;
-		}
-		else
-		{
-		    /* too many requested elements */
-		    found_error = TRUE;
-
-		    wp->rc = EZCA_INVALIDARG;
-		    wp->error_msg = ErrorMsgs[TOO_MANY_NELEM_MSG_IDX];
-
-		    if (AutoErrorMessage)
-			print_error(wp);
-		} /* endif */
-	    } /* endif */
-
-	    if (!found_error)
-	    {
-		if (wp->status)
-		{
-		    /* wants the status from the monitor */
-
-		    *(wp->status) = mp->status;
-
-		    if (Trace || Debug)
-			printf("get_from_monitor() just copied status %d\n", 
-			    *(wp->status));
-		} /* endif */
-
-		if (wp->severity)
-		{
-		    /* wants the severity from the monitor */
-
-		    *(wp->severity) = mp->severity;
-
-		    if (Trace || Debug)
-			printf("get_from_monitor() just copied severity %d\n",
-			    *(wp->severity));
-		} /* endif */
-
-		if (wp->tsp)
-		{
-		    /* wants the time from the monitor */
-
-		    copy_time_stamp(wp->tsp, &(mp->time_stamp));
-
-		    if (Trace || Debug)
-			printf("get_from_monitor() just copied time\n");
-		} /* endif */
-	    } /* endif */
-	} /* endif */
-    }
-    else
-    {
-	fprintf(stderr, 
-	    "EZCA FATAL ERROR: get_from_monitor() got wp %p cp %p\n", wp, cp);
-	exit(1);
-    } /* endif */
-
-    return rc;
-
-} /* end get_from_monitor() */
-
-/****************************************************************
-*
 * Presumably an ezcaXXXX() function has just been called.  It was
 * either called in the context of InGroup or not.  If InGroup,
 * then need a work node that can be placed onto the WorkList,
@@ -4736,12 +4025,10 @@ int i;
     EzcaInitializeChannelAccess();
 
     Channel_avail_hdr = (struct channel *) NULL;
-    Monitor_avail_hdr = (struct monitor *) NULL;
     Work_avail_hdr = (struct work *) NULL;
     Workp = (struct work *) NULL;
 
     Discarded_channels = (struct channel *) NULL;
-    Discarded_monitors = (struct monitor *) NULL;
     Discarded_work = (struct work *) NULL;
 
     Work_list.head = (struct work *) NULL;
@@ -4982,71 +4269,6 @@ static void epilogue()
 /*                                    */
 /**************************************/
 
-/****************************************************************
-*
-* if evertything goes ok, then wp is unchanged.
-*
-* if something went wrong, wp->rc = EZCA_CAFAILURE
-* and wp->error_msg is set.
-*
-****************************************************************/
-
-static int EzcaAddArrayEvent(struct work *wp, struct monitor *mp)
-{
-
-int rc;
-
-    if (!wp || !mp || !(mp->cp))
-    {
-	fprintf(stderr, 
-	    "EZCA FATAL ERROR: EzcaAddEvent() got wp %p mp %p mp->cp %p\n", 
-	    wp, mp, mp->cp);
-	exit(1);
-    } /* endif */
-
-    switch (mp->ezcadatatype)
-    {
-	case ezcaByte:   mp->dbr_type = DBR_TIME_CHAR;   break;
-	case ezcaString: mp->dbr_type = DBR_TIME_STRING; break;
-	case ezcaShort:  mp->dbr_type = DBR_TIME_SHORT;  break;
-	case ezcaLong:   mp->dbr_type = DBR_TIME_LONG;   break;
-	case ezcaFloat:  mp->dbr_type = DBR_TIME_FLOAT;  break;
-	case ezcaDouble: mp->dbr_type = DBR_TIME_DOUBLE; break;
-	default: 
-	    fprintf(stderr, 
-    "EZCA FATAL ERROR: EzcaAddEvent() got unrecognizable ezca data type %d\n", 
-		mp->ezcadatatype);
-	    exit(1);
-	    break;
-    } /* end switch() */
-
-    if (Trace || Debug)
-    {
-	printf("ca_add_array_event(ezcatype (%d)->dbrtype (%d) >%s<)\n", 
-	    mp->ezcadatatype, mp->dbr_type, (mp->cp)->pvname); 
-
-	if (Debug)
-	    print_state();
-    } /* endif */
-
-    rc = ca_add_array_event(mp->dbr_type, (unsigned long) 0, (mp->cp)->cid, 
-	    my_monitor_callback, (void *) mp, (float) 0, (float) 0, (float) 0, 
-	    &(mp->evd));
-
-    if (rc != ECA_NORMAL)
-    {
-	wp->rc = EZCA_CAFAILURE;
-
-	wp->error_msg = ErrorMsgs[CAADDARRAYEVENT_MSG_IDX];
-	wp->aux_error_msg = strdup(ca_message(rc));
-
-	if (AutoErrorMessage)
-	    print_error(wp);
-    } /* endif */
-
-    return rc;
-
-} /* end EzcaAddEvent() */
 
 /****************************************************************
 *
@@ -5077,22 +4299,6 @@ int rval = 0;
 	}
 	return rval;
 } /* end EzcaClearChannel() */
-
-/****************************************************************
-*
-* don't care what this returns ... the monitors are always removed
-* from the channel's monitor lists so they will never be used
-* again.  the worst that could happen is that the monitors are
-* not cleared and we waste time in the callback routines.
-*
-****************************************************************/
-
-static void EzcaClearEvent(struct monitor *mp)
-{
-    if (mp)
-	ca_clear_event(mp->evd);
-
-} /* end EzcaClearEvent() */
 
 /****************************************************************
 *
@@ -6721,220 +5927,6 @@ EZCA_LOCK();
 EZCA_UNLOCK();
 } /* end my_get_callback() */
 
-/****************************************************************
-*
-* from epicsH/cadef.h
-* struct  event_handler_args
-* {
-*     void *usr;   User argument supplied when event added
-*     chid chid;   Channel id
-*     long type;   the type of the value returned (long aligned)
-*     long count;  the element count of the item returned
-*     void *dbr;   Pointer to the value returned
-*     int status; CA Status of the op from server - CA V4.1 
-* };
-*
-* Presumably a ca_add_array_event() has been previously called which 
-* established a monitor and named this routine as the callback.
-*
-* The request type was DBR_TIME_XXXX.  When this monitor is called, arg.dbr
-* is a pointer to one of these dbr_time_xxxx structs.  This structure is 
-* filled with all kinds of information, (status, severity, limits, ...).
-*
-* The actual data is sitting in the value field of the dbr_time_xxxx structure.
-*
-* In the event that arg.count > 1, the value is still sitting the the value
-* field, but as an array that starts at the value field.
-*
-****************************************************************/
-
-static void my_monitor_callback(struct event_handler_args arg)
-{
-
-struct monitor *mp;
-int nbytes;
-
-EZCA_LOCK();
-    if (Trace || Debug)
-	printf("entering my_monitor_callback()\n");
-
-    if ((mp = (struct monitor *) arg.usr))
-    {
-	if (mp->active)
-	{
-	    /* checking that channel access gave us what we asked for */
-	    if (arg.type == mp->dbr_type)
-	    {
-		if (arg.status == ECA_NORMAL)
-		{
-		    nbytes = arg.count * dbr_value_size[arg.type];
-		    if (Trace || Debug)
-			printf("my_monitor_callback() pvname >%s< size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
-			    (mp->cp ? (mp->cp)->pvname : "NULL"), 
-			    dbr_value_size[arg.type], arg.count,
-			    nbytes, mp->ezcadatatype, mp->dbr_type);
-
-		    if (arg.count != mp->last_nelem)
-		    {
-			if (Trace || Debug)
-		    printf("my_monitor_callback() allocating %ld X %d = %d bytes\n",
-				arg.count, dbr_value_size[arg.type], nbytes);
-
-			/* different amount coming in ... need new data buff */
-
-			if (mp->pval)
-			{
-			    if (Trace || Debug)
-			printf("my_monitor_callback() freeing mp->pval %p\n",
-				    mp->pval);
-			    free((char *) mp->pval);
-			    mp->pval = (void *) NULL;
-			} /* endif */
-
-			if (!(mp->pval = (void *) malloc((unsigned) nbytes)))
-			{
-			    fprintf(stderr, 
-	"EZCA FATAL ERROR: my_monitor_callback() could not allocate %d bytes\n",
-				nbytes);
-			    exit(1);
-			} /* endif */
-
-			if (Trace || Debug)
-		printf("my_monitor_callback() allocated %d bytes mp->pval %p\n",
-				nbytes, mp->pval);
-
-			mp->last_nelem = arg.count;
-
-		    } /* endif */
-
-		    switch (arg.type)
-		    {
-			case DBR_TIME_CHAR:
-			    memcpy((char *) (mp->pval), 
-			(char *) &(((struct dbr_time_char *) arg.dbr)->value),
-				nbytes);
-			    mp->status = 
-				((struct dbr_time_char *) arg.dbr)->status;
-			    mp->severity = 
-				((struct dbr_time_char *) arg.dbr)->severity;
-			    copy_time_stamp(&(mp->time_stamp), 
-				&(((struct dbr_time_char *) arg.dbr)->stamp));
-			    break;
-			case DBR_TIME_STRING:
-			    memcpy((char *) (mp->pval), 
-			(char *) &(((struct dbr_time_string *)arg.dbr)->value),
-				nbytes);
-			    mp->status = 
-				((struct dbr_time_string *) arg.dbr)->status;
-			    mp->severity = 
-				((struct dbr_time_string *) arg.dbr)->severity;
-			    copy_time_stamp(&(mp->time_stamp), 
-				&(((struct dbr_time_string *) arg.dbr)->stamp));
-			    break;
-			case DBR_TIME_SHORT:
-			    memcpy((char *) (mp->pval), 
-			(char *) &(((struct dbr_time_short *)arg.dbr)->value),
-				nbytes);
-			    mp->status = 
-				((struct dbr_time_short *) arg.dbr)->status;
-			    mp->severity = 
-				((struct dbr_time_short *) arg.dbr)->severity;
-			    copy_time_stamp(&(mp->time_stamp),
-				&(((struct dbr_time_short *) arg.dbr)->stamp));
-			    break;
-			case DBR_TIME_LONG:
-			    memcpy((char *) (mp->pval), 
-			(char *) &(((struct dbr_time_long *) arg.dbr)->value),
-				nbytes);
-			    mp->status = 
-				((struct dbr_time_long *) arg.dbr)->status;
-			    mp->severity = 
-				((struct dbr_time_long *) arg.dbr)->severity;
-			    copy_time_stamp(&(mp->time_stamp),
-				&(((struct dbr_time_long *) arg.dbr)->stamp));
-			    break;
-			case DBR_TIME_FLOAT:
-			    memcpy((char *) (mp->pval), 
-			(char *) &(((struct dbr_time_float *)arg.dbr)->value),
-				nbytes);
-			    mp->status = 
-				((struct dbr_time_float *) arg.dbr)->status;
-			    mp->severity = 
-				((struct dbr_time_float *) arg.dbr)->severity;
-			    copy_time_stamp(&(mp->time_stamp),
-				&(((struct dbr_time_float *) arg.dbr)->stamp));
-			    break;
-			case DBR_TIME_DOUBLE:
-			    memcpy((char *) (mp->pval), 
-			(char *)&(((struct dbr_time_double *)arg.dbr)->value),
-				nbytes);
-			    mp->status = 
-				((struct dbr_time_double *) arg.dbr)->status;
-			    mp->severity = 
-				((struct dbr_time_double *) arg.dbr)->severity;
-			    copy_time_stamp(&(mp->time_stamp),
-				&(((struct dbr_time_double *) arg.dbr)->stamp));
-			    break;
-			default:
-			    fprintf(stderr, 
-"EZCA FATAL ERROR: my_monitor_callback() encountered unrecognizable type %ld\n",
-				arg.type);
-			    break;
-		    } /* end switch() */
-
-		    if (Trace || Debug)
-		    printf("my_monitor_callback() just memcpy %d bytes to %p\n",
-			    nbytes, mp->pval);
-
-		    mp->needs_reading = TRUE;
-		}
-		else
-		{
-		    if (Trace || Debug)
-			printf("my_monitor_callback() found arg.status %d\n",
-			    arg.status);
-
-		    if (mp->pval)
-		    {
-			if (Trace || Debug)
-			printf("my_monitor_callback() freeing mp->pval %p\n",
-				mp->pval);
-			free((char *) mp->pval);
-		    } /* endif */
-
-		    mp->pval = (void *) NULL;
-		    mp->needs_reading = FALSE;
-		    mp->last_nelem = UNDEFINED;
-		    mp->status = UNDEFINED;
-		    mp->severity = UNDEFINED;
-		} /* endif */
-	    }
-	    else
-	    {
-		fprintf(stderr, 
-"EZCA FATAL ERROR: my_monitor_callback() got type %ld when asked for type %d\n",
-		    arg.type, mp->dbr_type);
-		exit(1);
-	    } /* endif */
-	}
-	else
-	{
-	    if (Trace || Debug)
-		printf("my_monitor_callback() inactive monitor\n");
-	} /* endif */
-    }
-    else
-    {
-        fprintf(stderr, 
-	    "EZCA FATAL ERROR: my_monitor_callback() got NULL mp\n");
-        exit(1);
-    } /* endif */
-
-    if (Trace || Debug)
-	printf("exiting my_monitor_callback()\n");
-
-EZCA_UNLOCK();
-} /* end my_monitor_callback() */
 
 /****************************************************************
 *
@@ -7012,7 +6004,7 @@ EZCA_UNLOCK();
 
 /****************************************************************
 *
-* clears the chid and empties monitor list via clean_and_push_monitor()
+* clears the chid
 *
 ****************************************************************/
 
@@ -7020,36 +6012,9 @@ static void clean_and_push_channel(struct channel *cp)
 {
 
 int    clear_failed;
-struct monitor *mp;
 
     if (cp)
     {
-	/* clearing monitor list       */
-	/* note that this loop ends up */
-	/* with p->monitor_list = NULL */
-
-	while ((mp = cp->monitor_list))
-	{
-	    if ((cp->monitor_list = mp->right))
-		(cp->monitor_list)->left = (struct monitor *) NULL;
-
-	    /* not calling clean_and_push_monitor() here because want to */
-	    /* bunch up these ca_clear_event() calls and flush as one    */
-
-	    mp->active = FALSE;
-
-	    if (mp->pval)
-	    {
-		free((char *) mp->pval);
-		mp->pval = (void *) NULL;
-	    } /* endif */
-
-	    EzcaClearEvent(mp);
-
-	    push_monitor(mp);
-
-	} /* endwhile */
-
 	/* clearing the chid */
 
 	clear_failed = EzcaClearChannel(cp);
@@ -7062,33 +6027,6 @@ struct monitor *mp;
     } /* endif */
 
 } /* end clean_and_push_channel() */
-
-/****************************************************************
-*
-*
-****************************************************************/
-
-static void clean_and_push_monitor(struct monitor *mp)
-{
-    if (mp)
-    {
-
-	mp->active = FALSE;
-
-	if (mp->pval)
-	{
-	    free((char *) mp->pval);
-	    mp->pval = (void *) NULL;
-	} /* endif */
-
-	EzcaClearEvent(mp);
-	EzcaPendIO((struct work *) NULL, SHORT_TIME);
-
-	push_monitor(mp);
-
-    } /* endif */
-
-} /* end clean_and_push_monitor() */
 
 /****************************************************************
 *
@@ -7149,7 +6087,6 @@ int i;
 	    free(rc->pvname);
 	    rc->pvname = (char *) NULL;
 	} /* endif */
-	rc->monitor_list = (struct monitor *) NULL;
 	rc->ever_successfully_searched = FALSE;
     } /* endif */
 
@@ -7163,85 +6100,6 @@ int i;
     return rc;
 
 } /* end pop_channel() */
-
-/****************************************************************
-*
-*
-****************************************************************/
-
-static struct monitor *pop_monitor()
-{
-
-struct monitor *rc;
-int i;
-
-    if (Debug)
-    {
-	printf("entering pop_monitor()\n");
-	print_state();
-    } /* endif */
-
-    if (Monitor_avail_hdr != NULL)
-    {
-        rc = Monitor_avail_hdr;
-        Monitor_avail_hdr = rc->left;
-    }
-    else
-    {
-        if ((Monitor_avail_hdr = (struct monitor *) 
-	    malloc((unsigned) (sizeof(struct monitor)*NODESPERMAL))) != NULL)
-        {
-	    if (Debug)
-		printf("pop_monitor() allocated sizeof(struct monitor) %d * NODESPERMAL %d bytes = %d bytes %p\n", 
-		    sizeof(struct monitor), NODESPERMAL, 
-		    sizeof(struct monitor)*NODESPERMAL, Monitor_avail_hdr);
-
-            for (rc = Monitor_avail_hdr, i=0; i < (NODESPERMAL-1); i ++)
-            {
-                rc->left = rc + 1;
-
-		if (Debug)
-		    printf("i = %d rc %p rc->left %p\n", i, rc, rc->left);
-
-                rc++;
-            } /* endfor */
-            rc->left = (struct monitor *) NULL;
-
-	    if (Debug)
-		printf("i = %d rc %p rc->left %p\n", i, rc, rc->left);
-
-            rc = Monitor_avail_hdr;
-            Monitor_avail_hdr = rc->left;
-        }
-        else
-            rc = (struct monitor *) NULL;
-    } /* endif */
-
-    if (rc)
-    {
-	rc->left = (struct monitor *) NULL;
-	rc->right = (struct monitor *) NULL;
-	rc->cp = (struct channel *) NULL;
-	rc->ezcadatatype = UNDEFINED;
-	rc->dbr_type = UNDEFINED;
-	rc->pval = (void *) NULL;
-	rc->needs_reading = FALSE;
-	rc->active = FALSE;
-	rc->last_nelem = UNDEFINED;
-	rc->status = UNDEFINED;
-	rc->severity = UNDEFINED;
-    } /* endif */
-
-    if (Debug)
-    {
-	printf("exiting pop_monitor() (rc->lft %p) rc %p (rc->right %p)\n", 
-	    (rc ? rc->left : NULL), rc, (rc ? rc->right : NULL));
-	print_state();
-    } /* endif */
-
-    return rc;
-
-} /* end pop_monitor() */
 
 /****************************************************************
 *
@@ -7406,37 +6264,6 @@ struct channel **pc,*c;
 
 /****************************************************************
 *
-* placing them onto discarded monitors because don't want
-* subsequent callbacks writing in this value.  
-* Ex. subsequent callbacks can occur if ca_clear_event() didn't work.
-*
-****************************************************************/
-
-static void push_monitor(struct monitor *p)
-{
-
-    if (Debug)
-    {
-	printf("entering push_monitor() p %p\n", p);
-	print_state();
-    } /* endif */
-
-    if (p)
-    {
-	p->left = Discarded_monitors;
-	Discarded_monitors = p;
-    } /* endif */
-
-    if (Debug)
-    {
-	print_state();
-	printf("exiting push_monitor()\n");
-    } /* endif */
-
-} /* end push_monitor() */
-
-/****************************************************************
-*
 *
 ****************************************************************/
 
@@ -7544,7 +6371,6 @@ static void push_work(struct work *p)
 static void print_avails()
 {
     print_channel_avail();
-    print_monitor_avail();
     print_work_avail();
 } /* end print_avails() */
 
@@ -7575,19 +6401,13 @@ static void print_channels()
 
 int            i;
 struct channel *cp;
-struct monitor *mp;
 
     printf("Start Channels:\n");
 	for ( i=0; i<HASHTABLESIZE; i++ )
     for (cp = Channels[i]; cp; cp = cp->next) 
     {
-	printf(">%s< %p (nxt %p) ml %p ", 
-	    cp->pvname, cp, cp->next, cp->monitor_list);
-	for (mp = cp->monitor_list; mp; mp = mp->right) 
-	    printf("M>(lft %p) %p (rght %p) type %d pval %p active %c cp %p<M ",
-		mp->left, mp, mp->right, mp->ezcadatatype, mp->pval, 
-		(mp->active ? 'T' : 'F'), mp->cp);
-	printf("\n");
+	printf(">%s< %p (nxt %p)\n", 
+	    cp->pvname, cp, cp->next);
     } /* endfor */
     printf("End Channels:\n");
 
@@ -7605,28 +6425,9 @@ struct channel *cp;
 
     printf("Discarded_channels %p : ", Discarded_channels); 
     for (cp = Discarded_channels; cp; cp = cp->next) 
-	printf("%p (nxt %p) ml %p ", cp, cp->next, cp->monitor_list);
-    printf("\n");
+	printf("%p (nxt %p)\n", cp, cp->next);
 
 } /* end print_discarded_channels() */
-
-/****************************************************************
-*
-*
-****************************************************************/
-
-static void print_discarded_monitors()
-{
-
-struct monitor *mp;
-
-    printf("Discarded_monitors %p : ", Discarded_monitors); 
-    for (mp = Discarded_monitors; mp; mp = mp->left) 
-	printf("%p active %c (lft %p) ", 
-	    mp, (mp->active ? 'T' : 'F'), mp->left); 
-    printf("\n");
-
-} /* end print_discarded_monitors() */
 
 /****************************************************************
 *
@@ -7646,22 +6447,6 @@ struct work *wp;
 
 } /* end print_discarded_work() */
 
-/****************************************************************
-*
-*
-****************************************************************/
-
-static void print_monitor_avail()
-{
-
-struct monitor *mp;
-
-    printf("Monitor_avail_hdr %p : ", Monitor_avail_hdr); 
-    for (mp = Monitor_avail_hdr; mp; mp = mp->left) 
-	printf("%p (lft %p) ", mp, mp->left); 
-    printf("\n");
-
-} /* end print_monitor_avail() */
 
 /****************************************************************
 *
@@ -7687,7 +6472,6 @@ static void print_state()
     print_workp();
     print_avails();
     print_discarded_channels();
-    print_discarded_monitors();
     print_discarded_work();
     print_channels();
     print_work_list();
