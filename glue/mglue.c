@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.7 2004/01/27 03:38:04 till Exp $ */
+/* $Id: mglue.c,v 1.8 2004/01/28 05:47:10 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -12,8 +12,6 @@
 #include "multiEzca.h"
 #include "mglue.h"
 
-static unsigned long saved;
-
 void
 releasePVs(PVs *pvs)
 {
@@ -23,7 +21,7 @@ int i;
 			mxFree(pvs->names[i]);
 		}
 		mxFree( pvs->names );
-		multi_ezca_ctrlC_epilogue( saved );	
+		multi_ezca_ctrlC_epilogue( &pvs->ctrlc );	
 	}
 }
 
@@ -34,6 +32,7 @@ char	**mem = 0;
 int     i,m,buflen;
 const mxArray *tmp;
 int	rval = -1;
+
 
 	pvs->names = 0;
 	pvs->m     = 0;
@@ -79,10 +78,11 @@ int	rval = -1;
 
 	pvs->names = mem;
 	pvs->m     = m;
-	pvs  = 0;
-	rval = 0;
+	rval       = 0;
 
-	saved = multi_ezca_ctrlC_prologue();
+	multi_ezca_ctrlC_prologue(&pvs->ctrlc);
+
+	pvs        = 0;
 
 cleanup:
 	releasePVs(pvs);

@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.5 2003/12/23 23:15:56 strauman Exp $ */
+/* $Id: mglue.h,v 1.6 2004/01/27 03:33:04 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -8,10 +8,12 @@
 /* LICENSE: EPICS open license, see ../LICENSE file */
 #include <mex.h>
 #include <matrix.h>
+#include <multiEzcaCtrlC.h>
 
 typedef struct PVs_ {
-	int    m;
-	char **names;
+	CtrlCStateRec	ctrlc;
+	int    			m;
+	char 			**names;
 } PVs;
 
 #ifdef __cplusplus
