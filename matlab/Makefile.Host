@@ -70,10 +70,10 @@ endif
 #
 
 # need additional libs
-PROD_LIBS := mezcaglue ezca ca Com
+PROD_LIBS := mezcaglue ezcamt ca Com
 
-mezcaglue_DIR := $(TOP)/lib/$(T_A)
-ezca_DIR := $(TOP)/lib/$(T_A)
+mezcaglue_DIR := $(INSTALL_LIB)
+ezcamt_DIR := $(INSTALL_LIB)
 ca_DIR := $(EPICS_BASE_LIB)
 Com_DIR := $(EPICS_BASE_LIB)
 

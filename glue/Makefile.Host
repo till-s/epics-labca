@@ -48,7 +48,7 @@ gnelm_LIBS = $(LIBRARY)
 #
 
 # need additional libs
-PROD_LIBS :=ezca ca Com
+PROD_LIBS :=ezcamt ca Com
 
 # USR_LIBS_xxx doesn't work under EPICS 3.14.2 :-(
 # USR_LIBS_WIN32 += libmx libmex
@@ -76,9 +76,9 @@ mex_DIR := $(MATLABDIR)/bin/$(MLBARCH)
 export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(mx_DIR)
 
 LibScilab_DIR:=$(SCILABDIR)/bin
-mezcaglue_DIR:=$(TOP)/lib/$(T_A)
+mezcaglue_DIR:=$(INSTALL_LIB)
 
-ezca_DIR := $(TOP)/lib/$(T_A)
+ezcamt_DIR := $(INSTALL_LIB)
 ca_DIR := $(EPICS_BASE_LIB)
 Com_DIR := $(EPICS_BASE_LIB)
 
