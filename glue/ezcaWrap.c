@@ -1,4 +1,4 @@
-/* $Id: ezcaWrap.c,v 1.11 2003/12/11 05:33:08 till Exp $ */
+/* $Id: ezcaWrap.c,v 1.12 2003/12/17 20:52:25 till Exp $ */
 
 /* SCILAB - EZCA interface */
 
@@ -99,7 +99,6 @@ C2F(ezputstring)(char ***nms, int *m, char ***buf, int *mo, int *n)
 void
 C2F(ezgetnelem)(char ***nms, int *m, int **pnelms, int *mo)
 {
-int i;
 int *nelms = 0;
 
 	*mo     = 0;
@@ -122,7 +121,7 @@ cleanup:
 void
 C2F(ezgetcontrollimits)(char ***nms, int *m, double **plo, double **phi, int *mo)
 {
-MultiArgRec args[]={ { sizeof(double), 0, (void**)plo }, { sizeof(double), 0, (void**)phi } };
+MultiArgRec args[2]={ { sizeof(double), 0, (void**)plo }, { sizeof(double), 0, (void**)phi } };
 
     *mo = multi_ezca_get_misc(*nms, *m, ezcaGetControlLimits, NumberOf(args), args);
 

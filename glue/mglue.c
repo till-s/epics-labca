@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.1 2003/12/11 05:33:54 till Exp $ */
+/* $Id: mglue.c,v 1.2 2003/12/12 10:28:21 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 /* Author: Till Straumann <strauman@slac.stanford.edu> */
@@ -23,7 +23,7 @@ int i;
 int
 buildPVs(const mxArray *pin, PVs *pvs)
 {
-char	**mem = 0, *str;
+char	**mem = 0;
 int     i,m,buflen;
 const mxArray *tmp;
 int	rval = -1;
