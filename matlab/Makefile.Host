@@ -102,7 +102,7 @@ $(notdir $(MATDOCS)):%.m:$(TOP)/documentation/help/%.m
 	$(CP) $^ $@
 
 %$(MEXEXT): %.c
-	$(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(CPPFLAGS) $^ $(INCLUDES) $(sort $(USR_DIRS:%=-L%)) $(LDLIBS)
+	$(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(CPPFLAGS) $^ $(INCLUDES) $(sort $(USR_DIRS:%=-L%)) $(LDLIBS) -o $@
 
 buildInstall::
 	echo $(MATDOCS)
