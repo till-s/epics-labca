@@ -36,9 +36,9 @@ LIBRARY := mezcaglue
 gnelm_SRCS = gnelm.c
 gnelm_LIBS = mezcaglue
 else
-USR_CFLAGS+=-DSCILAB_APP
+USR_CPPFLAGS+=-DSCILAB_APP
 EPICS_INCLUDES += -I$(SCILABDIR)/routines
-LIBSRCS+= ezcaWrap.c ezca.o
+LIBSRCS+= ezcaSciCint.c
 LIBRARY := sezcaglue
 SCRIPTS+=ezca.sce
 endif
@@ -48,18 +48,24 @@ endif
 #
 
 # need additional libs
-PROD_LIBS := ezca ca Com
+PROD_LIBS :=ezca ca Com
 
 # USR_LIBS_xxx doesn't work under EPICS 3.14.2 :-(
 # USR_LIBS_WIN32 += libmx libmex
 
 ifeq ($(ARCH_CLASS),WIN32)
+ifeq ($(MAKEFOR),MATLAB)
 PROD_LIBS += libmx libmex
+else
+USR_CPPFLAGS += -DFORDLL
+PROD_LIBS +=LibScilab
+endif
 endif
 
-libmx_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
-libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
-mezcaglue_DIR := $(TOP)/lib/$(T_A)
+libmx_DIR:=$(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+libmex_DIR:=$(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+LibScilab_DIR:=$(SCILABDIR)/bin
+mezcaglue_DIR:=$(TOP)/lib/$(T_A)
 
 ezca_DIR := $(TOP)/lib/$(T_A)
 ca_DIR := $(EPICS_BASE_LIB)
@@ -78,27 +84,5 @@ include $(TOP)/config/RULES.Host
 
 mkmezca.m: ../mkmezca.m.tmpl
 	sed -e 's/%%TARCH%%/$(T_A)/g' -e 's/%%ARCH%%/$(ARCH_CLASS)/g' -e 's$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g' < $^ >$@
-
-ezca.o: ezca.tmp.f
-	$(FC) -c $(FFLAGS) -o $@ $<
-
-%.tmp.f: %.f
-	$(RM) -f $@
-	sed -e 's|SCIDIR|$(SCILABDIR)|g' $^ > $@
-
-ezca.sce: ezca.f
-
-%.f:	%.desc
-	$(SCILABDIR)/bin/intersci $(<:%.desc=%)
-	$(MV) $(<:%.desc=%.sce) $(<:%.desc=%.tmp.sce)
-	sed -e "/^[^/]/s/files/'lib$(LIBRARY).so'/g" > $(<:%.desc=%.sce) < $(<:%.desc=%.tmp.sce)
-	$(RM) $(<:%.desc=%.tmp.sce)
-
-%.desc: ../%.desc
-	ln -s $^ $@
-
-
-#
-# solaris SED is buggy... sed -e '/^\([^/]\|[/][^/]\)/s/files/'"'"ezca.o"'"'/g'
 
 #	EOF Makefile.Host
