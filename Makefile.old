@@ -31,11 +31,11 @@ all: ezcalib ezca.o ecget
 ezca.o: ezca.tmp.f
 	$(FC) -c $(FFLAGS) -o $@ $<
 
-ezca.tmp.f: ezca.f
+%.tmp.f: %.f
 	$(RM) -f $@
 	sed -e 's|SCIDIR|$(SCIDIR)|g' $^ > $@
 
-ezca.f:	ezca.desc
+%.f:	%.desc
 	$(SCIDIR)/bin/intersci $(<:%.desc=%)
 	
 caget: caget.c

@@ -1,0 +1,28 @@
+// Addinter for file ezca
+// for hppa/sun-solaris/linux/dec
+//--------------------------------
+//Scilab functions 
+ezca_funs=[...
+  'ezcaGet';
+  'ezcaGetString';
+  'ezcaPut';
+  'ezcaPutString';
+  'ezcaGetNelem';
+  'ezcaGetControlLimits';
+  'ezcaGetGraphicLimits';
+  'ezcaGetStatus';
+  'ezcaStartGroup';
+  'ezcaEndGroup';
+  'ezcaDebugOn';
+  'ezcaLibInit';
+  'ecdrGet']
+ifile='ezca.o' 
+ufiles=['ecget.o ezcaWrap.o -L./lib/linux-x86 -L/afs/slac/g/spear/epics/base/lib/linux-x86 -lezca -lca -lCom']
+// NOTE
+// NOTE LD_LIBRARY_PATH must be set to the base and extensions dirs as 
+// NOTE in the ufiles line above...
+// NOTE
+//ufiles=[]
+files = [ifile,ufiles] 
+addinter(files,'ezca',ezca_funs);
+ezcaLibInit();

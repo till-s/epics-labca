@@ -12,6 +12,64 @@ c
        lbuf = 1
        topk = top 
        rhsk = rhs 
+       if(.not.checkrhs(fname,1,2)) return
+       if(.not.checklhs(fname,1,1)) return
+c       checking variable name (number 1)
+c       
+       if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
+       if(.not.checkval(fname,m1*n1,1)) return
+c       checking variable type (number 2)
+c       
+       if(rhs .le. 1) then
+        top = top+1
+        rhs = rhs+1
+        nlr2 = 6
+        if(.not.cresmat2(fname,top,nlr2,lr2)) return
+        call cvstr(nlr2,istk(lr2),'double',0)
+       endif
+       if(.not.getsmat(fname,top,top-rhs+2,m2,n2,1,1,lr2,nlr2)) return
+       if(.not.checkval(fname,m2*n2,1)) return
+c     
+c       cross variable size checking
+c     
+       if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
+       if(.not.bufstore(fname,lbuf,lbufi3,lbuff3,lr2,nlr2)) return
+       if(.not.cremat(fname,top+1,0,1,1,lw5,loc5)) return
+       call ezget(buf(lbufi1:lbuff1),nlr1,buf(lbufi3:lbuff3),nlr2,stk(lw
+     $ 5),ne5)
+       if(err .gt. 0 .or. err1 .gt. 0) return 
+c
+       topk=top-rhs
+       topl=top+1
+c     
+       if(lhs .ge. 1) then
+c       --------------output variable: res
+        top=topl+1
+        if(.not.cremat(fname,top,0,1,ne5,lrs,lcs)) return
+        call cdoublef(1*ne5,stk(lw5),stk(lrs))
+       endif
+c     Putting in order the stack
+       if(lhs .ge. 1) then
+        call copyobj(fname,topl+1,topk+1)
+       endif
+       top=topk+lhs
+       return
+       end
+c
+c SCILAB function : ezcaGetString, fin = 2
+       subroutine intsezcaGetString(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       lbuf = 1
+       topk = top 
+       rhsk = rhs 
        if(.not.checkrhs(fname,1,1)) return
        if(.not.checklhs(fname,1,1)) return
 c       checking variable name (number 1)
@@ -22,8 +80,8 @@ c
 c       cross variable size checking
 c     
        if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
-       if(.not.cremat(fname,top+1,0,1,1,lw3,loc3)) return
-       call ezget(buf(lbufi1:lbuff1),nlr1,stk(lw3),ne3)
+       if(.not.crepointer(fname,top+1,lw3)) return
+       call ezgetstring(buf(lbufi1:lbuff1),nlr1,stk(lw3),mm3,nn3)
        if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
@@ -32,8 +90,7 @@ c
        if(lhs .ge. 1) then
 c       --------------output variable: res
         top=topl+1
-        if(.not.cremat(fname,top,0,1,ne3,lrs,lcs)) return
-        call cdoublef(1*ne3,stk(lw3),stk(lrs))
+        if(.not.crestringmatfromC(fname,top,lw3,mm3,nn3)) return
        endif
 c     Putting in order the stack
        if(lhs .ge. 1) then
@@ -43,8 +100,59 @@ c     Putting in order the stack
        return
        end
 c
-c SCILAB function : ezcaPut, fin = 2
+c SCILAB function : ezcaPut, fin = 3
        subroutine intsezcaPut(fname)
+c
+       character*(*) fname
+       include 'SCIDIR/routines/stack.h'
+c
+       integer iadr, sadr
+       iadr(l)=l+l-1
+       sadr(l)=(l/2)+1
+       rhs = max(0,rhs)
+c
+       lbuf = 1
+       topk = top 
+       rhsk = rhs 
+       if(.not.checkrhs(fname,2,3)) return
+       if(.not.checklhs(fname,1,1)) return
+c       checking variable name (number 1)
+c       
+       if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
+       if(.not.checkval(fname,m1*n1,1)) return
+c       checking variable type (number 2)
+c       
+       if(rhs .le. 1) then
+        top = top+1
+        rhs = rhs+1
+        nlr2 = 6
+        if(.not.cresmat2(fname,top,nlr2,lr2)) return
+        call cvstr(nlr2,istk(lr2),'double',0)
+       endif
+       if(.not.getsmat(fname,top,top-rhs+2,m2,n2,1,1,lr2,nlr2)) return
+       if(.not.checkval(fname,m2*n2,1)) return
+c       checking variable val (number 3)
+c       
+       if(.not.getvect(fname,top,top-rhs+3,it3,m3,n3,lr3,lc3)) return
+c     
+c       cross variable size checking
+c     
+       if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
+       if(.not.bufstore(fname,lbuf,lbufi3,lbuff3,lr2,nlr2)) return
+       call ezput(buf(lbufi1:lbuff1),nlr1,buf(lbufi3:lbuff3),nlr2,stk(lr
+     $ 3),n3*m3)
+       if(err .gt. 0 .or. err1 .gt. 0) return 
+c
+       topk=top-rhs
+       topl=top+0
+c       no output variable
+       top=topk+1
+       call objvide(fname,top)
+       return
+       end
+c
+c SCILAB function : ezcaPutString, fin = 4
+       subroutine intsezcaPutString(fname)
 c
        character*(*) fname
        include 'SCIDIR/routines/stack.h'
@@ -59,29 +167,30 @@ c
        rhsk = rhs 
        if(.not.checkrhs(fname,2,2)) return
        if(.not.checklhs(fname,1,1)) return
-c       checking variable nm (number 1)
+c       checking variable name (number 1)
 c       
        if(.not.getsmat(fname,top,top-rhs+1,m1,n1,1,1,lr1,nlr1)) return
        if(.not.checkval(fname,m1*n1,1)) return
-c       checking variable a (number 2)
+c       checking variable val (number 2)
 c       
-       if(.not.getvect(fname,top,top-rhs+2,it2,m2,n2,lr2,lc2)) return
+       if(.not.getsmat(fname,top,top-rhs+2,m2,n2,1,1,lr2,nlr2)) return
 c     
 c       cross variable size checking
 c     
        if(.not.bufstore(fname,lbuf,lbufi1,lbuff1,lr1,nlr1)) return
-       call ezput(buf(lbufi1:lbuff1),nlr1,stk(lr2),n2*m2)
+       if(.not.crestringv(fname,top+1,lr2-5-m2*n2,lw3)) return
+       call ezputstring(buf(lbufi1:lbuff1),nlr1,stk(lw3),m2,n2)
        if(err .gt. 0 .or. err1 .gt. 0) return 
 c
        topk=top-rhs
-       topl=top+0
+       topl=top+1
 c       no output variable
        top=topk+1
        call objvide(fname,top)
        return
        end
 c
-c SCILAB function : ezcaGetNelem, fin = 3
+c SCILAB function : ezcaGetNelem, fin = 5
        subroutine intsezcaGetNelem(fname)
 c
        character*(*) fname
@@ -126,7 +235,7 @@ c     Putting in order the stack
        return
        end
 c
-c SCILAB function : ezcaGetControlLimits, fin = 4
+c SCILAB function : ezcaGetControlLimits, fin = 6
        subroutine intsezcaGetControlLimits(fname)
 c
        character*(*) fname
@@ -183,7 +292,7 @@ c     Putting in order the stack
        return
        end
 c
-c SCILAB function : ezcaGetGraphicLimits, fin = 5
+c SCILAB function : ezcaGetGraphicLimits, fin = 7
        subroutine intsezcaGetGraphicLimits(fname)
 c
        character*(*) fname
@@ -240,7 +349,7 @@ c     Putting in order the stack
        return
        end
 c
-c SCILAB function : ezcaGetStatus, fin = 6
+c SCILAB function : ezcaGetStatus, fin = 8
        subroutine intsezcaGetStatus(fname)
 c
        character*(*) fname
@@ -308,7 +417,7 @@ c     Putting in order the stack
        return
        end
 c
-c SCILAB function : ezcaStartGroup, fin = 7
+c SCILAB function : ezcaStartGroup, fin = 9
        subroutine intsezcaStartGroup(fname)
 c
        character*(*) fname
@@ -337,7 +446,7 @@ c       no output variable
        return
        end
 c
-c SCILAB function : ezcaEndGroup, fin = 8
+c SCILAB function : ezcaEndGroup, fin = 10
        subroutine intsezcaEndGroup(fname)
 c
        character*(*) fname
@@ -366,7 +475,7 @@ c       no output variable
        return
        end
 c
-c SCILAB function : ezcaDebugOn, fin = 9
+c SCILAB function : ezcaDebugOn, fin = 11
        subroutine intsezcaDebugOn(fname)
 c
        character*(*) fname
@@ -395,7 +504,7 @@ c       no output variable
        return
        end
 c
-c SCILAB function : ezcaLibInit, fin = 10
+c SCILAB function : ezcaLibInit, fin = 12
        subroutine intsezcaLibInit(fname)
 c
        character*(*) fname
@@ -424,7 +533,7 @@ c       no output variable
        return
        end
 c
-c SCILAB function : ecdrGet, fin = 11
+c SCILAB function : ecdrGet, fin = 13
        subroutine intsecdrGet(fname)
 c
        character*(*) fname

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #ifndef MACHHACK
 #include <routines/machine.h> /* fortran/C name conversion for scilab */
 #else
@@ -9,6 +10,16 @@
 #include <tsDefs.h> 
 #include <cadef.h> 
 #include <ezca.h>
+#include <alarmString.h>
+
+#define CONVERTFRMDBL(totype) \
+			{ \
+				totype *dst; \
+				double *src; \
+				for ( src = val, dst = (totype*)buf, i=*n; i > 0; i--) \
+					*dst++ = *src++; \
+			}
+
 
 extern void cerro(char*); /* scilab error */
 
@@ -22,27 +33,195 @@ ezErr(char *nm)
 }
 
 void
-C2F(ezput)(char *nm, int *l, double *buf, int *n)
+C2F(ezput)(char *nm, int *l, char *type, int *ts, double *val, int *n)
 {
-ezcaPut(nm,5,*n,buf);
+int typenum, sz, i;
+void *buf, *mem = 0;
+
+	switch ( toupper(type[0]) ) {
+		case 'S':	typenum = ezcaShort;  sz = sizeof(short);  break;
+		case 'L':	typenum = ezcaLong;   sz = sizeof(long);   break;
+		case 'F':	typenum = ezcaFloat;  sz = sizeof(float);  break;
+		case 'D':	typenum = ezcaDouble; sz = sizeof(double); break;
+
+		default:
+			cerro("Invalid type - must be 'short', 'long', 'float' or 'double'");
+		return;
+	}
+
+	if ( ezcaDouble != typenum ) {
+		sz *= *n;
+
+		if ( !(mem = buf = (void*)malloc(sz) ) ) {
+			cerro("no memory");
+			return;
+		}
+	}
+
+	switch ( typenum ) {
+		case ezcaShort: CONVERTFRMDBL(short); break;
+		case ezcaLong:  CONVERTFRMDBL(long);  break;
+		case ezcaFloat: CONVERTFRMDBL(float); break;
+		default:
+			buf = val;
+	}
+	
+	if (ezcaPut(nm,typenum,*n,buf))
+		ezErr("ezcaPut");
+	free( mem );
 }
 
 void
-C2F(ezget)(char *nm, int *l, double **buf, int *n)
+C2F(ezputstring)(char *nm, int *l, char ***buf, int *m, int *n)
 {
-int e=0;
+char *cabuf, *chpt;
+int  nstring = *m * *n;
+int  i;
+	if ( *m != 1 && *n !=1 ) {
+		cerro("argument must be a vector");
+		return;
+	}
+	if ( !(cabuf=(char*)malloc( nstring * sizeof(dbr_string_t) )) ) {
+		cerro("no memory");
+		goto bailout;
+	}
+
+	for ( i = 0, chpt = cabuf; i<nstring; i++	, chpt += sizeof(dbr_string_t) ) {
+		if ( strlen((*buf)[i])+1 >= sizeof(dbr_string_t) ) {
+			cerro("string argument too long");
+			goto bailout;
+		}
+		strcpy( chpt, (*buf)[i] );
+	}
+
+	if (ezcaPut(nm, ezcaString, nstring, cabuf))
+		ezErr("ezcaPut");
+
+bailout:
+	free(cabuf);
+	
+}
+
+static void do_ezca_get(char *nm, int typenum, void **buf, int *n)
+{
+TS_STAMP ts;
+short    sta = 0,sevr;
+int      e=0;
+char	 msgbuf[200];
+
 *buf=0;
-if ( (e=ezcaGetNelem(nm,n))
-	|| !(*buf=(double*)malloc(sizeof(**buf)* *n))
-	|| (e=ezcaGet(nm,5,*n,*buf)) )
-	{
-	extern void cerro(char*);
+
+if ( (e=ezcaGetNelem(nm,n)) ) {
+	ezErr("ezcaGetNelem");
+	goto bailout;
+}
+
+if ( !(*buf = (void*)malloc( (ezcaString == typenum ? sizeof(dbr_string_t) : sizeof(double) ) * *n)) ) {
+	cerro("no memory");
+	goto bailout;
+}
+
+if ( e=ezcaGetWithStatus(nm,typenum,*n,*buf,&ts,&sta,&sevr) ) {
+	ezErr("ezcaGet");
+	goto bailout;
+}
+
+if ( sta ) {
+	sprintf(msgbuf,"PV status: %s (severity: %s)",alarmStatusString[sta],alarmSeverityString[sevr]);
+	cerro(msgbuf);
+	goto bailout;
+}
+
+return;
+
+bailout:
 	if (*buf) free(*buf);
-	*buf=0;
-	*n=0;
-	if (e) ezErr("ezcaGet");
-	else   cerro("no memory");
-	};
+	*buf = 0;
+	*n = 0;
+}
+
+#define CONVERT2DBL(fromtype) \
+			{ \
+				fromtype *src; \
+				for ( dst = *buf+*n-1, src = (fromtype*)*buf + *n -1, i=*n; i > 0; i--) \
+					*dst-- = (double)*src--; \
+			}
+
+void
+C2F(ezget)(char *nm, int *l, char *type, int *ls, double **buf, int *n)
+{
+*buf = 0;
+*n   = 0;
+int typenum = ezcaDouble;
+
+register double *dst;
+register int    i;
+
+switch ( toupper(type[0]) ) {
+	case 'D': typenum = ezcaDouble; break;
+	case 'F': typenum = ezcaFloat;  break;
+	case 'S': typenum = ezcaShort;  break;
+	case 'L': typenum = ezcaLong;   break;
+
+	default: 
+		cerro("Invalid type - must be 'short', 'long', 'float' or 'double'");
+	return;
+}
+	do_ezca_get(nm, typenum, (void**)buf, n);
+
+if ( *buf ) {
+switch (typenum) {
+	case ezcaShort: CONVERT2DBL(short); break;
+	case ezcaLong:  CONVERT2DBL(long);  break;
+	case ezcaFloat: CONVERT2DBL(float); break;
+	default:
+		break;
+}
+}
+
+}
+
+void
+C2F(ezgetstring)(char *nm, int *l, char ***buf, int *m, int *n)
+{
+char	*cabuf, *chpt;
+int		i;
+
+	*buf = 0;
+
+	do_ezca_get(nm,ezcaString,(void**)&cabuf,m);
+if (cabuf)
+	printf("Got %i elements, '%s'\n",*m, cabuf);
+
+	if ( cabuf ) {
+		/*  unfortunately, we must rearrange the string array */
+		if ( ! (*buf = (char **)malloc( sizeof(char*) * *m ) ) ) {
+			cerro("no memory");
+			goto bailout;
+		}
+		for ( i=0; i<*m; i++)
+			(*buf)[i] = 0;
+		for ( i=0, chpt = cabuf; i<*m; i++, chpt += sizeof(dbr_string_t)) {
+			if ( ! ((*buf)[i] =  (char*)malloc(strlen(chpt) + 1) ) )
+				goto bailout;
+			strcpy( (*buf)[i], chpt );
+		}
+		free(cabuf);
+		*n = 1;
+		return;
+	}
+
+bailout:
+	if ( cabuf )
+		free(cabuf);
+	if ( *buf ) {
+		for ( i=0; i<*m; i++)
+			free( (*buf)[i] );
+		free( *buf );
+		*buf = 0;
+	}
+	*m   = 0;
+	*n   = 0;
 }
 
 void
@@ -74,8 +253,7 @@ short	sstat,ssevr;
 	if (ezcaGetStatus(nm,&tmp,&sstat,&ssevr))
 		ezErr("ezcaGetStatus");
 	else {
-		*sta = sstat;
-		*svr = ssevr;
+		*sta = sstat; *svr = ssevr;
 		*ts=tsLocalTime(&tmp);
 	}
 }

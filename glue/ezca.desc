@@ -1,23 +1,55 @@
-ezcaGet name
+ezcaGet name [ type double ]
 name	string l
+type    string ls
 res	vector n
 
-ezget   name l res n
+ezget   name l type ls res n
 name	char
 l	integer
+type    char
+ls  integer
 res	cdoublef
 n	integer
 
 out  sequence res
 ***********************
-ezcaPut nm a
-nm      string  l
-a       vector  n
+ezcaGetString name
+name	string l
+res	stringmat m n
 
-ezput   nm l a n
-nm      char
+ezgetstring  name l res m n
+name	char
+l	integer
+res	Cstringv
+m   integer
+n	integer
+
+out  sequence res
+***********************
+ezcaPut name [ type double ] val
+name    string  l
+type    string  ls
+val     vector  n
+
+ezput   name l type ls val n
+name    char
 l       integer
-a       double
+type    char
+ls      integer
+val     double
+n       integer
+
+out empty
+***********************
+ezcaPutString name val
+name    string  l
+val     stringmat m n
+
+ezputstring   name l val m n
+name    char
+l       integer
+val     Cstringv
+m       integer
 n       integer
 
 out empty
