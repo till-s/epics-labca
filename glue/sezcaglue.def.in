@@ -1,5 +1,6 @@
+#include <mex.h>
 LIBRARY sezcaglue
 
 EXPORTS
 
-ezca_
+C2F(ezca)
