@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.4 2004/01/05 19:37:12 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.5 2004/01/06 20:37:06 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -443,22 +443,22 @@ int m,n,i,nord;
 }
 
 static GenericTable Tab[]={
-  {(Myinterfun)sci_gateway, intsezcaGet,					"ezcaGet"},
-  {(Myinterfun)sci_gateway, intsezcaPut,					"ezcaPut"},
-  {(Myinterfun)sci_gateway, intsezcaGetNelem,				"ezcaGetNelem"},
-  {(Myinterfun)sci_gateway, intsezcaGetControlLimits,		"ezcaGetControlLimits"},
-  {(Myinterfun)sci_gateway, intsezcaGetGraphicLimits,		"ezcaGetGraphicLimits"},
-  {(Myinterfun)sci_gateway, intsezcaGetStatus,				"ezcaGetStatus"},
-  {(Myinterfun)sci_gateway, intsezcaGetPrecision,			"ezcaGetPrecision"},
-  {(Myinterfun)sci_gateway, intsezcaGetUnits,				"ezcaGetUnits"},
-  {(Myinterfun)sci_gateway, intsezcaGetRetryCount,			"ezcaGetRetryCount"},
-  {(Myinterfun)sci_gateway, intsezcaSetRetryCount,			"ezcaSetRetryCount"},
-  {(Myinterfun)sci_gateway, intsezcaGetTimeout,				"ezcaGetTimeout"},
-  {(Myinterfun)sci_gateway, intsezcaSetTimeout,				"ezcaSetTimeout"},
-  {(Myinterfun)sci_gateway, intsezcaDebugOn,				"ezcaDebugOn"},
-  {(Myinterfun)sci_gateway, intsezcaDebugOff,				"ezcaDebugOff"},
-  {(Myinterfun)sci_gateway, intsezcaSetSeverityWarnLevel,	"ezcaSetSeverityWarnLevel"},
-  {(Myinterfun)sci_gateway, intsecdrGet,					"ecdrGet"},
+  {(Myinterfun)sci_gateway, intsezcaGet,					"lcaGet"},
+  {(Myinterfun)sci_gateway, intsezcaPut,					"lcaPut"},
+  {(Myinterfun)sci_gateway, intsezcaGetNelem,				"lcaGetNelem"},
+  {(Myinterfun)sci_gateway, intsezcaGetControlLimits,		"lcaGetControlLimits"},
+  {(Myinterfun)sci_gateway, intsezcaGetGraphicLimits,		"lcaGetGraphicLimits"},
+  {(Myinterfun)sci_gateway, intsezcaGetStatus,				"lcaGetStatus"},
+  {(Myinterfun)sci_gateway, intsezcaGetPrecision,			"lcaGetPrecision"},
+  {(Myinterfun)sci_gateway, intsezcaGetUnits,				"lcaGetUnits"},
+  {(Myinterfun)sci_gateway, intsezcaGetRetryCount,			"lcaGetRetryCount"},
+  {(Myinterfun)sci_gateway, intsezcaSetRetryCount,			"lcaSetRetryCount"},
+  {(Myinterfun)sci_gateway, intsezcaGetTimeout,				"lcaGetTimeout"},
+  {(Myinterfun)sci_gateway, intsezcaSetTimeout,				"lcaSetTimeout"},
+  {(Myinterfun)sci_gateway, intsezcaDebugOn,				"lcaDebugOn"},
+  {(Myinterfun)sci_gateway, intsezcaDebugOff,				"lcaDebugOff"},
+  {(Myinterfun)sci_gateway, intsezcaSetSeverityWarnLevel,	"lcaSetSeverityWarnLevel"},
+  {(Myinterfun)sci_gateway, intsecdrGet,					"lecdrGet"},
 };
                                                                                             
 int

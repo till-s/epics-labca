@@ -3,22 +3,22 @@
 //--------------------------------
 //Scilab functions 
 ezca_funs=[...
-  'ezcaGet';
-  'ezcaPut';
-  'ezcaGetNelem';
-  'ezcaGetControlLimits';
-  'ezcaGetGraphicLimits';
-  'ezcaGetStatus';
-  'ezcaGetPrecision';
-  'ezcaGetUnits';
-  'ezcaGetRetryCount';
-  'ezcaSetRetryCount';
-  'ezcaGetTimeout';
-  'ezcaSetTimeout';
-  'ezcaDebugOn';
-  'ezcaDebugOff';
-  'ezcaSetSeverityWarnLevel';
-  'ecdrGet';
+  'lcaGet';
+  'lcaPut';
+  'lcaGetNelem';
+  'lcaGetControlLimits';
+  'lcaGetGraphicLimits';
+  'lcaGetStatus';
+  'lcaGetPrecision';
+  'lcaGetUnits';
+  'lcaGetRetryCount';
+  'lcaSetRetryCount';
+  'lcaGetTimeout';
+  'lcaSetTimeout';
+  'lcaDebugOn';
+  'lcaDebugOff';
+  'lcaSetSeverityWarnLevel';
+  'lecdrGet';
   ];
 addinter('THELIB','ezca',ezca_funs);
 ezca_top=get_absolute_file_path('THEFILE')+'../../';
