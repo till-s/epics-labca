@@ -22,16 +22,17 @@ SHARED_LIBRARIES = YES
 #
 #	Contents of library: generic, special and for all systems
 #
-ezcaGetNelem_OBJS         := ezcaGetNelem.c
-ezcaGet_OBJS              := ezcaGet.c
-ezcaPut_OBJS              := ezcaPut.c
-ezcaGetControlLimits_OBJS := ezcaGetControlLimits.c
-ezcaGetGraphicLimits_OBJS := ezcaGetGraphicLimits.c
-ecget_OBJS                := ecget.c
-ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
-ezcaSetRetryCount_OBJS    := ezcaSetRetryCount.c
-ezcaGetTimeout_OBJS       := ezcaGetTimeout.c
-ezcaSetTimeout_OBJS       := ezcaSetTimeout.c
+ezcaGetNelem_OBJS             := ezcaGetNelem.c
+ezcaGet_OBJS                  := ezcaGet.c
+ezcaPut_OBJS                  := ezcaPut.c
+ezcaGetControlLimits_OBJS     := ezcaGetControlLimits.c
+ezcaGetGraphicLimits_OBJS     := ezcaGetGraphicLimits.c
+ecget_OBJS                    := ecget.c
+ezcaGetRetryCount_OBJS        := ezcaGetRetryCount.c
+ezcaSetRetryCount_OBJS        := ezcaSetRetryCount.c
+ezcaGetTimeout_OBJS           := ezcaGetTimeout.c
+ezcaSetTimeout_OBJS           := ezcaSetTimeout.c
+ezcaSetSeverityWarnLevel_OBJS := ezcaSetSeverityWarnLevel.c
 
 # on generic system
 USR_CPPFLAGS += -DMATLAB_APP
@@ -45,6 +46,7 @@ PROD += ezcaGetRetryCount
 PROD += ezcaSetRetryCount
 PROD += ezcaGetTimeout
 PROD += ezcaSetTimeout
+PROD += ezcaSetSeverityWarnLevel
 PROD += ecget
 ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
 ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
