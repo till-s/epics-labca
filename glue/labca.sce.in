@@ -20,6 +20,8 @@ ezca_funs=[...
   'lcaDebugOff';
   'lcaSetSeverityWarnLevel';
   'lcaClear';
+  'lcaSetMonitor';
+  'lcaNewMonitorValue';
   'lecdrGet';
   ];
 addinter('THELIB','ezca',ezca_funs);

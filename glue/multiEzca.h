@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.20 2004/03/23 23:52:12 till Exp $ */
+/* $Id: multiEzca.h,v 1.21 2004/03/24 04:05:17 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -94,6 +94,12 @@ multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiA
  */
 epicsShareFunc int epicsShareAPI
 multi_ezca_clear_channels(char **nms, int m);
+
+epicsShareFunc int epicsShareAPI
+multi_ezca_set_mon(char **nms,  int m, int type, int clip);
+
+epicsShareFunc int epicsShareAPI
+multi_ezca_check_mon(char **nms, int m, int type, int *val);
 
 #ifdef __cplusplus
 };

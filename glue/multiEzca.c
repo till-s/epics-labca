@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.19 2004/03/23 23:52:11 till Exp $ */
+/* $Id: multiEzca.c,v 1.20 2004/03/24 04:05:17 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -781,6 +781,89 @@ cleanup:
 			args[i].buf = 0;
 		}
 	}
+	return rval;
+}
+
+static char *getTypes(char **nms, int m, int type)
+{
+char *types = 0;
+char *rval  = 0;
+int  i;
+
+	if ( !(types = malloc( m * sizeof(*types) )) ) {
+		cerro("multi_ezca_set_mon: not enough memory");
+		goto cleanup;
+	}
+
+	for ( i=0; i<m; i++ )
+		types[i] = type;
+
+	if ( ezcaNative == type ) {
+		for ( i=0; i<m; i++ ) {
+			if ( ezcaNative == (types[i] = nativeType(nms[i], 1)) )
+				break;
+		}
+	}
+
+	rval = types;
+	types = 0;
+
+cleanup:
+	free( types );
+	return rval;
+}
+
+int epicsShareAPI
+multi_ezca_set_mon(char **nms,  int m, int type, int clip)
+{
+char *types = 0;
+int  *dims  = 0;
+int  i;
+int  rval = -1;
+
+	if ( !(dims  = malloc( m * sizeof(*dims) )) ) {
+		cerro("multi_ezca_set_mon: not enough memory");
+		goto cleanup;
+	}
+
+	if ( multi_ezca_get_nelem( nms, m, dims ) )
+		goto cleanup;
+
+	rval = 0;
+	/* ca monitors don't seem to work well for large arrays
+	 * when specifying a zero count
+	 */
+	if ( ( types = getTypes(nms, m, type)) ) {
+		for ( i=0; i<m; i++ ) {
+			if ( clip && clip < dims[i] )
+				dims[i] = clip;
+			if ( ezcaSetMonitor(nms[i], types[i], dims[i]) ) {
+				rval = -1;
+				ezErr("multi_ezca_set_monitor - ", 0);
+			}
+		}
+	}
+
+cleanup:
+
+	free( types );
+	free( dims );
+	return rval;
+}
+
+int epicsShareAPI
+multi_ezca_check_mon(char **nms, int m, int type, int *val)
+{
+char *types = getTypes(nms, m, type);
+int  i;
+int  rval   = types ? 0 : -1;
+
+	if ( types ) {
+		for ( i=0; i<m; i++ )
+			val[i] = ezcaNewMonitorValue(nms[i], types[i]);
+	}
+
+	free( types );
 	return rval;
 }
 

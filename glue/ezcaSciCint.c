@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.16 2004/03/23 23:52:10 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.17 2004/03/24 04:05:17 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -333,7 +333,6 @@ MultiArgRec	args[1];
 
 typedef char units_string[EZCA_UNITS_SIZE];
 
-
 static int intsezcaGetUnits(char *fname)
 {
 int  m,n,i;
@@ -466,6 +465,58 @@ int m,n,i;
 	return 0;
 }
 
+static int intsezcaSetMonitor(char *fname)
+{
+int mpvs, mtmp, ntmp, itmp, n = 0;
+char     **pvs;
+char      type  = ezcaNative;
+
+	CheckRhs(1,3);
+	CheckLhs(1,1);
+	LhsVar(1) = 0;
+
+ 	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
+ 	CheckColumn(1,mpvs,ntmp);
+
+	if ( Rhs > 1 ) {
+		GetRhsVar(2, "i", &mtmp, &ntmp, &itmp);
+		CheckScalar(2, mtmp, ntmp);
+		n = *istk(itmp);
+		if ( Rhs > 2 && !arg2ezcaType(&type,3) )
+			return 0;
+	}
+
+	multi_ezca_set_mon(pvs, mpvs, type, n);
+
+	return 0;
+}
+
+static int intsezcaNewMonitorValue(char *fname)
+{
+int mpvs, ntmp, i;
+char     **pvs;
+char      type  = ezcaNative;
+
+	CheckRhs(1,2);
+	CheckLhs(1,1);
+
+ 	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
+ 	CheckColumn(1,mpvs,ntmp);
+
+	if ( Rhs > 1 && !arg2ezcaType(&type,2) )
+		return 0;
+
+	ntmp = 1;
+	CreateVar(Rhs+1,"i",&mpvs,&ntmp,&i);
+ 		
+	multi_ezca_check_mon(pvs, mpvs, type, istk(i));
+
+	LhsVar(1) = Rhs+1;
+
+	return 0;
+}
+
+
 #ifdef WITH_ECDRGET
 #include <ecget.h>
 
@@ -513,6 +564,8 @@ static GenericTable Tab[]={
   {(Myinterfun)sci_gateway, intsezcaDebugOff,				"lcaDebugOff"},
   {(Myinterfun)sci_gateway, intsezcaSetSeverityWarnLevel,	"lcaSetSeverityWarnLevel"},
   {(Myinterfun)sci_gateway, intsezcaClearChannels,			"lcaClear"},
+  {(Myinterfun)sci_gateway, intsezcaSetMonitor,			    "lcaSetMonitor"},
+  {(Myinterfun)sci_gateway, intsezcaNewMonitorValue,	    "lcaNewMonitorValue"},
 #ifdef WITH_ECDRGET
   {(Myinterfun)sci_gateway, intsecdrGet,					"lecdrGet"},
 #endif
