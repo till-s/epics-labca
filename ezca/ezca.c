@@ -434,9 +434,9 @@ static void prologue(void);
 static void epilogue(void);
 
 /* Channel Access Interface Functions */
-static int EzcaAddArrayEvent(struct work *, struct monitor *);
+static int EzcaAddArrayEvent(struct work *, struct monitor *, unsigned long count);
 static int EzcaClearChannel(struct channel *);
-static void EzcaClearEvent(struct monitor *);
+static int EzcaClearEvent(struct monitor *);
 static BOOL EzcaConnected(struct channel *);
 static int EzcaArrayGetCallback(struct work *, struct channel *);
 static int EzcaArrayPutCallback(struct work *, struct channel *);
@@ -462,7 +462,7 @@ static struct monitor *pop_monitor(void);
 static struct work *pop_work(void);
 static void init_work(struct work *);
 static void push_channel(struct channel *, struct channel**);
-static void push_monitor(struct monitor *);
+static void push_monitor(struct monitor *, struct monitor**);
 static void push_work(struct work *);
 static void recycle_work(struct work *);
 
@@ -1404,7 +1404,7 @@ int rc;
 * reading) or FALSE.
 *
 * It always error towards forcing the read ... if anything goes wrong,
-* it returns TRUE.
+* it returns -1.
 *
 * It returns FALSE iff there is an existing monitor that does not 
 * need reading ... otherwise returns TRUE (no channel, invalid args, ...)
@@ -1443,13 +1443,14 @@ int rc;
 	printf("ezcaNewMonitorValue() found no monitor name >%s< type %d\n",
 			pvname, type);
 
-		    rc = TRUE;
+		    rc = -1;
 		} /* endif */
+		release_channel(&cp);
 	    }
 	    else
 	    {
 		/* no channel */
-		rc = TRUE;
+		rc = -2;
 
 		if (Trace || Debug)
 	printf("ezcaNewMonitorValue() found no channel name >%s< type %d\n",
@@ -1459,7 +1460,7 @@ int rc;
 	else
 	{
 	    /* invalid type */
-	    rc = TRUE;
+	    rc = -3;
 
 	    if (AutoErrorMessage)
 		printf("%s\n", INVALID_TYPE_MSG);
@@ -1468,7 +1469,7 @@ int rc;
     else
     {
 	/* invalid pvname */
-	rc = TRUE;
+	rc = -4;
 
 	if (AutoErrorMessage)
 	    printf("%s\n", INVALID_PVNAME_MSG);
@@ -1786,6 +1787,7 @@ int rc;
 		printf("ezcaClearMonitor(): found channel but no monitor\n");
 
 		} /* endif */
+		release_channel(&cp);
 	    } 
 	    else
 	    {
@@ -2151,7 +2153,7 @@ int rc;
 *
 ****************************************************************/
 
-int epicsShareAPI ezcaSetMonitor(char *pvname, char type)
+int epicsShareAPI ezcaSetMonitor(char *pvname, char type, unsigned long count)
 {
 
 struct channel *cp;
@@ -2270,7 +2272,7 @@ int rc;
 			    print_channels();
 			} /* endif */
 
-			if (EzcaAddArrayEvent(wp, mp) == ECA_NORMAL)
+			if (EzcaAddArrayEvent(wp, mp, count) == ECA_NORMAL)
 			{
 			    mp->active = TRUE;
 
@@ -2357,6 +2359,7 @@ int rc;
 			    print_error(wp);
 		    } /* endif */
 		} /* endif */
+		release_channel(&cp);
 	    } /* endif */
 	} /* endif */
 
@@ -5064,7 +5067,7 @@ static void epilogue()
 *
 ****************************************************************/
 
-static int EzcaAddArrayEvent(struct work *wp, struct monitor *mp)
+static int EzcaAddArrayEvent(struct work *wp, struct monitor *mp, unsigned long count)
 {
 
 int rc;
@@ -5102,7 +5105,7 @@ int rc;
 	    print_state();
     } /* endif */
 
-    rc = ca_add_array_event(mp->dbr_type, (unsigned long) 0, (mp->cp)->cid, 
+    rc = ca_add_array_event(mp->dbr_type, count, (mp->cp)->cid, 
 	    my_monitor_callback, (void *) mp, (float) 0, (float) 0, (float) 0, 
 	    &(mp->evd));
 
@@ -5158,13 +5161,17 @@ int rval = 0;
 * again.  the worst that could happen is that the monitors are
 * not cleared and we waste time in the callback routines.
 *
+* TS: Do care what it returns. If it returns ECA_NORMAL, it seems
+*     to be OK to reuse the monitor. CA will not invoke the callback
+*     on successfully cancelled monitors. The callback is removed
+*     prior to sending the cancel request to the server (checked
+*     back to 3.13.0beta4).
+*
 ****************************************************************/
 
-static void EzcaClearEvent(struct monitor *mp)
+static int EzcaClearEvent(struct monitor *mp)
 {
-    if (mp)
-	ca_clear_event(mp->evd);
-
+	return mp ? ca_clear_event(mp->evd) : ECA_NORMAL;
 } /* end EzcaClearEvent() */
 
 /****************************************************************
@@ -7099,15 +7106,14 @@ struct monitor *mp;
     {  
 	if ( 0 == --(*cpp)->refcnt ) {
 
-/** TSILL TODO **/
 	/* clearing monitor list       */
 	/* note that this loop ends up */
 	/* with p->monitor_list = NULL */
 
-	while ((mp = cp->monitor_list))
+	while ((mp = (*cpp)->monitor_list))
 	{
-	    if ((cp->monitor_list = mp->right))
-		(cp->monitor_list)->left = (struct monitor *) NULL;
+	    if (((*cpp)->monitor_list = mp->right))
+		((*cpp)->monitor_list)->left = (struct monitor *) NULL;
 
 	    /* not calling clean_and_push_monitor() here because want to */
 	    /* bunch up these ca_clear_event() calls and flush as one    */
@@ -7120,9 +7126,7 @@ struct monitor *mp;
 		mp->pval = (void *) NULL;
 	    } /* endif */
 
-	    EzcaClearEvent(mp);
-
-	    push_monitor(mp);
+	    push_monitor(mp, ECA_NORMAL != EzcaClearEvent(mp) ? &Discarded_monitors : &Monitor_avail_hdr);
 
 	} /* endwhile */
 	/* clearing the chid */
@@ -7152,6 +7156,7 @@ struct monitor *mp;
 
 static void clean_and_push_monitor(struct monitor *mp)
 {
+int clear_failed;
     if (mp)
     {
 
@@ -7163,10 +7168,10 @@ static void clean_and_push_monitor(struct monitor *mp)
 	    mp->pval = (void *) NULL;
 	} /* endif */
 
-	EzcaClearEvent(mp);
+	clear_failed = EzcaClearEvent(mp);
 	EzcaPendIO((struct work *) NULL, SHORT_TIME);
 
-	push_monitor(mp);
+	push_monitor(mp, clear_failed ? &Discarded_monitors : &Monitor_avail_hdr);
 
     } /* endif */
 
@@ -7499,9 +7504,12 @@ struct channel **pc,*c;
 * subsequent callbacks writing in this value.  
 * Ex. subsequent callbacks can occur if ca_clear_event() didn't work.
 *
+* TS: pass desired list head as an argument; probably EzcaClearEvent()
+*     could be called from here...
+*
 ****************************************************************/
 
-static void push_monitor(struct monitor *p)
+static void push_monitor(struct monitor *p, struct monitor **l)
 {
 
     if (Debug)
@@ -7512,8 +7520,10 @@ static void push_monitor(struct monitor *p)
 
     if (p)
     {
-	p->left = Discarded_monitors;
-	Discarded_monitors = p;
+	/* add paranoia */
+	memset(p, 0, sizeof(*p));
+	p->left = *l;
+	*l = p;
     } /* endif */
 
     if (Debug)

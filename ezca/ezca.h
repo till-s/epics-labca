@@ -47,7 +47,7 @@ epicsShareFunc int epicsShareAPI ezcaEndGroup(void);
 epicsShareFunc int epicsShareAPI ezcaEndGroupWithReport(int **rcs, int *nrcs);
 epicsShareFunc int epicsShareAPI ezcaGetErrorString(char *prefix, char **buff);
 epicsShareFunc int epicsShareAPI ezcaNewMonitorValue(char *pvname, 
-	char ezcatype); /* returns TRUE/FALSE */
+	char ezcatype); /* returns TRUE/FALSE or < 0 if no monitor or other error */
 epicsShareFunc void epicsShareAPI ezcaPerror(char *prefix);
 
 /* Non-Groupable Work Functions */
@@ -62,7 +62,7 @@ epicsShareFunc void epicsShareAPI ezcaFree(void *buff);
 epicsShareFunc int epicsShareAPI ezcaGetRetryCount(void);
 epicsShareFunc float epicsShareAPI ezcaGetTimeout(void);
 epicsShareFunc int epicsShareAPI ezcaPvToChid(char *pvname, chid **cid);
-epicsShareFunc int epicsShareAPI ezcaSetMonitor(char *pvname, char ezcatype);
+epicsShareFunc int epicsShareAPI ezcaSetMonitor(char *pvname, char ezcatype, unsigned long count);
 epicsShareFunc int epicsShareAPI ezcaSetRetryCount(int retry);
 epicsShareFunc int epicsShareAPI ezcaSetTimeout(float sec);
 epicsShareFunc int epicsShareAPI ezcaStartGroup(void);
