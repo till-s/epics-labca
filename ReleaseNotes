@@ -1,5 +1,7 @@
  labca_2_0_alpha (T.S, 2004/6/23):
 
+LINUX/MATLAB PECULARITIES:
+
 MATLAB Version 7.0.0.14092 (R14) Prerelease, dated February 23, 2004:
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     The explanations below regarding C++ exceptions / mexErrMsgTxt()
