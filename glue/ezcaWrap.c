@@ -1,4 +1,4 @@
-/* $Id: ezcaWrap.c,v 1.8 2003/11/25 02:43:36 till Exp $ */
+/* $Id: ezcaWrap.c,v 1.9 2003/12/10 00:36:05 till Exp $ */
 
 /* SCILAB - EZCA interface */
 
@@ -322,14 +322,14 @@ chid *pid;
 /* for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) */
 #define CVTVEC(Forttyp, check, Ctyp, assign)			\
 	{ Ctyp *cpt = (Ctyp*)bufp; Forttyp *fpt = (Forttyp*)fbuf + i;	\
-		for ( j = 0; j<n && !(check) ; j++, cpt++, fpt+=m ) {	\
+		for ( j = 0; j<n && !(check) ; j++, cpt++, fpt+=mo ) {	\
 			assign;	\
 		}	\
 		dims[i] = j; \
 	}
 
 static void
-multi_ezca_put(char **nms, char type, void *fbuf, int m, int n)
+multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n)
 {
 void          *cbuf  = 0;
 int           *dims  = 0;
@@ -339,9 +339,11 @@ int           rowsize,typesz;
 register int  i,j;
 register char *bufp;
 
-	/* get buffers; since we do asynchronous processing, we
-	 * need to buffer the full array - we cannot do it row-wise
-	 */
+	if ( mo != 1 && mo != m ) {
+		cerro("multi_ezca_put: invalid dimension of 'value' matrix; must have 1 or m rows");
+		goto cleanup;
+	}
+
 	if ( !(dims  = malloc( m * sizeof(*dims) )) ||
 	     !(types = malloc( m * sizeof(*types) )) ) {
 		cerro("multi_ezca_put: not enough memory");
@@ -382,6 +384,11 @@ register char *bufp;
 
 	rowsize = n * typesz;
 
+	/* get buffers; since we do asynchronous processing and we possibly
+     * use different native types for different rows, we
+	 * need to buffer the full array - we cannot do it row-wise
+	 */
+
 	if ( !(cbuf  = malloc( m * rowsize )) ) {
 		cerro("multi_ezca_put: not enough memory");
 		goto cleanup;
@@ -410,7 +417,7 @@ register char *bufp;
 
 	ezcaStartGroup();
 
-		for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize ) {
+		for ( i=0, bufp = cbuf; i<m; i++, bufp += mo>1 ? rowsize : 0 ) {
 			ezcaPut(nms[i], types[i], dims[i], bufp);
 		}
 
@@ -435,6 +442,7 @@ int           rval   = 0;
 char          *types = 0;
 TS_STAMP      *ts    = 0;
 int           rowsize,typesz,nreq;
+int           mo     = m;
 chid		  *pid;
 
 register int  i,j,n;
@@ -475,7 +483,7 @@ register char *bufp;
 		int tmp;
 
 		/* clip to requested n */
-		if ( dims[i] > nreq )
+		if ( nreq > 0 && dims[i] > nreq )
 			dims[i] = nreq;
 
 		if ( dims[i] > n )
@@ -779,7 +787,7 @@ C2F(ezgetstring)(char ***nms, int *m, int *n, char ***buf, int *mo, int *no, Tim
 
 
 void
-C2F(ezput)(char ***nms, int *m, char *type, double *val, int *n)
+C2F(ezput)(char ***nms, int *m, char *type, double *val, int *mo, int *n)
 {
 char typenum;
 
@@ -796,13 +804,13 @@ char typenum;
 		return;
 	}
 
-	multi_ezca_put(*nms, typenum, val, *m, *n);
+	multi_ezca_put(*nms, *m, typenum, val, *mo, *n);
 }
 
 void
-C2F(ezputstring)(char ***nms, int *m, char ***buf, int *n)
+C2F(ezputstring)(char ***nms, int *m, char ***buf, int *mo, int *n)
 {
-	multi_ezca_put(*nms, ezcaString, *buf, *m, *n);
+	multi_ezca_put(*nms, *m, ezcaString, *buf, *mo, *n);
 }
 
 void

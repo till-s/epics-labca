@@ -39,11 +39,12 @@ out  sequence res ts
 ezcaPut nms val [ type native ]
 nms     stringmat m 1
 type    string  ls
-val     matrix  m n
+val     matrix  mo n
 
-ezput   nms m type val n
+ezput   nms m type val mo n
 nms     Cstringv
 m       integer
+mo      integer
 type    char
 val     double
 n       integer
@@ -52,11 +53,12 @@ out empty
 ***********************
 ezcaPutString nms val
 nms     stringmat m 1
-val     stringmat m n
+val     stringmat mo n
 
-ezputstring   nms m val n
+ezputstring   nms m val mo n
 nms     Cstringv
 m       integer
+mo      integer
 val     Cstringv
 n       integer
 
