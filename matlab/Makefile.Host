@@ -37,19 +37,21 @@ ezcaSetSeverityWarnLevel_OBJS := ezcaSetSeverityWarnLevel.c
 # on generic system
 USR_CPPFLAGS += -DMATLAB_APP
 EPICS_INCLUDES += -I$(MATLABDIR)/extern/include
-PROD := ezcaGetNelem
-PROD += ezcaGet
-PROD += ezcaGetGraphicLimits
-PROD += ezcaGetControlLimits
-PROD += ezcaPut
-PROD += ezcaGetRetryCount
-PROD += ezcaSetRetryCount
-PROD += ezcaGetTimeout
-PROD += ezcaSetTimeout
-PROD += ezcaSetSeverityWarnLevel
-PROD += ecget
+MEXF := ezcaGetNelem
+MEXF += ezcaGet
+MEXF += ezcaGetGraphicLimits
+MEXF += ezcaGetControlLimits
+MEXF += ezcaPut
+MEXF += ezcaGetRetryCount
+MEXF += ezcaSetRetryCount
+MEXF += ezcaGetTimeout
+MEXF += ezcaSetTimeout
+MEXF += ezcaSetSeverityWarnLevel
+MEXF += ecget
 
-MATDOCS=$(wildcard $(TOP)/documentation/help/*.m)
+PROD += $(MEXF)
+
+MATDOCS=$(wildcard $(addprefix $(TOP)/documentation/help/,$(MEXF:%=%.m)))
 
 SCRIPTS+=$(notdir $(MATDOCS))
 
@@ -97,5 +99,8 @@ $(notdir $(MATDOCS)):%.m:$(TOP)/documentation/help/%.m
 
 %$(MEXEXT): %.c
 	$(MATLABDIR)/bin/$(MEX) $(MEXFLAGS) $(CPPFLAGS) $^ $(INCLUDES) $(sort $(USR_DIRS:%=-L%)) $(LDLIBS)
+
+buildInstall::
+	echo $(MATDOCS)
 
 #	EOF Makefile.Host
