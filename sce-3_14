@@ -11,9 +11,15 @@ ezca_funs=[...
   'ezcaGetControlLimits';
   'ezcaGetGraphicLimits';
   'ezcaGetStatus';
-  'ezcaStartGroup';
-  'ezcaEndGroup';
+  'ezcaGetPrecision';
+  'ezcaGetUnits';
+  'ezcaGetRetryCount';
+  'ezcaSetRetryCount';
+  'ezcaGetTimeout';
+  'ezcaSetTimeout';
   'ezcaDebugOn';
+  'ezcaDebugOff';
+  'ezcaSetSeverityWarnLevel';
   'ezcaLibInit';
   'ecdrGet']
 ifile='ezca.o' 
