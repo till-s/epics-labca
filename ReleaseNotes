@@ -1,0 +1,43 @@
+ labca_1_5_beta (T.S, 2004/3/1):
+	I experienced labca crash matlab 14beta2 on linux (RH9)
+    when an lcaXXX Routine flags an error condition (i.e. aborts
+    the MEX file by calling mexErrMsgTxt()).
+
+    Matlab 14beta2 uses C++ exceptions to implement error handling.
+	Exception handling (simplified) requires the 'exception throwing' 
+    code to match the 'exception handling' pieces.
+
+	Unfortunately, Matlab comes with its own versions of some system
+    libraries which are quite old. They are located in the
+    'sys/os/glnx' subdirectory. 
+
+    Matlab always uses the C-library (glibc) installed on the system.
+    This means that the exception handling (stack unwinding) method
+    used by the system's glibc is to be used.
+
+    However, Matlab comes with it's own 'libgcc_s.so.1' which is where
+    exception throwing is actually implemented.
+
+	If libgcc and glibc don't match, something goes wrong. What happens
+    is that the (newer) glibc uses a different method of stack unwinding
+    than libgcc knows of dealing with.  libgcc expects an 'exception frame'
+    to be registered - a step that is omitted by glibc because it deals
+    with exceptions in a different way -- the result being that no
+    exception handler will be found and the program aborts.
+
+	FIX: Your system should come with a correct libgcc_s.so.1. In my case
+    (RH9) I found it in '/lib'. Here's how you can make matlab to pick up
+    the correct one (better solution would have the sysadmin remove the
+    outdated version in sys/os/glnx):
+
+	In your $HOME/.matlab6rc.sh file, add
+		LDPATH_PREFIX=/lib
+
+   	if you have no $HOME/.matlab6rc.sh, you use the following snippet:
+#
+# usage:        .matlab6rc.sh
+#
+. $MATLABdefault/bin/.matlab6rc.sh
+LDPATH_PREFIX=/lib
+	note that the initial comment lines are important since matlab checks
+    for their presence.

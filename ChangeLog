@@ -1,3 +1,12 @@
+Changes since labca_1_4_beta (T.S):
+	- Have the matlab version call 'errMsgTxt()' on error to 
+      trigger the standard way of error flagging. I finally
+      found the reason for the linux crashes ;-)
+    - Implemented a workaround in ezErr() -- Scilab's mexPrintf()
+      [i.e. sciprint] crashed when munging long strings (multi-line
+      errors). We now break those messages up in smaller chunks...
+    - multi_ezca_put() now returns a value to indicate error status
+      (rval == number of successfully written PVs, -1 on error).
 Changes since labca_1_3_beta:
 	2004/2/20: T.S added matlab implementation of lcaGetStatus()
 	2004/2/20: T.S added this ChangeLog
