@@ -23,7 +23,7 @@ SHARED_LIBRARIES = YES
 #	Contents of library: generic, special and for all systems
 #
 
-LIBSRCS := multiEzca.c ecget.c ini.cc
+LIBSRCS := multiEzca.c ecget.c ini.cc ctrlC.c
 
 # on generic system
 ifeq ($(MAKEFOR),MATLAB)
@@ -52,6 +52,8 @@ PROD_LIBS :=ezcamt ca Com
 
 # USR_LIBS_xxx doesn't work under EPICS 3.14.2 :-(
 # USR_LIBS_WIN32 += libmx libmex
+
+SYS_PROD_LIBS_WIN32 += user32
 
 ifeq ($(MAKEFOR),MATLAB)
 PROD      += gnelm
