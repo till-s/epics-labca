@@ -48,11 +48,11 @@ include $(TOP)/config/RULES.Host
 	pdflatex $^
 
 $(sort manual/index.html $(wildcard manual/*.html)): manual.aux
-	latex2html -no_footnode manual
+	latex2html -no_footnode -split 5 manual
 
 $(HELPS): manual.aux
 	if [ ! -x help ] ; then mkdir help; fi
-	latex2html -no_navigation -no_footnode -no_antialias_text -long_titles 1 -dir help manual
+	latex2html -no_footnode -split 5 -link 0 -no_navigation -no_antialias_text -long_titles 1 -dir help manual
 	cp whatis.htm help
 	cp Contents.m help
 

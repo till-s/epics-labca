@@ -50,7 +50,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.8 2004/01/02 21:00:23 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.9 2004/01/02 23:11:59 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -143,12 +143,13 @@ full accuracy.
 
 \vspace*{\fill}
 
-\subsection{List of all Supported Calls}
-\subsubsection{ezcaGet}
+\subsection{ezcaGet}
 \label{ezcaget}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 [value, timestamp] = ezcaGet(pvs, nmax, type)
 \end{verbatim}
+\subsubsection{Description}
 Read a number of \m{} PVs, which may be scalars or arrays of
 different dimensions. The result is converted into a \mxn{}
 matrix. The number of columns, \n, is automatically assigned
@@ -162,7 +163,7 @@ all values are converted into double precision numbers.
 
 Explicit type conversion into strings can be enforced by submitting
 the `type' argument described below.
-
+\subsubsection{Parameters}
 \begin{description}
 \PVITEM
 %
@@ -238,14 +239,38 @@ the requested PVs. The timestamps count the number of seconds (real part)
 and fractional nanoseconds (imaginary part) elapsed since
 00:00:00 UTC, January 1, 1970.
 \end{description}
+\subsubsection{Examples}
+\begin{verbatim}
+// read a PV
+    ezcaGet( 'thepv' )
+// get EPICS timestamp as well
+    [ val, tstamp ] = ezcaGet( 'thepv' )
+// read multiple PVs
+    ezcaGet( [ 'aPV' ; 'anotherPV' ] )
+// read an 'ENUM/STRING'
+    ezcaGet( 'thepv.SCAN' )
+// read an 'ENUM/STRING' as a number (server converts)
+    ezcaGet( 'thepv.SCAN', 0, 'float' )
+// enforce reading all PVs as strings (server converts)
+// NOTE: necessary if native num/nonnum types are mixed
+    ezcaGet( [ 'apv.SCAN', 'numericalPV' ] , 0, 'char' )
+// limit reading a waveform to its NORD elements
+    nord = ezcaGet( 'waveform.NORD' )
+	if nord > 0 then
+      ezcaGet( 'waveform', nord )
+	end
+\end{verbatim}
 
-\subsubsection{ezcaPut}
+\subsection{ezcaPut}
 \label{ezcaput}
-Write to a number of PVs which may be scalars or arrays of different
-dimensions. It is possible to write the same value to a number of PVs.
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 ezcaPut(pvs, value, type)
 \end{verbatim}
+\subsubsection{Description}
+Write to a number of PVs which may be scalars or arrays of different
+dimensions. It is possible to write the same value to a number of PVs.
+\subsubsection{Parameters}
 \begin{description}
 \PVITEM
 %
@@ -282,15 +307,37 @@ explicitely request different types for different PVs (i.e. the
 \com{type}{} argument currently cannot be a column vector).
 %
 \end{description}
+\subsubsection{Examples}
+\begin{verbatim}
+// write a PV
+    ezcaPut( 'thepv', 1.234 )
+// write as a string (server converts)
+    ezcaPut( 'thepv', '1.234' )
+// write/transfer as a short integer (server converts)
+    ezcaPut( 'thepv', 12, 'short' )
+// write multiple PVs (use { } on matlab)
+    ezcaPut( [ 'pvA'; 'pvB' ], [ 'a'; 'b' ] );
+// write array PV
+    ezcaPut( 'thepv' , [ 1, 2, 3, 4 ] )
+// write same value to a group of PVs (string
+// concatenation differs on matlab)
+    ezcaPut( [ 'pvA'; 'pvB' ] + '.SCAN', '1 second' )
+// write array and scalar PV (using NaN as a delimiter)
+    tab = [ 1, 2, 3, 4 ;   5, %nan, 0, 0 ]
+	ezcaPut( [ 'arrayPV'; 'scalarPV' ], tab )
+\end{verbatim}
 
-\subsubsection{ezcaGetNelem}
+\subsection{ezcaGetNelem}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 numberOfElements = ezcaGetNelem(pvs)
 \end{verbatim}
+\subsubsection{Description}
 Retrieve the element count of a number of PVs. Note that this is not
 necessarily the number of \ita{valid} elements (e.g. the actual number
 of values read from a device into a waveform) but the maximum number
 of elements a PV can hold.
+\subsubsection{Parameters}
 \begin{description}
 \PVITEM
 %%
@@ -298,11 +345,14 @@ of elements a PV can hold.
 of elements (``array dimension'').
 \end{description}
 
-\subsubsection{ezcaGetControlLimits}
+\subsection{ezcaGetControlLimits}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 [lowLimit, hiLimit] = ezcaGetControlLimits(pvs)
 \end{verbatim}
+\subsubsection{Description}
 Retrieve the control limits associated with a number of PVs.
+\subsubsection{Parameters}
 \begin{description}
 \PVITEM
 %%
@@ -311,11 +361,14 @@ Retrieve the control limits associated with a number of PVs.
 \end{description}
 
 
-\subsubsection{ezcaGetGraphicLimits}
+\subsection{ezcaGetGraphicLimits}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 [lowLimit, hiLimit] = ezcaGetGraphicLimits(pvs)
 \end{verbatim}
+\subsubsection{Description}
 Retrieve the graphic limits associated with a number of PVs.
+\subsubsection{Parameters}
 \begin{description}
 \PVITEM
 %%
@@ -324,12 +377,15 @@ Retrieve the graphic limits associated with a number of PVs.
 \end{description}
 
 
-\subsubsection{ezcaGetStatus}
+\subsection{ezcaGetStatus}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 [severity, status, timestamp] = ezcaGetStatus(pvs)
 \end{verbatim}
+\subsubsection{Description}
 Retrieve the alarm severity and status of a number of PVs along
 with their timestamp.
+\subsubsection{Parameters}
 \begin{description}
 \PVITEM
 %%
@@ -340,22 +396,28 @@ PV \hyperref[ref]{timestamps}{timestamps (see }{ about the timestamp format)}{ts
 \end{description}
 
 
-\subsubsection{ezcaGetPrecision}
+\subsection{ezcaGetPrecision}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 precision = ezcaGetPrecision(pvs)
 \end{verbatim}
+\subsubsection{Description}
 Retrieve the precision of a number of PVs.
+\subsubsection{Parameters}
 \begin{description}
 \PVITEM
 %%
 \item[precisiom] \mxl{} column vector of the PV's precision.
 \end{description}
 
-\subsubsection{ezcaGetUnits}
+\subsection{ezcaGetUnits}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 units = ezcaGetUnits(pvs)
 \end{verbatim}
+\subsubsection{Description}
 Retrieve the engineering units of a number of PVs.
+\subsubsection{Parameters}
 \begin{description}
 \PVITEM
 %%
@@ -363,35 +425,43 @@ Retrieve the engineering units of a number of PVs.
 of strings holding the PV EGUs.
 \end{description}
 
-\subsubsection{ezcaGetRetryCount, ezcaSetRetryCount}
+\subsection{ezcaGetRetryCount, ezcaSetRetryCount}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 currentRetryCount = ezcaGetRetryCount()
 ezcaSetRetryCount(newRetryCount)
 \end{verbatim}
+\subsubsection{Description}
 Retrieve / set the \ezca{} library retryCount parameter (consult the \ezca{}
 documentation for more information).
 
 
-\subsubsection{ezcaGetTimeout, ezcaSetTimeout}
+\subsection{ezcaGetTimeout, ezcaSetTimeout}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 currentTimeout = ezcaGetTimeout()
 ezcaSetTimeout(newTimeout)
 \end{verbatim}
+\subsubsection{Description}
 Retrieve / set the \ezca{} library timeout parameter (consult the \ezca{}
 documentation for more information).
 
-\subsubsection{ezcaDebugOn, ezcaDebugOff}
+\subsection{ezcaDebugOn, ezcaDebugOff}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 ezcaDebugOn()
 ezcaDebugOff()
 \end{verbatim}
+\subsubsection{Description}
 Switch the \ezca{} library's debugging facility on and off, respectively.
 
-\subsubsection{ezcaSetSeverityWarnLevel}
+\subsection{ezcaSetSeverityWarnLevel}
 \label{swarnlevel}
+\subsubsection{Calling Syntax}
 \begin{verbatim}
 ezcaSetSeverityWarnLevel(newlevel)
 \end{verbatim}
+\subsubsection{Description}
 Set the warning threshold for \com{ezcaGet()} operations.
 A warning message is printed when retrieving a PV with a severity bigger
 or equal to the warning level. Supported values are \sevrange{} (No alarm,
