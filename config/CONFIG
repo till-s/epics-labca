@@ -1,8 +1,15 @@
 #CONFIG
-# Add any changes to make rules here
-#CROSS_COMPILER_TARGET_ARCHS = mv167
-CROSS_COMPILER_TARGET_ARCHS =
+
+# Chose what interface to build. May be
+# 'MATLAB' or 'SCILAB' (any string other
+# than 'MATLAB' builds 'SCILAB')
+
 MAKEFOR=MATLAB
+
+# No need to change anything below here
+# (except for adding more matlab extensions for
+# other platforms...)
+CROSS_COMPILER_TARGET_ARCHS =
 MEXEXT_Linux=.mexglx
 MEXEXT_solaris=.mexsol
 MEXEXT_WIN32=.dll
