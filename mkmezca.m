@@ -1,11 +1,17 @@
 function mkmezca()
-mk('ecget.c')
-mk('ezcaGetControlLimits.c')
-mk('ezcaPut.c')
-mk('ezcaGet.c')
+%mk('ecget.c')
+%mk('ezcaGetControlLimits.c')
+%mk('ezcaPut.c')
+%mk('ezcaGet.c')
 mk('ezcaGetNelem.c')
 %
 %
 function mk(feil)
-eval(['mex -cxx -DMATLAB_APP -DmexErrMsgTxt=mexWarnMsgTxt -I. -Iezca -I/afs/slac/g/spear/3.14.2epics/base/include -I/afs/slac/g/spear/3.14.2epics/base/include/os/Linux -L. ',feil,' -lmezcaglue'])
+eval(['mex -v -g -DMATLAB_APP -I. -I./include -IC:/epics/base/include',...
+' -IC:/epics/base/include/os/WIN32 ',...
+feil,...
+' lib/win32-x86/mezcaglueObj.lib',...
+' lib/win32-x86/ezcaObj.lib',...
+' N:/g/spear/3.14.2epics/base/lib/win32-x86/caObj.lib',...
+' N:/g/spear/3.14.2epics/base/lib/win32-x86/ComObj.lib'])
 %-L/afs/slac/g/spear/epics/base/lib/linux-x86 -Llib/linux-x86 -lezca314 -lca -lCom
