@@ -56,9 +56,10 @@ $(HELPS): manual.aux
 	cp whatis.htm help
 	cp Contents.m help
 
+# html->text, add leading '%' and remove long URLs, just leave filename
 %.m:%.html
 	$(RM) $@
-	lynx -dump $^ | sed -e 's/^/%/g' > $@
+	lynx -dump $^ | sed -e 's/^/%/g'  -e 's/\([0-9]*[.][ ]*\)\(file:\([^/]*[/]\)*\)/\1/g'  > $@
 
 build:: manual/index.html $(MHELPS)
 
