@@ -9,8 +9,24 @@ MAKEFOR=SCILAB
 # No need to change anything below here
 # (except for adding more matlab extensions for
 # other platforms...)
-CROSS_COMPILER_TARGET_ARCHS =
+MEXEXT_hpux=.mexhpux
+MLBARCH_hpux=hpux
 MEXEXT_Linux=.mexglx
+MLBARCH_Linux=glnx86
+# glnxi64 not supported by EPICS yet
 MEXEXT_solaris=.mexsol
-MEXEXT_WIN32=.dll
+MLBARCH_solaris=sol2
+MEXEXT_Darwin=.mexmac
+MLBARCH_Darwin=mac
 MEXEXT=$(MEXEXT_$(ARCH_CLASS))
+MLBARCH_WIN32=win32
+MLBARCH=$(MLBARCH_$(ARCH_CLASS))
+
+# install matlab executables and help files
+# to a 'labca' subdir so 'help labca' lists
+# the 'Contents.m' summary
+ifeq ($(MAKEFOR),MATLAB)
+INSTALL_BIN:=$(INSTALL_BIN)/labca
+endif
+
+CROSS_COMPILER_TARGET_ARCHS =
