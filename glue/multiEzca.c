@@ -1,8 +1,10 @@
-/* $Id: multiEzca.c,v 1.5 2003/12/23 20:40:32 till Exp $ */
+/* $Id: multiEzca.c,v 1.6 2003/12/23 22:01:04 till Exp $ */
 
 /* multi-PV EZCA calls */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003 */
+
+/* LICENSE: EPICS open license, see ../LICENSE file */
 
 #include <stdio.h>
 #include <stdlib.h>

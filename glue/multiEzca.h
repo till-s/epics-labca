@@ -1,10 +1,12 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.4 2003/12/23 22:01:04 till Exp $ */
+/* $Id: multiEzca.h,v 1.5 2003/12/23 22:08:34 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003 */
+
+/* LICENSE: EPICS open license, see ../LICENSE file */
 
 #include <stdio.h>
 #include <stdlib.h>

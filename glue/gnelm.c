@@ -1,8 +1,16 @@
+/* $Id$ */
+
 #include <cadef.h>
 #include <mglue.h>
 #include <multiEzca.h>
 #include <stdio.h>
 #include <stdarg.h>
+
+/* Trivial command line utility using multi-ezca / ezca
+ * useful for debugging DLL / PATH problems under WIN32
+ */
+
+/* Author: Till Straumann <strauman@slac.stanford.edu>, 2003 */
 
 #define MAX_PVS 25
 

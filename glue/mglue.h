@@ -1,9 +1,11 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.3 2003/12/22 04:08:18 till Exp $ */
+/* $Id: mglue.h,v 1.4 2003/12/23 20:30:52 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2003 */
+
+/* LICENSE: EPICS open license, see ../LICENSE file */
 #include <mex.h>
 #include <matrix.h>
 

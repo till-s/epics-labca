@@ -1,8 +1,10 @@
-/* $Id: ezcaWrap.c,v 1.14 2003/12/23 22:01:03 till Exp $ */
+/* $Id: ezcaWrap.c,v 1.15 2003/12/23 22:08:34 till Exp $ */
 
 /* SCILAB - EZCA interface */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003 */
+
+/* LICENSE: EPICS open license, see ../LICENSE file */
 
 #ifndef MACHHACK
 #include <mex.h> /* fortran/C name conversion for scilab */

@@ -1,8 +1,10 @@
-/* $Id: ecget.c,v 1.12 2003/12/22 20:45:11 till Exp $ */
+/* $Id: ecget.c,v 1.13 2003/12/23 20:29:49 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 9/2001 */
+
+/* LICENSE: EPICS open license, see ../LICENSE file */
 
 /* system includes */
 #include <stdio.h>

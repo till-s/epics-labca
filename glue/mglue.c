@@ -1,7 +1,10 @@
-/* $Id: mglue.c,v 1.3 2003/12/22 04:11:32 till Exp $ */
+/* $Id: mglue.c,v 1.4 2003/12/23 20:31:35 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
-/* Author: Till Straumann <strauman@slac.stanford.edu> */
+
+/* Author: Till Straumann <strauman@slac.stanford.edu>, 2003 */
+
+/* LICENSE: EPICS open license, see ../LICENSE file */
 
 #include <cadef.h>
 #include <ezca.h>
