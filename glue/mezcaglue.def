@@ -4,7 +4,7 @@ EXPORTS
 
 alarmSeverityString
 alarmStatusString
-ezcaSeverityWarnLevel
+ezcaSetSeverityWarnLevel
 buildPVs
 marg2ezcaType
 multi_ezca_get
@@ -12,6 +12,5 @@ multi_ezca_get_misc
 multi_ezca_get_nelem
 multi_ezca_put
 multi_ezca_ts_cvt
-my_strdup
 releasePVs
 ecdrget

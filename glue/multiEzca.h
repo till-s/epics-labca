@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.9 2004/01/05 19:37:12 till Exp $ */
+/* $Id: multiEzca.h,v 1.10 2004/01/06 20:37:34 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -31,8 +31,7 @@ extern void cerro(const char*);
 /* CA includes */
 #include <tsDefs.h> 
 
-/* GLOBAL VARIABLES */
-extern int ezcaSeverityWarnLevel;
+void ezcaSetSeverityWarnLevel(int level);
 
 /* MACROS */
 #define NumberOf(arr) (sizeof(arr)/sizeof(arr[0]))

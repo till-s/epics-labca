@@ -1,4 +1,4 @@
-/* $Id: ezcaSetRetryCount.c,v 1.2 2003/12/23 23:06:56 strauman Exp $ */
+/* $Id: ezcaSetSeverityWarnLevel.c,v 1.1 2003/12/24 17:30:52 till Exp $ */
 
 /* matlab wrapper for ezcaSetSeverityWarnLevel */
 
@@ -28,5 +28,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		MEXERRPRINTF("Need a single numeric argument");
 		return;
 	}
-	ezcaSeverityWarnLevel = (int)mxGetScalar(prhs[0]);
+	ezcaSetSeverityWarnLevel((int)mxGetScalar(prhs[0]));
 }

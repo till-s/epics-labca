@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.11 2004/01/05 19:37:12 till Exp $ */
+/* $Id: multiEzca.c,v 1.12 2004/01/06 20:37:33 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -43,7 +43,7 @@ static unsigned long mynan[2] = { 0xffffffff, 0x7fffffff };
 #endif
 
 /* GLOBAL VARIABLES */
-int ezcaSeverityWarnLevel = INVALID_ALARM;
+static int ezcaSeverityWarnLevel = INVALID_ALARM;
 
 /* FWD DECLS        */
 static char * my_strdup(const char *str);
@@ -766,3 +766,8 @@ cleanup:
 	return rval;
 }
 
+void
+ezcaSetSeverityWarnLevel(int level)
+{
+ezcaSeverityWarnLevel = level;
+}

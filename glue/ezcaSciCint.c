@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.5 2004/01/06 20:37:06 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.6 2004/01/07 01:20:24 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -417,7 +417,7 @@ int m,n,i;
 	CheckLhs(1,1);
 	GetRhsVar(1,"i",&m,&n,&i);
 	CheckScalar(1,m,n);
-	ezcaSeverityWarnLevel = *istk(i);
+	ezcaSetSeverityWarnLevel(*istk(i));
 	LhsVar(1)=0;
 	return 0;
 }
