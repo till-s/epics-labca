@@ -93,8 +93,10 @@ endif
 # since we cannot exit ezca/CA cleanly, this
 # might crash! These options enforce locking
 # our library stack into memory..
-USR_LDFLAGS_solaris+=-z nodelete
-USR_LDFLAGS_Linux+=-z nodelete
+ACC_SHRLIB_LDFLAGS_YES+=-z nodelete
+CCC_SHRLIB_LDFLAGS_YES+=-z nodelete
+GCC_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
+G++_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
 
 libmx_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
