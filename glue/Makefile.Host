@@ -32,9 +32,6 @@ EPICS_INCLUDES += -I$(MATLABDIR)/extern/include
 LIBSRCS += mglue.c
 LIBRARY := mezcaglue
 #SCRIPTS+=mkmezca.m
-#PROD    += gnelm
-gnelm_SRCS = gnelm.c
-gnelm_LIBS = mezcaglue
 else
 USR_CPPFLAGS+=-DSCILAB_APP
 EPICS_INCLUDES += -I$(SCILABDIR)/routines
@@ -42,6 +39,9 @@ LIBSRCS+= ezcaSciCint.c
 LIBRARY := sezcaglue
 SCRIPTS+=labca.sce
 endif
+
+gnelm_SRCS = gnelm.c
+gnelm_LIBS = $(LIBRARY)
 
 #       Library to build:
 #       lib$(LIBRARY).a  or   ..dll/..exp/..lib
@@ -53,17 +53,28 @@ PROD_LIBS :=ezca ca Com
 # USR_LIBS_xxx doesn't work under EPICS 3.14.2 :-(
 # USR_LIBS_WIN32 += libmx libmex
 
-ifeq ($(ARCH_CLASS),WIN32)
 ifeq ($(MAKEFOR),MATLAB)
+PROD      += gnelm
+ifeq ($(ARCH_CLASS),WIN32)
 PROD_LIBS += libmx libmex
 else
+PROD_LIBS += mx mex
+endif
+else
+ifeq ($(ARCH_CLASS),WIN32)
 USR_CPPFLAGS += -DFORDLL
-PROD_LIBS +=LibScilab
+PROD_LIBS += LibScilab
 endif
 endif
 
-libmx_DIR:=$(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
-libmex_DIR:=$(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+libmx_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+
+mx_DIR := $(MATLABDIR)/bin/$(MLBARCH)
+mex_DIR := $(MATLABDIR)/bin/$(MLBARCH)
+
+export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(mx_DIR)
+
 LibScilab_DIR:=$(SCILABDIR)/bin
 mezcaglue_DIR:=$(TOP)/lib/$(T_A)
 
