@@ -51,7 +51,7 @@ MEXF += ecget
 
 PROD += $(MEXF)
 
-MATDOCS=$(wildcard $(addprefix $(TOP)/documentation/help/,$(MEXF:%=%.m)))
+MATDOCS=$(wildcard $(addprefix $(TOP)/documentation/help/,$(MEXF:%=%.m) Contents.m))
 
 SCRIPTS+=$(notdir $(MATDOCS))
 
