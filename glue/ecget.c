@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.17 2004/01/27 03:34:47 till Exp $ */
+/* $Id: ecget.c,v 1.18 2004/02/11 18:51:52 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -32,17 +32,10 @@ typedef long buf_t;
 /* wrapper for printing error messages */
 #define ecErr(arg)          do { fprintf(stderr,arg); fputc('\n',stderr);} while (0)
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) fprintf(stderr, "invalid PV %s", pv_name)
-#define C2F(name)           name
 #elif defined(SCILAB_APP) /***************************** SCILAB INTERFACE DEFINITIONS  **********************/
 
 #if defined(DEBUG)
 #undef DEBUG
-#endif
-
-#ifndef MACHHACK 
-#include <mex.h> /* for C2F() macro */
-#else
-#define C2F(name) name##_
 #endif
 
 extern void cerro(char*);
@@ -66,7 +59,6 @@ extern void cerro(char*);
 /* wrapper for printing error messages */
 #define ecErr(arg)         mexWarnMsgTxt(arg)
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) mexWarnMsgTxt("invalid PV")
-#define C2F(name)          name
 
 #else
 
@@ -216,16 +208,14 @@ cleanup:
 
 #define epicsExportSharedSymbols
 #include <shareLib.h>
-
-epicsShareFunc void epicsShareAPI
-C2F(ecdrget)(char *pv_name, int *l, buf_t **result, int *nord);
+#include <ecget.h>
 #endif
 
 void
 #ifndef CMDLINE_APP
 epicsShareAPI
 #endif
-C2F(ecdrget)(char *pv_name, int *l, buf_t **result, int *nord)
+ecdrget (char *pv_name, int *l, buf_t **result, int *nord)
 {
 long		i,j,blsz,zero=0,nelms,chunk,elsz;
 char		lock=1;

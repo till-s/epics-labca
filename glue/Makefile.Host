@@ -13,8 +13,6 @@ include $(TOP)/config/CONFIG_APP
 CMPLR = STRICT
 
 USR_INCLUDES += -I../../ezca
-# install header file
-INC = mglue.h multiEzca.h multiEzcaCtrlC.h
 
 # build share library
 SHARED_LIBRARIES = YES
@@ -36,7 +34,12 @@ CTRLC_CFLAGS_NO = -DCTRLC_DISABLED
 
 CFLAGS += $(CTRLC_CFLAGS_$(CONFIG_USE_CTRLC))
 
-LIBSRCS := multiEzca.c ecget.c ini.cc $(CTRLC_SRC_$(CONFIG_USE_CTRLC))
+LIBSRCS := multiEzca.c ini.cc $(CTRLC_SRC_$(CONFIG_USE_CTRLC))
+
+ifeq ($(CONFIG_ECDRGET),YES)
+LIBSRCS += ecget.c
+USR_CPPFLAGS += -DWITH_ECDRGET
+endif
 
 # on generic system
 ifeq ($(MAKEFOR),MATLAB)
@@ -69,7 +72,7 @@ PROD_LIBS :=ezcamt ca Com
 SYS_PROD_LIBS_WIN32 += user32
 
 ifeq ($(MAKEFOR),MATLAB)
-PROD      += gnelm
+#PROD      += gnelm
 ifeq ($(ARCH_CLASS),WIN32)
 PROD_LIBS += libmx libmex
 else
