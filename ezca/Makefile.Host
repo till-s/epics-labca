@@ -35,9 +35,11 @@ LIBRARY := ezcamt
 PROD_LIBS := ca Com
 
 ca_DIR = $(EPICS_BASE_LIB)
+Com_DIR = $(EPICS_BASE_LIB)
+
+SHRLIB_VERSION:=0
 
 GCC_DEP_CFLAGS += -Wno-format
-Com_DIR = $(EPICS_BASE_LIB)
 
 ifndef BASE_3_14
 ifeq ($(OS_CLASS),solaris)
