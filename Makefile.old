@@ -1,0 +1,43 @@
+HARCH = linux-x86
+TARCH = Linux
+LIBS = -L/usr/local/epics-3.14_a2/base/lib/$(HARCH)/ -lca -lCom -lpthread -lreadline -ltermcap -lrt
+INCS = -I/usr/local/epics-3.14_a2/base/include/ -I/usr/local/epics-3.14_a2/base/include/os/$(TARCH)
+EINCS = -I/usr/local/epics-3.14_a2/extensions/include/
+ELIBS = -L/usr/local/epics-3.14_a2/extensions/lib/$(HARCH)/ -lezca
+
+SCIDIR = /usr/lib/scilab-2.5
+INTERSCI = $(SCIDIR)/bin/intersci
+
+all: ezcalib ezca.o
+
+ezca.o: ezca.tmp.f
+	$(FC) -c $(FFLAGS) -o $@ $<
+
+ezca.tmp.f: ezca.f
+	$(RM) -f $@
+	sed -e 's|SCIDIR|$(SCIDIR)|g' $^ > $@
+
+ezca.f:	ezca.desc
+	$(SCIDIR)/bin/intersci $(<:%.desc=%)
+	
+
+ecget.o: ecget.c
+	$(CC) -c -DSCILAB_APP $(INCS) $(EINCS) -I$(SCIDIR) $<
+
+ezcaWrap.o: ezcaWrap.c
+	$(CC) -c $(INCS) $(EINCS) -I$(SCIDIR) $<
+
+#	$(CC) -Wl,"-Ur,-u ezcaGet" -o $@ -L/usr/local/epics-3.14_a2/base/lib/$(HARCH)/ $(ELIBS) -lca -lCom
+ezcalib:  ezcaWrap.o ecget.o
+	$(CC) -r -o $@ $^ $(ELIBS) -L/usr/local/epics-3.14_a2/base/lib/$(HARCH)/ -lca -lCom -lreadline -ltermcap -lrt
+#	$(LD) -i -o $@ $^ -L/usr/lib $(ELIBS) -lezca /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libca.a /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libCom.a /usr/lib/libpthread.a /usr/lib/libreadline.a /usr/lib/libtermcap.a /usr/lib/librt.a /usr/lib/gcc-lib/i386-redhat-linux/2.96/libgcc.a 
+
+ecget: ecget.c
+#	$(CC) -O2 -o $@ $^ $(INCS) $(LIBS)
+	$(CC) -g -o $@ $^ -DCMDLINE_APP -Wl,"-Map,feil" $(INCS) /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libca.a /usr/local/epics-3.14_a2/base/lib/$(HARCH)/libCom.a /usr/lib/libpthread.a /usr/lib/libreadline.a /usr/lib/libtermcap.a /usr/lib/librt.a  -lm
+
+caInf: caInf.c
+	$(CC) -O2 -o $@ $^ $(EINCS) $(INCS) $(ELIBS) $(LIBS)
+
+clean:
+	$(RM) ezcalib *.o ezca.f ecget caInf ezca.tmp.f ezca.sce
