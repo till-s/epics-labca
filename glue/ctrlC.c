@@ -1,0 +1,221 @@
+#if defined(WIN32) || defined(_WIN32)
+#include <Windows.h> /* must include this first */
+#endif
+
+#include <cadef.h>
+#include <ezca.h>
+#include <multiEzca.h>
+#include <epicsVersion.h>
+
+#if (EPICS_VERSION > 3 || (EPICS_VERSION == 3 && EPICS_REVISION >= 14))
+#define EPICS_THREE_FOURTEEN
+#endif
+
+
+#if defined(WIN32) || defined(_WIN32)
+
+#ifdef MATLAB_APP
+#define sciprint mexPrintf
+#define WM_MTLBHACK (WM_USER + 10)
+#endif
+
+#define K_STAT(flags) (((flags)>>30) & 3)
+
+/* In MATLAB, the thread executing the MEX file doesn't
+ * get WM_KEYBOARD messages - the keyboard seems to be
+ * processed by a different thread
+ * It is possible to use SetWindowsHookEx() to intercept key
+ * presses/releases --  however, we don't know the ThreadID
+ * and would hence have to use thread ID 0.
+ *
+ * However, it seems that the key-processing task sends
+ * an WM_USER+10 event to us, so we use that as a hack...
+ *
+ * In SCILAB, the 'hook' solution doesn't work because the
+ * executing thread is normally processing the input queue.
+ * Since no queue processing occurs, the hook would never
+ * be invoked (unless we periodically 'peek' at the queue
+ * -- in that case we can as well process it which is what
+ * we do here).
+ */
+
+
+static volatile int ctrl = -1;
+
+#ifdef DEBUG
+static volatile int rec  = 0;
+static DWORD mesgs[100];
+static DWORD codes[100];
+static DWORD flags[100];
+
+static void recMsg(PMSG pmsg)
+{
+	if ( rec < sizeof(codes)/sizeof(codes[0]) ) {
+		switch ( pmsg->message ) {
+			default:
+				mesgs[rec]=pmsg->message;
+				codes[rec]=pmsg->wParam;
+				flags[rec]=pmsg->lParam;
+				rec++;
+			case WM_TIMER:
+			case WM_MOUSEMOVE:
+				break;
+		}
+	}
+}
+
+static void showMsgs()
+{
+char buf[2000],*p;
+int  i;
+	for ( i=0, p=buf, *p=0; i < rec; i++ )
+		p+=sprintf(p,"%3i (0x%04x): %4i  0x%08x -- 0x%08x\n",
+				mesgs[i], mesgs[i],
+				codes[i], codes[i],
+				flags[i] );
+	p+=sprintf(p, "MSGS: %i\n", rec);
+	MessageBox( NULL, (LPCTSTR)buf, "Error", MB_OK | MB_ICONINFORMATION );
+}
+
+#endif
+
+#ifdef MATLAB_APP
+static int procMsg(PMSG pmsg)
+{
+#ifdef DEBUG
+	recMsg(pmsg);
+#endif
+	return ( WM_MTLBHACK == pmsg->message );
+}
+
+#define MYPEEK (PeekMessage(&m, 0, WM_MTLBHACK, WM_MTLBHACK, PM_NOREMOVE))
+#endif
+
+
+
+
+
+#ifdef SCILAB_APP
+static int procMsg(PMSG pmsg)
+{
+DWORD m = pmsg->message;
+
+#ifdef DEBUG
+	recMsg(pmsg);
+#endif
+
+	if ( WM_KEYFIRST <= m && WM_KEYLAST >= m ) {
+		switch ( pmsg->wParam ) {
+				case VK_CONTROL:
+						ctrl = ( K_STAT( pmsg->lParam ) < 2 ) ? 1 : 0;
+						/* K_STAT: 0 -- just pressed, 1 -- still down, 3 -- just released */
+						break;
+
+				case 'C':
+						if ( 0 == K_STAT( pmsg->lParam ) && 1 == ctrl )
+							return 1;
+
+				default:
+						break;
+		}
+	}
+	return 0;
+}
+
+#define MYPEEK (PeekMessage (&m, 0, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
+#endif
+
+int multi_ezca_pollCb()
+{
+MSG m;
+	while ( MYPEEK ) {
+		if ( procMsg(&m) ) {
+			ezcaAbort();
+			return 1;
+		}
+	}
+	return 0;
+}
+
+unsigned long
+multi_ezca_ctrlC_prologue()
+{
+#ifdef DEBUG
+	rec    = 0;
+#endif
+	ctrl   = -1;
+	return 0;
+}
+
+void
+multi_ezca_ctrlC_epilogue(unsigned long saved)
+{
+}
+
+
+#else /* just use signals */
+
+#include <signal.h>
+#include <stdio.h>
+#ifdef EPICS_THREE_FOURTEEN
+#include <epicsThread.h>
+#include <unistd.h>
+
+static void
+sigthread(void *arg)
+{
+sigset_t om,nm;
+	sigemptyset(&nm);
+	pthread_sigmask(SIG_BLOCK, &nm, &om);
+	fprintf(stderr,"SIG thread id: 0x%08x, mask 0x%08x\n", pthread_self(), om);
+	while (1) {
+		if ( usleep(1000000) )
+			perror("sigthread usleep");
+	}
+}
+
+#else
+#define epicsThreadGetIdSelf() 0
+#endif
+
+static void
+handler(int num)
+{
+	signal(SIGINT, handler);
+
+fprintf(stderr,"thread 0x%08x got signal\n",pthread_self());
+
+	ezcaAbort(); 
+}
+
+unsigned long
+multi_ezca_ctrlC_prologue()
+{
+unsigned long rval = (unsigned long) signal(SIGINT, handler);
+	return rval;
+}
+
+void
+multi_ezca_ctrlC_epilogue(unsigned long restore)
+{
+void (*old)(int) = (void (*)(int)) restore;
+	if ( SIG_ERR != old ) {
+		signal(SIGINT, old);
+	}
+}
+
+void
+multi_ezca_ctrlC_initialize()
+{
+#ifdef EPICS_THREE_FOURTEEN
+sigset_t m,om;
+	sigemptyset(&m);
+	sigaddset(&m, SIGINT);
+	epicsThreadCreate("sighdlr",epicsThreadPriorityLow,epicsThreadStackSmall,
+			sigthread, 0);
+	pthread_sigmask(SIG_BLOCK, &m, &om);
+	fprintf(stderr,"ctrlC-init: current thread: 0x%08x, mask 0x%08x\n",pthread_self(),om);
+#endif
+}
+
+#endif /* WIN32 */
