@@ -8,6 +8,7 @@
 \newcommand{\sca}{{\em labCA}}
 \newcommand{\scilab}{{\em scilab}}
 \newcommand{\matlab}{{\em matlab}}
+\newcommand{\windoze}{{\em win32}}
 \newcommand{\ezca}{{\em ezca}}
 \newcommand{\com}[1]{{\tt #1}}
 \newcommand{\NAN}{\mbox{NaN}}
@@ -17,8 +18,13 @@
 of $m$ strings.
 }
 
+\title{\sca{} --- An EPICS Channel Access Interface for \scilab{} and \matlab{}}
+\author{Till Straumann <strauman@slac.stanford.edu>, 2003}
+\date{$Id$}
+
 
 \begin{document}
+\maketitle
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -36,6 +42,15 @@ command line.
 which transparently manages and caches channel access 
 connections. A modified version of \ezca{} comes with
 \sca, adding thread-safety and hence EPICS 3.14 fitness.
+
+A very convenient feature of \sca{} is the ability
+to execute \ezca{} calls on groups of PVs, simply by
+passing the respective \sca{} routine a column vector
+of PV names.
+
+\sca{} has been tested with EPICS 3.13, 3.14, \scilab-2.7,
+\matlab-6.5, \matlab-7 on {\em linux}, {\em solaris} and
+\windoze.
 
 \section{Supported EZCA Calls}
 \sca{} implements an interface to almost all public
@@ -158,7 +173,15 @@ Excess elements of PVs with less than $n$ elements are filled with
 \NAN{} values.
 
 \sca{} checks the channel access severity of the retrieved PVs and
-fills the rows of {\em INVALID} PVs with \NAN. In addition, warning
+fills the rows of {\em INVALID} PVs with \NAN%
+\footnote{
+Actually, all fields of an EPICS database record share a common
+severity, (which itself is a field/PV --- the .SEVR field). However,
+the {\em INVALID} status actually only applies to the .VAL field
+of a record --- other fields (e.g. .EGU) may still hold meaningful data.
+Consequently, {\em INVALID} PVs are returned as \NAN{} only if
+they refer to a record's .VAL field.
+}. In addition, warning
 messages are printed to the console if a PV's alarm status exceeds
 a configurable threshold (see \ref{swarnlevel}).
 %
@@ -368,4 +391,122 @@ Set the warning threshold for \com{ezcaGet()} operations.
 A warning message is printed when retrieving a PV with a severity bigger
 or equal to the warning level. Supported values are $0..3$ (No alarm,
 minor alarm, major alarm, invalid alarm). The initial/default value is 3.
+
+\section{Building and Using \sca{}}
+\subsection{Build}
+\sca{} comes with `{\tt config}' subdirectory and Makefiles conforming to the
+EPICS build system. Following a configuration step which involves editing
+two small files, '{\tt make} is executed which installs the generated libraries
+and scripts.
+
+Prior to invoking the \scilab{} or \matlab{} application, the system
+must be properly set up in order for the applications to locate the
+\sca{} and channel access libraries.
+
+\subsubsection{Prerequisites}
+\sca{} needs an EPICS BASE installation that was built {\em with shared
+libraries}. The main reason being that \matlab's {\em mex} files cannot
+have multiple entry points. Hence, when statically linking multiple {\em mex}
+files against {\em ezca, ca, Com} etc. multiple copies of those libraries
+would end up in the running \matlab{} application with possible adverse
+effects. It should be possible to build and use the \scilab{} interface
+with static libraries --- minor tweaks might be necessary.
+
+\sca{} has been tested with \matlab-6.5, \matlab-7.0 and \scilab-2.7
+under a variety of EPICS releases ranging from 3.13.2
+to 3.14.4 on \windoze, {\em linux-x86}, {\em linux-ppc} and
+{\em solaris-sparc-gnu}. 
+
+\subsubsection{Configuration}
+Two files, `{\tt config/CONFIG}' and `{\tt config/RELEASE}' need to
+be adapted to the user's installation:
+\begin{description}
+\item[\tt CONFIG:] Setting the {\tt MAKEFOR} variable in this file
+determines the target application program the interface library is
+built for. Valid settings are {\tt MAKEFOR=SCILAB} or {\tt MAKEFOR=MATLAB}.
+Any setting other than {\tt MATLAB} are treated like {\tt SCILAB}.
+%
+%
+\item[\tt RELEASE:] In this file, paths to the EPICS base (`{\tt EPICS\_BASE}'
+variable) and \scilab{} (`{\tt SCILABDIR}' variable) or \matlab{} (`{\tt MATLABDIR}'
+variable) installations must be specified.
+
+Under \windoze{}, an additional variable
+`{\tt MATLIB\_SUBDIR}' must be set directing the build process to select the correct
+{\tt libmx.lib} and {\tt libmex.lib} library variants. The setting of this variable
+is compiler dependent.
+\begin{description}
+\item[\tt MATLABDIR=<path>] {\tt <path>} defining the \matlab{} installation
+directory where the `{\tt extern}' subdirectory can be found (e.g.
+{\tt /opt/matlabR14beta2}).
+\item[\tt SCILABDIR=<path>] {\tt <path>} defining the \scilab{} installation
+directory where the `{\tt routines}' subdirectory can be found (e.g.
+{\tt /usr/lib/scilab-2.7}).
+\item[\tt MATLIB\_SUBDIR=<pathelem>] {\tt <pathelem>} chosing the subdirectory
+corresponding to the C-compiler that is used for the build. (e.g. 
+{\tt win32/microsoft/msvc60} for the microsoft visual c++ 6.0 compiler).
+\end{description}
+\end{description}
+
+Any irrelevant variables (such as {\tt MATLABDIR} if {\tt MAKEFOR=SCILAB})
+are ignored.
+
+\subsubsection{Building \sca}
+After setting the
+`{\tt EPICS\_HOST\_ARCH}' (for EPICS 3.14) and `{\tt HOST\_ARCH}' (EPICS 3.13)
+environment variables, {\em GNU} make is invoked in the \sca{} top 
+directory. Note that the compiler toolchain must be found in the system
+{\tt PATH}\footnote{
+Under \windoze, the {\em msvc} compiler features a {\tt .BAT} file for
+setting up the necessary environment.
+}.
+
+\subsection{Using \sca{}}
+\sca{} consists of a set of shared libraries which in turn reference
+other shared libraries (most notably the channel access client libraries
+from EPICS BASE). It is of {\em crucial importance} that the operating
+system locates the correct versions at {\em run-time} (i.e. the same versions
+\sca{} was {\em linked} against). Otherwise, the run-time linker/loader
+could fail to load the required objects --- leaving the user (expecially
+in \matlab) at the prompt with obscure error messages.
+
+Under {\em linux} or {\em solaris}, the {\tt LD\_LIBRARY\_PATH} environment
+variable or the {\tt ld.so.conf / ldconfig} facility are used to point
+to the executable shared libraries.
+
+Under \windoze{}, the {\tt PATH} environment variable must point to the
+correct EPICS BASE and \sca{} DLLs.
+
+Note that the paths to the correct EPICS BASE \sca{} shared libraries
+must be set up {\em prior} to starting the \scilab{} or \matlab{} application.
+It is usually not possible to change the system search
+path from within an application.
+
+Possible problems could occur because
+\begin{itemize}
+\item third party setup scripts modify {\tt LD\_LIBRARY\_PATH / PATH}.
+\item your EPICS BASE was not built with shared libraries but shared libraries
+of a different release are found somewhere.
+\item a ``innocent-looking'' directory present in {\tt LD\_LIBRARY\_PATH}
+before EPICS BASE actually contains shared libraries of an older release.
+\item Note that the system search path is {\em not} identical with the
+\matlab{} path --- changing the \matlab{} path (from withing \matlab)
+has no influence on the system search path.
+\end{itemize}
+
+\subsubsection{Using \sca{} with \scilab}
+Set up the shared library search path (as described above) and start
+\scilab. Run the {\tt ezca.sce} script which was generated by the build process
+({\tt <\sca-top>/bin/<system>/ezca.sce}) to load the \sca{} interface.
+The script can be installed at any convenient location.
+
+It is also possible to permanently link \sca{} to \scilab{}. Consult
+the \scilab{} documentation for more information.
+
+\subsubsection{Using \sca{} with \matlab}
+Every entry point / {\tt ezcaXXX} routine is contained in a separate
+shared object file under {\tt <\sca-top>/bin/<system>/} which must
+be added to the \matlab{} search path. Note that this is in {\em addition}
+to setting the system library search path which must be performed prior
+to starting \matlab{} (see previous section).
 \end{document}
