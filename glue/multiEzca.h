@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.17 2004/02/11 18:51:53 till Exp $ */
+/* $Id: multiEzca.h,v 1.18 2004/02/11 23:04:56 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -64,7 +64,7 @@ multi_ezca_get_nelem(char **nms, int m, int *dims);
 #define ezcaNative  ((char)-1)
 #define ezcaInvalid ((char)-2)
 
-epicsShareFunc void epicsShareAPI
+epicsShareFunc int epicsShareAPI
 multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n);
 
 epicsShareFunc int epicsShareAPI

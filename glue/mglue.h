@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.8 2004/02/11 18:51:53 till Exp $ */
+/* $Id: mglue.h,v 1.9 2004/02/11 23:06:10 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -28,7 +28,7 @@ releasePVs(PVs *pvs);
 epicsShareFunc int epicsShareAPI
 buildPVs(const mxArray *pin, PVs *pvs);
 
-/* mexErrMsgTxt() crashes matlab14-beta - also, we don't want
+/* mexErrMsgTxt() crashes matlab14-beta (linux) - also, we don't want
  * to jump out of context
  */
 #define MEXERRPRINTF mexWarnMsgTxt
@@ -45,6 +45,14 @@ buildPVs(const mxArray *pin, PVs *pvs);
  */
 epicsShareFunc char epicsShareAPI
 marg2ezcaType(const mxArray *typearg);
+
+/* use 'nlhs' as an 'error' flag; (jumped out of something and
+ * have already assigned 'lhs' args).
+ * Clean up the lhs args and flag an error condition.
+ * If everyhing's OK, the caller passes nlhs == 0.
+ */
+epicsShareFunc void epicsShareAPI
+flagError(int nlhs, mxArray *plhs[]);
 
 #ifdef __cplusplus
 };

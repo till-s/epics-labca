@@ -11,3 +11,4 @@ multi_ezca_ts_cvt
 buildPVs
 marg2ezcaType
 releasePVs
+flagError

@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.10 2004/02/11 18:51:53 till Exp $ */
+/* $Id: mglue.c,v 1.11 2004/02/12 00:23:59 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -121,4 +121,22 @@ char typestr[2] = { 0 };
 		}
 	}
 	return ezcaInvalid;
+}
+
+void epicsShareAPI
+flagError(int nlhs, mxArray *plhs[])
+{
+int i;
+	if ( nlhs ) {
+		for ( i=0; i<nlhs; i++ ) {
+			mxDestroyArray(plhs[i]);
+			/* hope this doesn't fail... */
+			plhs[i] = 0;
+		}
+		/*mxCreateDoubleMatrix(0,0,mxREAL); */
+#if !defined(__linux__)
+		/* this crashes matlab 14 beta on linux :-( */
+		mexErrMsgTxt("(see above error messages)");
+#endif
+	}
 }
