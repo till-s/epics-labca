@@ -25,7 +25,7 @@ CONFIG_USE_CTRLC=NO
 # ECDR data (only relevant for SSRL - You should
 # say 'NO' here unless you are at SSRL)
 # 
-CONFIG_ECDRGET=YES
+CONFIG_ECDRGET=NO
 
 # No need to change anything below here
 # (except for adding more matlab extensions for
