@@ -6,6 +6,11 @@ Quick instructions:
  - edit config/CONFIG and set target application
    (MAKEFOR=MATLAB  or MAKEFOR=SCILAB)
    and (optionally) the installation directory.
+   You can also enable (experimental) support
+   for Ctrl-C handling there. With this feature
+   enabled, you can interrupt lcaGet/lcaPut by
+   hitting Ctrl-C on the keyboard.
+   
  - edit config/RELEASE to point to your
     o EPICS base
     o MATLAB
