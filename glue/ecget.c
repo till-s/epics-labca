@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ecget.c,v 1.1.1.1 2001/09/20 05:20:12 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -15,7 +15,7 @@
 
 #define DEBUG
 
-#if defined(CMDLINE_APP)
+#if defined(CMDLINE_APP) /****************************** CMDLINE INTERFACE DEFINITIONS **********************/
 
 #define SYS_MALLOC(nbytes)	malloc(nbytes)
 #define SYS_FREE(charptr)	free(charptr)
@@ -24,7 +24,12 @@
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) fprintf(stderr, "invalid PV %s", pv_name)
 #define C2F(name) name
 
-#elif defined(SCILAB_APP)
+#elif defined(SCILAB_APP) /***************************** SCILAB INTERFACE DEFINITIONS  **********************/
+
+#if defined(DEBUG)
+#undef DEBUG
+#endif
+
 #include <routines/machine.h> /* for C2F() macro */
 
 extern void cerro(char*);
@@ -126,7 +131,7 @@ cleanup:
 	return 0;
 }
 
-/* getecdr:
+/* ecdrget:
  *
  * reads data from the ECDR according to the following algorithm:
  *
@@ -380,7 +385,7 @@ char	*fmt=0;
 
 	ca_task_initialize();
 
-	getecdr(argv[optind],0,&buf,&nord);
+	ecdrget(argv[optind],0,&buf,&nord);
 
 	fprintf(stderr,"MAIN: %i elements read\n",nord);
 

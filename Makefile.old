@@ -8,7 +8,7 @@ ELIBS = -L/usr/local/epics-3.14_a2/extensions/lib/$(HARCH)/ -lezca
 SCIDIR = /usr/lib/scilab-2.5
 INTERSCI = $(SCIDIR)/bin/intersci
 
-all: ezcalib ezca.o
+all: ezcalib ezca.o ecget
 
 ezca.o: ezca.tmp.f
 	$(FC) -c $(FFLAGS) -o $@ $<
