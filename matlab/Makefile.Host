@@ -13,7 +13,7 @@ include $(TOP)/config/CONFIG_APP
 CMPLR = STRICT
 
 
-USR_INCLUDES += -I../../ezca
+USR_INCLUDES += -I../../ezca -I../../glue
 # install header file
 #INC =
 
@@ -48,7 +48,9 @@ MEXF += lcaSetRetryCount
 MEXF += lcaGetTimeout
 MEXF += lcaSetTimeout
 MEXF += lcaSetSeverityWarnLevel
+ifeq ($(CONFIG_ECDRGET),YES)
 MEXF += ecget
+endif
 
 PROD += $(MEXF)
 

@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ecget.c,v 1.3 2003/12/23 23:06:55 strauman Exp $ */
 
 /* matlab wrapper for ecget */
 
@@ -7,6 +7,7 @@
 /* LICENSE: EPICS open license, see ../LICENSE file */
 
 #include <mglue.h>
+#include <ecget.h>
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
