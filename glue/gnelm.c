@@ -1,4 +1,4 @@
-/* $Id: gnelm.c,v 1.2 2003/12/23 23:15:56 strauman Exp $ */
+/* $Id: gnelm.c,v 1.3 2004/01/13 04:13:18 till Exp $ */
 
 #include <cadef.h>
 #include <multiEzca.h>
@@ -26,7 +26,7 @@ if (!argc) {
 }
 argv++; 
 multi_ezca_get_nelem(argv,argc,blah);
-for (i=0; i<argc-1; i++)
+for (i=0; i<argc; i++)
 	printf("%i\n",blah[i]);
 
 return 0;
