@@ -6541,6 +6541,7 @@ EZCA_LOCK();
 	{
 	    if (Trace || Debug)
 		printf("my_get_callback() inactive work node\n");
+		/* TODO: could recycle the wp here */
 	} /* endif */
     }
     else
@@ -6822,8 +6823,8 @@ EZCA_LOCK();
 	else
 	{
 	    if (Trace || Debug)
-		printf("my_put_callback() inactive work node pvname >%s<\n",
-		    wp->pvname);
+		printf("my_put_callback() inactive work node\n");
+		/* TODO: could recycle the wp here */
 	} /* endif */
     }
     else
