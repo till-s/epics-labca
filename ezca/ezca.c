@@ -398,6 +398,7 @@ static void copy_time_stamp(TS_STAMP *, TS_STAMP *); /* really should be */
 static void empty_work_list(void);
 static struct channel *find_channel(char *);
 static void get_channel(struct work *, struct channel **);
+static void release_channel(struct channel **);
 static struct work *get_work(void);
 static struct work *get_work_single(void);
 static unsigned char hash(char *);
@@ -553,6 +554,13 @@ int rc;
 
 	if (Trace || Debug)
     printf("ezcaEndGroupWithReport() about to process work list\n");
+
+	for (wp = Work_list.head; wp; wp = wp->next) {
+		if ( wp->cp ) {
+			fprintf(stderr,"EZCA FATAL ERROR: ezcaEndGroupWithReport() found non-NULL wp->cp\n");
+			exit(1);
+		}
+	}
 
 	/* searching for all the channels */
 	for (wp = Work_list.head, nelem = 0, issued_a_search = FALSE; 
@@ -879,6 +887,12 @@ printf("ezcaEndGroupWithReport(): issuing get for >%s<\n",
 	ErrorLocation = LISTWORK;
 	ListPrint = WHOLELIST;
 	InGroup = FALSE;
+
+	/* release all channel structs we reference */
+	for (wp = Work_list.head; wp; wp = wp->next) {
+		release_channel( & wp->cp );
+	}
+
     }
     else
     {
@@ -2005,7 +2019,7 @@ int rc;
 int epicsShareAPI ezcaClearChannel(char *pvname)
 {
 
-struct channel *cp;
+struct channel *cp = 0;
 struct work *wp;
 int rc;
 
@@ -2059,6 +2073,9 @@ int rc;
 
     } /* endif */
 
+	/* if clean_and_push_channel() was successful, cp is NULL at this point */
+	release_channel( &cp );
+
     epilogue();
     return rc;
 
@@ -2096,6 +2113,10 @@ int rc,i;
 		for ( i = 0; i < HASHTABLESIZE; i++ ) {
 			for ( cp = Channels[i]; cp; ) {
 				if ( !disconnectedOnly || !EzcaConnected(cp) ) {
+					/* normal get_channel() or find_channel() increment the
+					 * refcnt...
+					 */
+					cp->refcnt++;
 					clean_and_push_channel(&cp);
 					/* start over */
 					cp = Channels[i];
@@ -2322,6 +2343,9 @@ int rc;
 			print_error(wp);
 		} /* endif */
 	    } /* endif */
+
+		release_channel( &cp );
+
 	} /* endif */
 
 	rc = wp->rc;
@@ -2445,6 +2469,9 @@ int rc;
 			print_error(wp);
 		} /* endif */
 	    } /* endif */
+
+		release_channel( &cp );
+
 	} /* endif */
 
 	rc = wp->rc;
@@ -2568,6 +2595,9 @@ int rc;
 			print_error(wp);
 		} /* endif */
 	    } /* endif */
+
+		release_channel( &cp );
+
 	} /* endif */
 
 	rc = wp->rc;
@@ -2671,6 +2701,9 @@ int rc;
 			print_error(wp);
 		} /* endif */
 	    } /* endif */
+
+		release_channel( &cp );
+
 	} /* endif */
 
 	rc = wp->rc;
@@ -2784,6 +2817,9 @@ int rc;
 			print_error(wp);
 		} /* endif */
 	    } /* endif */
+
+		release_channel( &cp );
+
 	} /* endif */
 
 	rc = wp->rc;
@@ -2926,6 +2962,9 @@ int rc;
 			print_error(wp);
 		} /* endif */
 	    } /* endif */
+
+		release_channel( &cp );
+
 	} /* endif */
 
 	rc = wp->rc;
@@ -3039,6 +3078,9 @@ int rc;
 			print_error(wp);
 		} /* endif */
 	    } /* endif */
+
+		release_channel( &cp );
+
 	} /* endif */
 
 	rc = wp->rc;
@@ -3202,6 +3244,9 @@ int rc;
 			print_error(wp);
 		} /* endif */
 	    } /* endif */
+
+		release_channel( &cp );
+
 	} /* endif */
 
 	rc = wp->rc;
@@ -3456,6 +3501,8 @@ int rc;
 		} /* endif */
 	    } /* endif */
 
+		release_channel( &cp );
+
 	    /* no matter what happened ... */
 	    /* freeing malloc'd memory */
 	    if (wp->pval)
@@ -3640,6 +3687,9 @@ int rc;
 			print_error(wp);
 		} /* endif */
 	    } /* endif */
+
+
+		release_channel( &cp );
 
 	    /* no matter what happened ... */
 	    /* freeing malloc'd memory */
@@ -3922,6 +3972,24 @@ printf("get_channel(): could not find_channel(). must ca_search_and_connect() an
     } /* endif */
 
 } /* end get_channel() */
+
+/* release a reference to a channel struct; decrement refcnt and
+ * set referring pointer to NULL
+ */
+
+static void
+release_channel( struct channel **cpp )
+{
+	if ( ! (*cpp) )
+		return;
+
+	if ( (*cpp)->refcnt <= 0 ) {
+		fprintf(stderr,"EZCA FATAL ERROR: release_channel() called with refcnt <= 0\n");
+		exit(1);
+	}
+	(*cpp)->refcnt++;
+	*cpp = 0;
+}
 
 /****************************************************************
 *
@@ -6016,23 +6084,22 @@ int    clear_failed;
 
     if ( *cpp )
     {  
-	if ( (*cpp)->refcnt <=0 ) {
-		fprintf(stderr,"EZCA FATAL ERROR: clean_and_push_channel() with refcnt <=0\n");
-		exit(1);
-	}
-
 	if ( 0 == --(*cpp)->refcnt ) {
 
 	/* clearing the chid */
 
-	clear_failed = EzcaClearChannel(cp);
+	clear_failed = EzcaClearChannel(*cpp);
 #ifndef EPICS_THREE_FOURTEEN
 	EzcaPendIO((struct work *) NULL, SHORT_TIME);
 #endif
 
-	push_channel(cp, clear_failed ? &Discarded_channels : &Channel_avail_hdr);
+	push_channel(*cpp, clear_failed ? &Discarded_channels : &Channel_avail_hdr);
 
+	} else if ( (*cpp)->refcnt < 0 ) {
+		fprintf(stderr,"EZCA FATAL ERROR: clean_and_push_channel() with refcnt <=0\n");
+		exit(1);
 	}
+
 
     } /* endif */
 	*cpp = 0;
@@ -6101,7 +6168,7 @@ int i;
 	} /* endif */
 	rc->ever_successfully_searched = FALSE;
 	if ( rc->refcnt ) {
-		fprintf("EZCA FATAL ERROR: pop_channel refcnt != 0\n"); 
+		fprintf(stderr,"EZCA FATAL ERROR: pop_channel refcnt != 0\n"); 
 		exit(1);
 	}
 	rc->refcnt = 1;
