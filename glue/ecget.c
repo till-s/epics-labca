@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.10 2003/12/12 10:28:21 till Exp $ */
+/* $Id: ecget.c,v 1.11 2003/12/18 19:41:02 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -31,7 +31,6 @@ typedef long buf_t;
 #define ecErr(arg)          do { fprintf(stderr,arg); fputc('\n',stderr);} while (0)
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) fprintf(stderr, "invalid PV %s", pv_name)
 #define C2F(name)           name
-#define EC_STATIC           static
 #elif defined(SCILAB_APP) /***************************** SCILAB INTERFACE DEFINITIONS  **********************/
 
 #if defined(DEBUG)
@@ -51,7 +50,6 @@ extern void cerro(char*);
 /* wrapper for printing error messages */
 #define ecErr(arg)          do { cerro(arg); cerro("\n");} while (0)
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) cerro("invalid PV")
-#define EC_STATIC
 
 #elif defined(MATLAB_APP) /***************************** MATLAB INTERFACE DEFINITIONS  **********************/
 #include "matrix.h"
@@ -67,66 +65,6 @@ extern void cerro(char*);
 #define ecErr(arg)         mexWarnMsgTxt(arg)
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) mexWarnMsgTxt("invalid PV")
 #define C2F(name)          name
-#define EC_STATIC          static
-
-EC_STATIC void C2F(ecdrget)(char *name, int *nlen, buf_t **buf, int *nelms);
-
-void mexFunction(	int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-int      namelen,i;
-char     name[100];
-buf_t    *buf=0;
-int      nelems=0;
-mxArray  *mxa;
-double   *dptr;
-
-    assert(nlhs>=1);
-    
-    *plhs=0;
-
-	/* check for one argument of type string */
-	if ( nrhs != 1 ) {
-		mexErrMsgTxt( "usage:  data = ecget( PVName );\n" );
-		return;
-	}
-	if ( mxIsChar( prhs[0] ) != 1 ) {
-		mexErrMsgTxt( "usage:  data = ecget( PVName );\n" );
-		return;
-	}
-
-    namelen = (mxGetM(prhs[0]) * mxGetN(prhs[0]) * sizeof(mxChar)) + 1;
-    
-    if (namelen>=sizeof(name)) {
-        mexErrMsgTxt("PV name too long\n");
-        return;
-    }
-    
-    mxGetString(prhs[0], name, namelen);
-    
-    ecdrget(name,&namelen,&buf,&nelems);
-
-    if (!buf) {
-        return;
-    }
-    
-    if (!(mxa = mxCreateDoubleMatrix(1,nelems,mxREAL))){
-        SYS_FREE(buf); buf=0;
-        mexErrMsgTxt("ecdrget: no memory");
-        goto cleanup;
-    }
-    
-    for (i=0, dptr=mxGetPr(mxa); i<nelems; i++, dptr++)
-        *dptr = (double)buf[i];
-    
-    plhs[0] = mxa; mxa=0;
-    
-
-cleanup:
-    if (buf) SYS_FREE(buf);
-	if (mxa) {
-		mxDestroyArray(mxa);
-	}
-}
 
 #else
 
@@ -271,7 +209,6 @@ cleanup:
  *              passed 0.
  *
  */
-EC_STATIC
 void C2F(ecdrget)(char *pv_name, int *l, buf_t **result, int *nord)
 {
 long		i,j,blsz,zero=0,nelms,chunk,elsz;
@@ -381,7 +318,7 @@ fprintf(stderr,"# elements %i, BLSZ %i, reading data...",nelms,blsz); fflush(std
 					     chunk,
 					     valID,
 					     (void*)(buf+i))) {
-			sprintf(msgbuf,"Error getting block %i",i);
+			sprintf(msgbuf,"Error getting block %li",i);
 			ecErr(msgbuf);
 			goto cleanup;
 		}
