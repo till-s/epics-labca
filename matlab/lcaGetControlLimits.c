@@ -1,4 +1,4 @@
-/* $Id: ezcaGetControlLimits.c,v 1.3 2003/12/23 23:06:55 strauman Exp $ */
+/* $Id: ezcaGetControlLimits.c,v 1.4 2003/12/31 07:53:54 till Exp $ */
 
 /* matlab wrapper for ezcaGetControlLimits */
 
@@ -34,7 +34,7 @@ int     i,nargs = 0;
 		goto cleanup;
 	}
 
-	for ( i=0; i<nlhs; i++) {
+	for ( i=0; i<NumberOf(args); i++) {
 		args[i].pres = &pres[i];
 		plhs[i]=0;
 	}
