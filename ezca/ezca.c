@@ -91,7 +91,7 @@ static epicsMutexId	ezcaMutex = 0;
 /* DO NOT CHANGE THE VALUE OF HASHTABLESIZE!!!!!!!!!                 */
 #define HASHTABLESIZE 256
 
-#define SHORT_TIME 1e-12
+#define SHORT_TIME ((float)1.e-12)
 #define MAXPVARNAMELENGTH ((PVNAME_SZ)+(FLDNAME_SZ)+2)
 
 #define UNDEFINED -1
@@ -510,7 +510,7 @@ int epicsShareAPI ezcaEndGroupWithReport(int **rcs, int *nrcs)
 struct work *wp;
 BOOL needs_work;
 int status = 0;
-int attempts;
+unsigned attempts;
 unsigned int nelem;
 unsigned int i;
 BOOL all_reported, error, issued_a_search;
@@ -683,7 +683,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 			} /* endif */
 			break;
 		    case PUT:
-			if (wp->nelem <= EzcaElementCount(wp->cp))
+			if (wp->nelem <= (int)EzcaElementCount(wp->cp))
 			{
 			    wp->reported = FALSE;
 			    if (EzcaArrayPutCallback(wp, wp->cp) == ECA_NORMAL)
@@ -716,7 +716,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 			break;
 		    case PUTOLDCA:
 			wp->needs_work = FALSE;
-			if (wp->nelem <= EzcaElementCount(wp->cp))
+			if (wp->nelem <= (int)EzcaElementCount(wp->cp))
 			    EzcaArrayPut(wp, wp->cp);
 			else
 			{
@@ -3593,7 +3593,7 @@ int epicsShareAPI ezcaPut(char *pvname, char type, int nelem, void *buff)
 struct channel *cp;
 struct work *wp;
 int nbytes;
-int attempts;
+unsigned attempts;
 BOOL reported, error;
 int rc;
 
@@ -3718,7 +3718,7 @@ int rc;
 		{
 		    /* channel is currently connected */
 
-		    if (wp->nelem <= EzcaElementCount(cp))
+		    if (wp->nelem <= (int)EzcaElementCount(cp))
 		    {
 			wp->reported = FALSE;
 
@@ -3978,7 +3978,7 @@ int rc;
 		{
 		    /* channel is currently connected */
 
-		    if (wp->nelem <= EzcaElementCount(cp))
+		    if (wp->nelem <= (int)EzcaElementCount(cp))
 		    {
 			if (EzcaArrayPut(wp, cp) == ECA_NORMAL)
 			    EzcaPendIO(wp, SHORT_TIME);
@@ -4178,7 +4178,7 @@ static void get_channel(struct work *wp, struct channel **cpp)
 {
 
 unsigned char hi;
-int attempts;
+unsigned attempts;
 BOOL done;
 
     if (!wp || !cpp)
@@ -4582,7 +4582,7 @@ int i;
     /* Default Values for User Configurable Global Parameters */
     AutoErrorMessage = TRUE;
     InGroup = FALSE;
-    TimeoutSeconds = 0.05;
+    TimeoutSeconds = (float)0.05;
     RetryCount = 599;
 
     Debug = FALSE;
@@ -4609,7 +4609,7 @@ BOOL rc;
     {
 	if (EzcaConnected(cp))
 	{
-	    if (wp->nelem <= EzcaElementCount(cp))
+	    if (wp->nelem <= (int)EzcaElementCount(cp))
 	    {
 		wp->reported = FALSE;
 
@@ -4667,7 +4667,7 @@ static void issue_wait(struct work *wp)
 {
 
 BOOL reported, error;
-int attempts;
+unsigned attempts;
 
     if (wp)
     {
