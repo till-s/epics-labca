@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.6 2003/12/23 22:01:04 till Exp $ */
+/* $Id: multiEzca.c,v 1.7 2003/12/23 23:15:56 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -613,7 +613,8 @@ register char *bufp;
 
 	/* allocate the target buffer */
 	if ( ezcaString == type )
-		fbuf = calloc( m*n, sizeof(char*) );
+		/* Scilab expects NULL terminated char** list */
+		fbuf = calloc( m*n+1, sizeof(char*) );
 	else
 		fbuf = malloc( m*n * sizeof(double) );
 
@@ -700,7 +701,7 @@ cleanup:
 }
 
 int
-multi_ezca_get_misc(char **nms, int m, int (*ezcaProc)(), int nargs, MultiArg args)
+multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args)
 {
 int		rval = 0;
 int		i;
