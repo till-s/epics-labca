@@ -5,7 +5,7 @@
 \usepackage{color}
 \usepackage{graphics}
 
-\newcommand{\sca}{{\em blah}}
+\newcommand{\sca}{{\em labCA}}
 \newcommand{\scilab}{{\em scilab}}
 \newcommand{\matlab}{{\em matlab}}
 \newcommand{\ezca}{{\em ezca}}
@@ -118,7 +118,8 @@ filled with \NAN.
 %
 %
 \item[nmax] ({\em optional argument}) Maximum number of elements
-(per PV) to retrieve (i.e. max. dimension of \com{value}).
+(per PV) to retrieve (i.e. limit the number of columns of \com{value} to
+{\em nmax}).
 If set to 0 (default), all elements are fetched
 and the number of columns, $n$, in the result matrix is set to the
 maximum number of elements among all submitted PVs. This is useful
@@ -169,16 +170,13 @@ and fractional nanoseconds (imaginary part) elapsed since
 00:00:00 UTC, January 1, 1970.
 \end{description}
 
-If \com{char}{} is chosen, data are converted to and transmitted
-as character strings by the server and 
-
 \subsubsection{ezcaGetString}
 \label{getstring}
 Retrieve a number of PVs as strings, i.e. let the CA server convert
 them to strings (if the PVs are not native strings already) and transfer
 them. This is especially useful to read ``enum''-type PVs.
 
-Note that the \matlab implementation lacks this command. It is implemented
+Note that the \matlab{} implementation lacks this command. It is implemented
 by giving a \com{char}{} type argument to \com{ezcaGet}.
 \begin{verbatim}
 [value, timestamp] = ezcaGetString(pvs, nmax)
@@ -196,6 +194,7 @@ See \com{ezcaGet}{} (\ref{ezcaget}) for a description of this return value.
 \end{description}
 
 \subsubsection{ezcaPut}
+\label{ezcaput}
 Write to a number of PVs which may be scalars or arrays of different
 dimensions. It is possible to write the same value to a number of PVs.
 \begin{verbatim}
@@ -210,7 +209,7 @@ to be written to the PVs. If there is only a single row in \com{value}{}
 it is written to all $m$ PVs.
 
 It is possible to write less than $n$ elements --- \sca{} scans all rows
-for \NAN{} values and only transfers up to the last non-\NAN element in each
+for \NAN{} values and only transfers up to the last non-\NAN{} element in each
 row.
 %
 %
@@ -242,7 +241,7 @@ Write a number of PVs as strings, i.e. let the CA server convert
 them to their native data type (if the PVs are not native strings already).
 This is especially useful to write ``enum''-type PVs.
 
-Note that the \matlab implementation lacks this command. It is implemented
+Note that the \matlab{} implementation lacks this command. It is implemented
 by giving a \com{char}{} type argument to \com{ezcaPut}.
 \begin{verbatim}
 ezcaPutString(pvs, value)
@@ -254,7 +253,6 @@ ezcaPutString(pvs, value)
 \item[value] a $m\times n$ (\matlab: {\em cell}-) matrix of strings. See \com{ezcaPut}{}
 (\ref{ezcaput}) for more information.
 \end{description}
-
 
 
 \subsubsection{ezcaGetNelem}
