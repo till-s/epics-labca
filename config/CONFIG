@@ -60,4 +60,7 @@ ifeq ($(MAKEFOR),MATLAB)
 INSTALL_BIN:=$(INSTALL_BIN)/labca
 endif
 
+# dont hardcode searchpaths
+RUNTIME_LDFLAGS=
+
 CROSS_COMPILER_TARGET_ARCHS =
