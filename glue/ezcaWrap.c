@@ -1,4 +1,4 @@
-/* $Id: ezcaWrap.c,v 1.13 2003/12/22 04:11:32 till Exp $ */
+/* $Id: ezcaWrap.c,v 1.14 2003/12/23 22:01:03 till Exp $ */
 
 /* SCILAB - EZCA interface */
 
@@ -17,8 +17,6 @@
 #include <time.h>
 #include <assert.h>
 
-
-extern void cerro(const char*);
 
 /* CA includes */
 #include <tsDefs.h> 

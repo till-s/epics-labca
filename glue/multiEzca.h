@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.3 2003/12/22 04:09:14 till Exp $ */
+/* $Id: multiEzca.h,v 1.4 2003/12/23 22:01:04 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -22,6 +22,8 @@
 #define free(arg)   mxFree((arg))
 #define calloc(n,s) mxCalloc((n),(s))
 /* #define C2F(name) name##_ */
+#else
+extern void cerro(const char*);
 #endif
 
 /* CA includes */
