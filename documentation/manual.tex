@@ -4,7 +4,7 @@
 \usepackage{bookman}
 \usepackage{color}
 \usepackage{graphics}
-\usepackage{html}
+\usepackage{html, makeidx}
 
 \newcommand{\sca}{\ita{labCA}}
 \newcommand{\scilab}{\ita{scilab}}
@@ -50,7 +50,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.6 2003/12/24 21:14:47 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.7 2004/01/01 01:12:40 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -229,7 +229,7 @@ Consequently, \ita{INVALID} PVs are returned as \NAN{} only if
 they refer to a record's .VAL field.
 }. In addition, warning
 messages are printed to the console if a PV's alarm status exceeds
-a configurable threshold (see \ref{swarnlevel}).
+a \hyperref[ref]{configurable threshold}{configurable threshold (see }{ )}{swarnlevel}.
 %
 %
 \item[timestamp] (\ita{optional return value}) Returns a \mxl{}
@@ -326,7 +326,7 @@ Retrieve the graphic limits associated with a number of PVs.
 
 \subsubsection{ezcaGetStatus}
 \begin{verbatim}
-[severity, status, timestamp]  = ezcaGetStatus(pvs)
+[severity, status, timestamp] = ezcaGetStatus(pvs)
 \end{verbatim}
 Retrieve the alarm severity and status of a number of PVs along
 with their timestamp.
@@ -336,7 +336,7 @@ with their timestamp.
 \item[severity] \mxl{} column vector of the alarm severities.
 \item[status] \mxl{} column vector of the alarm status.
 \item[timestamp] \mxl{} \ita{complex} column vector holding the
-PV timestamps (see \ref{tsformat} about the timestamp format).
+PV \hyperref[ref]{timestamps}{timestamps (see }{ about the timestamp format)}{tsformat}.
 \end{description}
 
 
