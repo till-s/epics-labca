@@ -71,6 +71,8 @@ static epicsMutexId	ezcaMutex = 0;
 			epicsThreadGetIdSelf()); 				\
 		epicsMutexUnlock(ezcaMutex); 				\
 	} while (0)
+#define DO_INIT_ONCE() \
+	do { epicsThreadOnce(&Initialized, init, 0); } while (0)
 #else
 #define EZCA_LOCK() \
 	do { \
@@ -78,6 +80,8 @@ static epicsMutexId	ezcaMutex = 0;
 #define EZCA_UNLOCK() \
 	do { \
 	} while (0)
+#define DO_INIT_ONCE() \
+    do { if (!Initialized) init(0); } while (0)
 #endif
 
 
@@ -341,7 +345,7 @@ struct work_list
 /**************************/
 
 #ifdef EPICS_THREE_FOURTEEN
-static epicsThreadOnceId Initialized = 0;
+static /*volatile*/ epicsThreadOnceId Initialized = 0;
 #else
 static BOOL Initialized = FALSE;
 #endif
@@ -492,6 +496,7 @@ static void print_workp(void);
 
 void epicsShareAPI ezcaLock()
 {
+	DO_INIT_ONCE();
 	EZCA_LOCK();
 }
 
@@ -526,10 +531,18 @@ void epicsShareAPI ezcaAbort()
 EzcaPollCb epicsShareAPI ezcaPollCbInstall(EzcaPollCb newCb)
 {
 EzcaPollCb rval;
+int	i;
+
+/* give them the option to call this prior to initializing the library */
+if ( (i=Initialized) )
 	EZCA_LOCK();
+
 	rval = pollCb;
 	pollCb = newCb;
+
+if (i)
 	EZCA_UNLOCK();
+
 	return rval;
 }
 
@@ -557,7 +570,6 @@ BOOL all_reported, error, issued_a_search;
 unsigned char hi;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if (InGroup)
@@ -945,7 +957,6 @@ char *cp;
 unsigned nbytes;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if (buff)
@@ -1381,7 +1392,6 @@ struct monitor *mp;
 BOOL found;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if (pvname)
@@ -1455,7 +1465,6 @@ void epicsShareAPI ezcaPerror(char *prefix)
 struct work *wp;
 char *wtm;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if (ErrorLocation == SINGLEWORK)
@@ -1582,7 +1591,6 @@ void epicsShareAPI ezcaAutoErrorMessageOff()
 
 struct work *wp;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1618,7 +1626,6 @@ void epicsShareAPI ezcaAutoErrorMessageOn()
 
 struct work *wp;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1657,7 +1664,6 @@ struct work *wp;
 BOOL found;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1788,7 +1794,6 @@ void epicsShareAPI ezcaDebugOff()
 
 struct work *wp;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1824,7 +1829,6 @@ void epicsShareAPI ezcaDebugOn()
 
 struct work *wp;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1867,7 +1871,6 @@ struct work *wp;
 int status;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1927,7 +1930,6 @@ void epicsShareAPI ezcaFree(void *buff)
 
 struct work *wp;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1964,7 +1966,6 @@ int epicsShareAPI ezcaGetRetryCount()
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2002,7 +2003,6 @@ float epicsShareAPI ezcaGetTimeout()
 struct work *wp;
 float rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2041,7 +2041,6 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2130,7 +2129,6 @@ struct work *wp;
 BOOL found;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2358,7 +2356,6 @@ int epicsShareAPI ezcaSetRetryCount(int retry)
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2409,7 +2406,6 @@ int epicsShareAPI ezcaSetTimeout(float sec)
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2460,7 +2456,6 @@ int epicsShareAPI ezcaStartGroup()
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2521,7 +2516,6 @@ void epicsShareAPI ezcaTraceOff()
 
 struct work *wp;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2557,7 +2551,6 @@ void epicsShareAPI ezcaTraceOn()
 
 struct work *wp;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2604,7 +2597,6 @@ struct work *wp;
 struct channel *cp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -2742,7 +2734,6 @@ struct work *wp;
 struct channel *cp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -2866,7 +2857,6 @@ struct work *wp;
 struct channel *cp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -2991,7 +2981,6 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3095,7 +3084,6 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3210,7 +3198,6 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3354,7 +3341,6 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3469,7 +3455,6 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3637,7 +3622,6 @@ unsigned attempts;
 BOOL reported, error;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3897,7 +3881,6 @@ struct work *wp;
 int nbytes;
 int rc;
 
-/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -4808,19 +4791,12 @@ static void prologue()
 
 int rc;
 
-#ifdef EPICS_THREE_FOURTEEN
-	epicsThreadOnce(&Initialized, init, 0);
-#else
-    if (!Initialized) {
-		
-		init(0);
-	}
-#if 0
-    else
-#endif
-#endif
+	DO_INIT_ONCE();
 
 	EZCA_LOCK();
+
+    /* restore retry count in case they aborted */
+    RetryCount = SavedRetryCount;
 
     {
 	if (!InGroup)
@@ -4846,8 +4822,6 @@ int rc;
 
 static void epilogue()
 {
-	/* restore retry count in case they aborted */
-	RetryCount = SavedRetryCount;
 	EZCA_UNLOCK();
 }
 
