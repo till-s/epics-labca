@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.14 2004/03/23 23:52:11 till Exp $ */
+/* $Id: mglue.c,v 1.15 2004/03/27 00:22:30 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -68,7 +68,7 @@ int	rval = -1;
 
 	for ( i=buflen=0; i<m; i++ ) {
 		tmp = mxIsCell(pin) ? mxGetCell(pin, i) : pin;		
-		if ( 1 != mxGetM(tmp) || ! mxIsChar(tmp) ) {
+		if ( !tmp || !mxIsChar(tmp) || 1 != mxGetM(tmp) ) {
 			MEXERRPRINTF("Not an vector of strings??");
 			goto cleanup;
 		}
