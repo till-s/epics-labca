@@ -10,6 +10,8 @@
 \newcommand{\scilab}{\ita{scilab}}
 \newcommand{\matlab}{\ita{matlab}}
 \newcommand{\windoze}{\ita{win32}}
+\newcommand{\linux}{\ita{linux}}
+\newcommand{\solaris}{\ita{solaris}}
 \newcommand{\ezca}{\ita{ezca}}
 \newcommand{\com}[1]{{\tt #1}}
 \newcommand{\NAN}{\mbox{NaN}}
@@ -54,7 +56,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.14 2004/01/14 01:16:31 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.15 2004/01/14 02:10:47 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -521,10 +523,31 @@ and \windoze.
 Two files, `\com{config/CONFIG}' and `\com{config/RELEASE}' need to
 be adapted to the user's installation:
 \begin{description}
-\item[\tt CONFIG:] Setting the \com{MAKEFOR} variable in this file
+\item[\tt CONFIG:] A handful of configuration parameters must be defined
+in this file.
+\begin{description}
+\item[\tt MAKEFOR:] Setting the \com{MAKEFOR} variable
 determines the target application program the interface library is
 built for. Valid settings are \com{MAKEFOR=SCILAB} or \com{MAKEFOR=MATLAB}.
 Any setting other than \com{MATLAB} is treated like \com{SCILAB}.
+
+\item[\tt CONFIG\_USE\_CTRLC:] Set this to {\tt YES} or {\tt NO} to enable
+or disable, respectively, code for handling ``Ctrl-C'' keystroke sequences.
+When enabled, \sca{} operations may be aborted by hitting ``Ctrl-C''. Note
+that \sca{} polls for an ``abort condition'' with a granularity of the
+\hyperref[ref]{\ezca{} timeout parameter}{timeout parameter (see }{ )}{timeout}.
+Unfortunately, neither \matlab{} nor \scilab{} feature an API for handling
+Ctrl-C events and therefore the implementation is highly system dependent.
+Currently, the feature is supported on \linux, \solaris{} and \windoze.
+Also, it should be noted that due to the lack of a clean interface, Ctrl-C
+handling must be considered ``experimental'', i.e. it might cause problems
+on certain system and/or \scilab/\matlab{} versions. Nonetheless, Ctrl-C
+handling can be very useful and works well on the aforementioned
+systems on some combinations of \scilab-2.7, \matlab-13, \matlab-14, EPICS 3.13
+and EPICS 3.14.
+\item[\tt INSTALL\_LOCATION:] Set this variable to install in a location
+different from the \sca{} top directory.
+\end{description}
 %
 %
 \item[\tt RELEASE:] In this file, paths to the EPICS base (`\com{EPICS\_BASE}'
