@@ -22,31 +22,31 @@ SHARED_LIBRARIES = YES
 #
 #	Contents of library: generic, special and for all systems
 #
-ezcaGetNelem_OBJS             := ezcaGetNelem.c
-ezcaGet_OBJS                  := ezcaGet.c
-ezcaPut_OBJS                  := ezcaPut.c
-ezcaGetControlLimits_OBJS     := ezcaGetControlLimits.c
-ezcaGetGraphicLimits_OBJS     := ezcaGetGraphicLimits.c
+lcaGetNelem_OBJS             := lcaGetNelem.c
+lcaGet_OBJS                  := lcaGet.c
+lcaPut_OBJS                  := lcaPut.c
+lcaGetControlLimits_OBJS     := lcaGetControlLimits.c
+lcaGetGraphicLimits_OBJS     := lcaGetGraphicLimits.c
 ecget_OBJS                    := ecget.c
-ezcaGetRetryCount_OBJS        := ezcaGetRetryCount.c
-ezcaSetRetryCount_OBJS        := ezcaSetRetryCount.c
-ezcaGetTimeout_OBJS           := ezcaGetTimeout.c
-ezcaSetTimeout_OBJS           := ezcaSetTimeout.c
-ezcaSetSeverityWarnLevel_OBJS := ezcaSetSeverityWarnLevel.c
+lcaGetRetryCount_OBJS        := lcaGetRetryCount.c
+lcaSetRetryCount_OBJS        := lcaSetRetryCount.c
+lcaGetTimeout_OBJS           := lcaGetTimeout.c
+lcaSetTimeout_OBJS           := lcaSetTimeout.c
+lcaSetSeverityWarnLevel_OBJS := lcaSetSeverityWarnLevel.c
 
 # on generic system
 USR_CPPFLAGS += -DMATLAB_APP
 EPICS_INCLUDES += -I$(MATLABDIR)/extern/include
-MEXF := ezcaGetNelem
-MEXF += ezcaGet
-MEXF += ezcaGetGraphicLimits
-MEXF += ezcaGetControlLimits
-MEXF += ezcaPut
-MEXF += ezcaGetRetryCount
-MEXF += ezcaSetRetryCount
-MEXF += ezcaGetTimeout
-MEXF += ezcaSetTimeout
-MEXF += ezcaSetSeverityWarnLevel
+MEXF := lcaGetNelem
+MEXF += lcaGet
+MEXF += lcaGetGraphicLimits
+MEXF += lcaGetControlLimits
+MEXF += lcaPut
+MEXF += lcaGetRetryCount
+MEXF += lcaSetRetryCount
+MEXF += lcaGetTimeout
+MEXF += lcaSetTimeout
+MEXF += lcaSetSeverityWarnLevel
 MEXF += ecget
 
 PROD += $(MEXF)
@@ -54,9 +54,6 @@ PROD += $(MEXF)
 MATDOCS=$(wildcard $(addprefix $(TOP)/documentation/help/,$(MEXF:%=%.m) Contents.m))
 
 SCRIPTS+=$(notdir $(MATDOCS))
-
-ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
-ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
 
 EXE = $(MEXEXT)
 
