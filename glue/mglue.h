@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.2 2003/12/12 10:28:21 till Exp $ */
+/* $Id: mglue.h,v 1.3 2003/12/22 04:08:18 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -12,6 +12,10 @@ typedef struct PVs_ {
 	char **names;
 } PVs;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void
 releasePVs(PVs *pvs);
 
@@ -20,6 +24,9 @@ buildPVs(const mxArray *pin, PVs *pvs);
 
 /* mexErrMsgTxt() crashes matlab14-beta :-( */
 #define MEXERRPRINTF mexWarnMsgTxt
+
+void
+ecdrget(char *name, int *nlen, long **buf, int *nelms);
 
 /* check for 'typearg' being a string and use the
  * first character to determine the desired ezca type
@@ -33,6 +40,10 @@ buildPVs(const mxArray *pin, PVs *pvs);
  */
 char
 marg2ezcaType(const mxArray *typearg);
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif
 
