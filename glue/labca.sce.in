@@ -1,0 +1,23 @@
+// Addinter for EZCA interface
+// for hppa/sun-solaris/linux/dec
+//--------------------------------
+//Scilab functions 
+ezca_funs=[...
+  'ezcaGet';
+  'ezcaPut';
+  'ezcaGetNelem';
+  'ezcaGetControlLimits';
+  'ezcaGetGraphicLimits';
+  'ezcaGetStatus';
+  'ezcaGetPrecision';
+  'ezcaGetUnits';
+  'ezcaGetRetryCount';
+  'ezcaSetRetryCount';
+  'ezcaGetTimeout';
+  'ezcaSetTimeout';
+  'ezcaDebugOn';
+  'ezcaDebugOff';
+  'ezcaSetSeverityWarnLevel';
+  'ecdrGet';
+  ]  
+addinter('THELIB','ezca',ezca_funs);
