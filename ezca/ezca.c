@@ -672,7 +672,9 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 	{
 	    if (wp->rc == EZCA_OK && wp->cp && !EzcaConnected(wp->cp))
 	    {
-		/* do not want to remove here ... may come up later */
+		/* remove */
+		clean_and_push_channel( wp->cp );
+		wp->cp = (struct channel *) NULL;
 
 		wp->rc = EZCA_NOTIMELYRESPONSE;
 		wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
@@ -4385,7 +4387,19 @@ printf("get_channel(): could not find_channel(). must ca_search_and_connect() an
 			    if (EzcaPendEvent(wp,TimeoutSeconds) == ECA_TIMEOUT)
 				done = EzcaConnected(*cpp);
 			} /* endfor */
-		    }
+
+			if ( !done ) {
+		    	clean_and_push_channel( *cpp );
+				*cpp = (struct channel *) NULL;
+		
+				wp->rc = EZCA_NOTIMELYRESPONSE;
+				wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
+				wp->aux_error_msg = strdup(wp->pvname);
+	
+				if (AutoErrorMessage)
+		    		print_error(wp);
+			}
+	    	} /* endif */
 		    else
 		    {
 			/* something went wrong ... rc and */
@@ -7026,7 +7040,9 @@ struct monitor *mp;
 	/* clearing the chid */
 
 	clear_failed = EzcaClearChannel(cp);
+#ifndef EPICS_THREE_FOURTEEN
 	EzcaPendIO((struct work *) NULL, SHORT_TIME);
+#endif
 
 	push_channel(cp, clear_failed ? &Discarded_channels : &Channel_avail_hdr);
 
