@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.3 2003/12/17 20:52:26 till Exp $ */
+/* $Id: multiEzca.c,v 1.4 2003/12/22 04:11:16 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -15,7 +15,6 @@
 #if defined(WIN32) || defined(_WIN32)
 #include <float.h>
 #define isnan _isnan
-extern int _isnan(double);
 #endif
 
 #ifndef MACHHACK
@@ -225,6 +224,27 @@ char *rval = 0;
 	return rval;
 }
 
+#if (EPICS_VERSION < 3 || (EPICS_VERSION == 3 && EPICS_REVISION < 14))
+
+#include <time.h>
+
+#if defined(WIN32) || defined(_WIN32)
+struct timespec {
+    time_t tv_sec; /* seconds since some epoch */
+    long tv_nsec; /* nanoseconds within the second */
+};
+#endif
+
+/* provide bogus epicsTimeToTimespec */
+void
+epicsTimeToTimespec(struct timespec *tspec, TS_STAMP *tstamp)
+{
+	mexPrintf("WARNING: epicsTimeToTimespec not implemented\n");
+	tspec->tv_sec = 0;
+	tspec->tv_nsec = 0;
+}
+
+#endif
 
 /* scilab external type converters */
 
@@ -457,10 +477,10 @@ register char *bufp;
 	for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) {
 	int j = 0;
 	switch ( types[i] ) {
-		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), char,   *cpt=*fpt ); break;
-		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), short,  *cpt=*fpt ); break;
-		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), long,   *cpt=*fpt ); break;
-		case ezcaFloat:   CVTVEC( double, isnan(*(double*)fpt), float,  *cpt=*fpt ); break;
+		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), char,   *cpt=(char)*fpt ); break;
+		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), short,  *cpt=(short)*fpt ); break;
+		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), long,   *cpt=(long)*fpt ); break;
+		case ezcaFloat:   CVTVEC( double, isnan(*(double*)fpt), float,  *cpt=(float)*fpt ); break;
 		case ezcaDouble:  CVTVEC( double, isnan(*(double*)fpt), double, *cpt=*fpt ); break;
 		case ezcaString:  CVTVEC( char*,
 								    (!*fpt || !**fpt),
@@ -784,15 +804,3 @@ cleanup:
 	return rval;
 }
 
-#if (EPICS_VERSION < 3 || (EPICS_VERSION == 3 && EPICS_REVISION < 14))
-
-/* provide bogus epicsTimeToTimespec */
-void
-epicsTimeToTimespec(struct timespec *tspec, TS_STAMP *tstamp)
-{
-	mexPrintf("WARNING: epicsTimeToTimespec not implemented\n");
-	tspec->tv_sec = 0;
-	tspec->tv_nsec = 0;
-}
-
-#endif
