@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.1 2003/12/11 05:33:54 till Exp $ */
+/* $Id: mglue.h,v 1.2 2003/12/12 10:28:21 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -19,7 +19,7 @@ int
 buildPVs(const mxArray *pin, PVs *pvs);
 
 /* mexErrMsgTxt() crashes matlab14-beta :-( */
-#define MEXERRPRINTF(fmt...) mexWarnMsgTxt(fmt)
+#define MEXERRPRINTF mexWarnMsgTxt
 
 /* check for 'typearg' being a string and use the
  * first character to determine the desired ezca type
