@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.11 2004/02/12 00:23:58 till Exp $ */
+/* $Id: ini.cc,v 1.12 2004/03/01 19:36:45 till Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -6,6 +6,10 @@
 #include <cadef.h>
 #include <ezca.h>
 #include <multiEzcaCtrlC.h>
+
+#ifdef SCILAB_APP
+#include <signal.h>
+#endif
 
 class multiEzcaInitializer {
 public:
@@ -17,6 +21,13 @@ multiEzcaInitializer::
 multiEzcaInitializer()
 {
 CtrlCStateRec saved;
+
+#ifdef SCILAB_APP
+	/* uninstall scilabs recovery method; I'd rather have
+	 * a coredump to debug...
+	 */
+	signal(SIGSEGV, SIG_DFL);
+#endif
 
 /* don't print to stderr because that
  * doesn't go to scilab's main window...

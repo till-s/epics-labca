@@ -64,15 +64,17 @@ gnelm_LIBS = $(LIBRARY)
 #
 
 # need additional libs
-PROD_LIBS :=ezcamt ca Com
+PROD_LIBS :=ezcamt
+SHRLIB_VERSION:=0
 
 # USR_LIBS_xxx doesn't work under EPICS 3.14.2 :-(
 # USR_LIBS_WIN32 += libmx libmex
+PROD_LIBS_WIN32 += ca Com
 
 SYS_PROD_LIBS_WIN32 += user32
 
 ifeq ($(MAKEFOR),MATLAB)
-#PROD      += gnelm
+PROD      += gnelm
 ifeq ($(ARCH_CLASS),WIN32)
 PROD_LIBS += libmx libmex
 else
@@ -97,10 +99,6 @@ LibScilab_DIR:=$(SCILABDIR)/bin
 mezcaglue_DIR:=$(INSTALL_LIB)
 
 ezcamt_DIR := $(INSTALL_LIB)
-ca_DIR := $(EPICS_BASE_LIB)
-Com_DIR := $(EPICS_BASE_LIB)
-
-
 
 ifndef BASE_3_14
 ifeq ($(OS_CLASS),solaris)
