@@ -70,9 +70,7 @@ endif
 
 .SECONDARY:
 
-clean::
-
-purge:
+purge::
 	$(RM) -r help
 	$(RM) -r manual 
 	$(RM) *.aux *.dvi *.log *.pdf *.out *.ps
