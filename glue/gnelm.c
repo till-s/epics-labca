@@ -1,7 +1,6 @@
-/* $Id$ */
+/* $Id: gnelm.c,v 1.2 2003/12/23 23:15:56 strauman Exp $ */
 
 #include <cadef.h>
-#include <mglue.h>
 #include <multiEzca.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -19,13 +18,13 @@ main(int argc, char **argv)
 {
 int blah[MAX_PVS];
 int i;
-argv++; 
 if (--argc > MAX_PVS)
   argc = MAX_PVS;
 if (!argc) {
-	fprintf(stderr,"Usage: %s PV [PV]\n",argv[0]);
+	fprintf(stderr,"Usage: %s PV [PV] [PV]...\n",argv[0]);
 	exit(1);
 }
+argv++; 
 multi_ezca_get_nelem(argv,argc,blah);
 for (i=0; i<argc-1; i++)
 	printf("%i\n",blah[i]);
