@@ -1,4 +1,4 @@
-/* $Id: ezcaPut.c,v 1.3 2003/12/31 07:53:07 till Exp $ */
+/* $Id: lcaPut.c,v 1.4 2004/02/27 01:24:34 till Exp $ */
 
 /* matlab wrapper for ezcaPut */
 
@@ -24,6 +24,7 @@ PVs     pvs = { 0 };
 char	type = ezcaNative;
 mxArray *dummy = 0;
 	
+#ifdef LCAPUT_RETURNS_VALUE
 	if ( nlhs == 0 )
 		nlhs = 1;
 
@@ -31,6 +32,13 @@ mxArray *dummy = 0;
 		MEXERRPRINTF("Too many output args");
 		goto cleanup;
 	}
+#else
+	if ( nlhs ) {
+		MEXERRPRINTF("Too many output args");
+		goto cleanup;
+	}
+	nlhs = -1;
+#endif
 
 	if ( nrhs < 2 || nrhs > 3 ) {
 		MEXERRPRINTF("Expected 2..3 rhs argument");
@@ -100,11 +108,13 @@ mxArray *dummy = 0;
 	rval = multi_ezca_put( pvs.names, pvs.m, type, (pstr ? (void*)pstr : (void*)mxGetPr(prhs[1])), m, n);
 
 	if ( rval > 0 ) {
+#ifdef LCAPUT_RETURNS_VALUE
 		if ( !(plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL)) ) {
 			MEXERRPRINTF("Not enough memory");
 			goto cleanup;
 		}
 		*mxGetPr(plhs[0]) = (double)rval;
+#endif
 		nlhs = 0;
 	}
 

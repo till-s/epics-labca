@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.13 2004/02/11 23:01:10 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.14 2004/02/27 01:21:44 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -140,7 +140,7 @@ char      type  = ezcaNative;
 
 static int intsezcaPut(char *fname)
 {
-int mpvs, mval, ntmp, n, i, one = 1;
+int mpvs, mval, ntmp, n, i;
 void *buf;
 char **pvs;
 char type  = ezcaNative;
@@ -170,13 +170,17 @@ char type  = ezcaNative;
 		type = t;
 	}
 
+#ifdef LCAPUT_RETURNS_VALUE
+	{ int one=1;
 	CreateVar(4,"r",&one,&one,&i);
-
+	}
+	LhsVar(1) = 4;
 	/* default value to optional argument type */
 	/* cross variable size checking */
-	*sstk(i) = multi_ezca_put(pvs, mpvs, type, buf, mval, n);
+	*sstk(i) =
+#endif
+		multi_ezca_put(pvs, mpvs, type, buf, mval, n);
 
-	LhsVar(1) = 4;
 	return 0;
 }
 
