@@ -37,6 +37,32 @@
 extern char *strdup(const char *s1);
 #endif
 
+#include <epicsVersion.h>
+#if 1 && (EPICS_VERSION > 3 || (EPICS_VERSION == 3 && EPICS_REVISION >= 14))
+#define EPICS_THREE_FOURTEEN
+#include <epicsMutex.h>
+#include <epicsThread.h>
+static epicsMutexId	ezcaMutex = 0;
+#define LCK_DEBUG_PRINTF(fmt...)
+#define	EZCA_LOCK() \
+	do { \
+		LCK_DEBUG_PRINTF("Thread %s (0x%x) tries to lock\n",	\
+			epicsThreadGetNameSelf(),				\
+			epicsThreadGetIdSelf()); 				\
+		epicsMutexLock(ezcaMutex);					\
+	} while (0)
+#define	EZCA_UNLOCK()	\
+	do { \
+		LCK_DEBUG_PRINTF("Thread %s (0x%x) unlocks\n",		\
+			epicsThreadGetNameSelf(),				\
+			epicsThreadGetIdSelf()); 				\
+		epicsMutexUnlock(ezcaMutex); \
+	} while (0)
+#else
+#define EZCA_LOCK()	do {} while (0)
+#define EZCA_UNLOCK()	do {} while (0)
+#endif
+
 
 #define BOOL  char
 #define FALSE 0
@@ -297,7 +323,11 @@ struct work_list
 /*                        */
 /**************************/
 
+#ifdef EPICS_THREE_FOURTEEN
+static epicsThreadOnceId Initialized = 0;
+#else
 static BOOL Initialized = FALSE;
+#endif
 
 static struct work_list Work_list;
 static struct work *Workp;
@@ -439,11 +469,20 @@ static void print_workp(void);
 *
 ****************************************************************/
 
+void epicsShareAPI ezcaLock()
+{
+	EZCA_LOCK();
+}
+
+void epicsShareAPI ezcaUnlock()
+{
+	EZCA_LOCK();
+}
+
 int epicsShareAPI ezcaEndGroup()
 {
-
-    return ezcaEndGroupWithReport((int **) NULL, (int *) NULL);
-
+	/* ezcaEndGroupWithReport is mutexed */
+	return ezcaEndGroupWithReport((int **) NULL, (int *) NULL);
 } /* end ezcaEndGroup() */
 
 /****************************************************************
@@ -464,6 +503,7 @@ BOOL all_reported, error, issued_a_search;
 unsigned char hi;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if (InGroup)
@@ -607,7 +647,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 			wp->needs_work = issue_get(wp, wp->cp);
 			break;
 		    case GETNELEM:
-			wp->nelem = EzcaElementCount(wp->cp);
+			*wp->intp = wp->nelem = EzcaElementCount(wp->cp);
 			wp->needs_work = FALSE;
 			break;
 		    case GETSTATUS:
@@ -830,6 +870,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 	    printf("%s\n", NOTINGROUP_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end endgroup() */
@@ -850,6 +891,7 @@ char *cp;
 unsigned nbytes;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if (buff)
@@ -1252,6 +1294,7 @@ int rc;
 	    printf("%s\n", INVALID_ARG_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetErrorString() */
@@ -1284,6 +1327,7 @@ struct monitor *mp;
 BOOL found;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if (pvname)
@@ -1340,6 +1384,7 @@ int rc;
 
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaNewMonitorValue() */
@@ -1356,6 +1401,7 @@ void epicsShareAPI ezcaPerror(char *prefix)
 struct work *wp;
 char *wtm;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if (ErrorLocation == SINGLEWORK)
@@ -1458,6 +1504,7 @@ char *wtm;
 	} /* endfor */
     } /* endif */
 
+EZCA_UNLOCK();
 } /* end ezcaPerror() */
 
 /**************************************************************/
@@ -1481,6 +1528,7 @@ void epicsShareAPI ezcaAutoErrorMessageOff()
 
 struct work *wp;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1503,6 +1551,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
 } /* end ezcaAutoErrorMessageOff() */
 
 /****************************************************************
@@ -1515,6 +1564,7 @@ void epicsShareAPI ezcaAutoErrorMessageOn()
 
 struct work *wp;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1536,6 +1586,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
 } /* end ezcaAutoErrorMessageOn() */
 
 /****************************************************************
@@ -1552,6 +1603,7 @@ struct work *wp;
 BOOL found;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1666,6 +1718,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaClearMonitor() */
@@ -1681,6 +1734,7 @@ void epicsShareAPI ezcaDebugOff()
 
 struct work *wp;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1702,6 +1756,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
 } /* end ezcaDebugOff() */
 
 /****************************************************************
@@ -1715,6 +1770,7 @@ void epicsShareAPI ezcaDebugOn()
 
 struct work *wp;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1736,6 +1792,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
 } /* end ezcaDebugOn() */
 
 /****************************************************************
@@ -1756,6 +1813,7 @@ struct work *wp;
 int status;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1800,6 +1858,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaDelay() */
@@ -1814,6 +1873,7 @@ void epicsShareAPI ezcaFree(void *buff)
 
 struct work *wp;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1836,6 +1896,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
 } /* end ezcaFree() */
 
 /****************************************************************
@@ -1849,6 +1910,7 @@ int epicsShareAPI ezcaGetRetryCount()
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1870,6 +1932,7 @@ int rc;
 
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetRetryCount() */
@@ -1885,6 +1948,7 @@ float epicsShareAPI ezcaGetTimeout()
 struct work *wp;
 float rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1906,6 +1970,7 @@ float rc;
 
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetTimeout() */
@@ -1922,6 +1987,7 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -1991,6 +2057,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaPvToChid() */
@@ -2009,6 +2076,7 @@ struct work *wp;
 BOOL found;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2220,6 +2288,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaSetMonitor() */
@@ -2235,6 +2304,7 @@ int epicsShareAPI ezcaSetRetryCount(int retry)
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2269,6 +2339,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaSetRetryCount() */
@@ -2284,6 +2355,7 @@ int epicsShareAPI ezcaSetTimeout(float sec)
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2318,6 +2390,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaSetTimeout() */
@@ -2333,6 +2406,7 @@ int epicsShareAPI ezcaStartGroup()
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2377,6 +2451,7 @@ int rc;
 
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaStartGroup() */
@@ -2392,6 +2467,7 @@ void epicsShareAPI ezcaTraceOff()
 
 struct work *wp;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2413,6 +2489,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
 } /* end ezcaTraceOff() */
 
 /****************************************************************
@@ -2426,6 +2503,7 @@ void epicsShareAPI ezcaTraceOn()
 
 struct work *wp;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work_single()))
@@ -2447,6 +2525,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
 } /* end ezcaTraceOn() */
 
 /**************************************************************/
@@ -2471,6 +2550,7 @@ struct work *wp;
 struct channel *cp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -2591,6 +2671,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGet() */
@@ -2607,6 +2688,7 @@ struct work *wp;
 struct channel *cp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -2713,6 +2795,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetControlLimits() */
@@ -2729,6 +2812,7 @@ struct work *wp;
 struct channel *cp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -2836,6 +2920,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetGraphicLimits() */
@@ -2852,6 +2937,7 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -2938,6 +3024,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetNelem() */
@@ -2954,6 +3041,7 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3050,6 +3138,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetPrecision() */
@@ -3067,6 +3156,7 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3193,6 +3283,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetStatus() */
@@ -3209,6 +3300,7 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3305,6 +3397,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetUnits() */
@@ -3322,6 +3415,7 @@ struct channel *cp;
 struct work *wp;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3469,6 +3563,7 @@ printf("ezcaGetWithStatus(): did not find an active monitor with a value\n");
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaGetWithStatus() */
@@ -3488,6 +3583,7 @@ int attempts;
 BOOL reported, error;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3729,6 +3825,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaPut() */
@@ -3746,6 +3843,7 @@ struct work *wp;
 int nbytes;
 int rc;
 
+/* EZCA_LOCK(); done in prologue */
     prologue();
 
     if ((wp = get_work()))
@@ -3913,6 +4011,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
+EZCA_UNLOCK();
     return rc;
 
 } /* end ezcaPutOldCa() */
@@ -4440,7 +4539,11 @@ static void init()
 
 int i;
 
+#ifdef EPICS_THREE_FOURTEEN
+	ezcaMutex = epicsMutexMustCreate();
+#else
     Initialized = TRUE;
+#endif
 
     EzcaInitializeChannelAccess();
 
@@ -4651,9 +4754,20 @@ static void prologue()
 
 int rc;
 
-    if (!Initialized)
-	init();
+#ifdef EPICS_THREE_FOURTEEN
+	epicsThreadOnce(&Initialized, init, 0);
+#else
+    if (!Initialized) {
+		
+		init();
+	}
+#if 0
     else
+#endif
+#endif
+
+	EZCA_LOCK();
+
     {
 	if (!InGroup)
 	{
@@ -5181,6 +5295,9 @@ static void EzcaInitializeChannelAccess()
     if (Trace || Debug)
 	printf("ca_task_initialize()\n");
 
+#ifdef EPICS_THREE_FOURTEEN
+	ca_context_create(ca_enable_preemptive_callback);
+#endif
     ca_task_initialize();
 
 } /* end initialize_channel_access() */
@@ -5228,10 +5345,12 @@ int rc;
     if (Trace || Debug)
 	printf("ca_pend_event(%f)\n", (sec > 0 ? sec : SHORT_TIME));
 
+EZCA_UNLOCK();
     if (sec > 0)
 	rc = ca_pend_event(sec);
     else
 	rc = ca_pend_event(SHORT_TIME);
+EZCA_LOCK();
 
     if (wp)
     {
@@ -5271,10 +5390,12 @@ int rc;
     if (Trace || Debug)
 	printf("ca_pend_io(%f)\n", (sec > 0 ? sec : SHORT_TIME));
 
+EZCA_UNLOCK();
     if (sec > 0)
 	rc = ca_pend_io(sec);
     else
 	rc = ca_pend_io(SHORT_TIME);
+EZCA_LOCK();
 
     if (wp)
     {
@@ -5369,6 +5490,8 @@ int rc;
 
 static void my_connection_callback(struct connection_handler_args arg)
 {
+EZCA_LOCK();
+EZCA_UNLOCK();
 } /* end my_connection_callback() */
 
 /****************************************************************
@@ -5407,6 +5530,7 @@ static void my_get_callback(struct event_handler_args arg)
 struct work *wp;
 int nbytes;
 
+EZCA_LOCK();
     if (Trace || Debug)
 	printf("entering my_get_callback()\n");
 
@@ -6384,6 +6508,7 @@ int nbytes;
     if (Trace || Debug)
 	printf("exiting my_get_callback()\n");
 
+EZCA_UNLOCK();
 } /* end my_get_callback() */
 
 /****************************************************************
@@ -6419,6 +6544,7 @@ static void my_monitor_callback(struct event_handler_args arg)
 struct monitor *mp;
 int nbytes;
 
+EZCA_LOCK();
     if (Trace || Debug)
 	printf("entering my_monitor_callback()\n");
 
@@ -6597,6 +6723,7 @@ int nbytes;
     if (Trace || Debug)
 	printf("exiting my_monitor_callback()\n");
 
+EZCA_UNLOCK();
 } /* end my_monitor_callback() */
 
 /****************************************************************
@@ -6622,6 +6749,7 @@ static void my_put_callback(struct event_handler_args arg)
 
 struct work *wp;
 
+EZCA_LOCK();
     if (Trace || Debug)
 	printf("entering my_put_callback()\n");
 
@@ -6663,6 +6791,7 @@ struct work *wp;
     if (Trace || Debug)
 	printf("exiting my_put_callback()\n");
 
+EZCA_UNLOCK();
 } /* end my_put_callback() */
 
 /*********************/

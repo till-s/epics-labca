@@ -34,6 +34,8 @@ extern "C" {
 
 /* Immediate Functions ... do not affect error message */
 
+epicsShareFunc void epicsShareAPI ezcaLock(void);	/* lock library mutex    */
+epicsShareFunc void epicsShareAPI ezcaUnlock(void);	/* release library mutex */
 epicsShareFunc int epicsShareAPI ezcaEndGroup(void);
 epicsShareFunc int epicsShareAPI ezcaEndGroupWithReport(int **rcs, int *nrcs);
 epicsShareFunc int epicsShareAPI ezcaGetErrorString(char *prefix, char **buff);
