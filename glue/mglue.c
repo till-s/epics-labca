@@ -1,12 +1,13 @@
-/* $Id: mglue.c,v 1.2 2003/12/12 10:28:21 till Exp $ */
+/* $Id: mglue.c,v 1.3 2003/12/22 04:11:32 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 /* Author: Till Straumann <strauman@slac.stanford.edu> */
 
-#include "mglue.h"
-#include "multiEzca.h"
 #include <cadef.h>
 #include <ezca.h>
+
+#include "multiEzca.h"
+#include "mglue.h"
 
 void
 releasePVs(PVs *pvs)
