@@ -1,0 +1,19 @@
+LIBRARY   mezcaglue
+
+EXPORTS
+
+alarmSeverityString
+alarmStatusString
+ezcaSeverityWarnLevel
+buildPVs
+cshortf
+cts_stampf_
+marg2ezcaType
+multi_ezca_get
+multi_ezca_get_misc
+multi_ezca_get_nelem
+multi_ezca_put
+my_strdup
+releasePVs
+timeArgsAlloc
+timeArgsRelease
