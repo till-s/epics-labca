@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.11 2003/12/18 19:41:02 till Exp $ */
+/* $Id: ecget.c,v 1.12 2003/12/22 20:45:11 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -209,6 +209,7 @@ cleanup:
  *              passed 0.
  *
  */
+
 void C2F(ecdrget)(char *pv_name, int *l, buf_t **result, int *nord)
 {
 long		i,j,blsz,zero=0,nelms,chunk,elsz;
