@@ -33,3 +33,5 @@ ezcaDebugOn
 ezcaDebugOff
 ezcaTraceOn
 ezcaTraceOff
+ezcaAbort
+ezcaPollCbInstall

@@ -365,7 +365,10 @@ static char ListPrint;
 static BOOL AutoErrorMessage;
 static BOOL InGroup;
 static float TimeoutSeconds;
-static unsigned RetryCount;
+static unsigned volatile RetryCount;
+static unsigned SavedRetryCount;
+
+static EzcaPollCb pollCb = 0;
 
 static BOOL Debug;
 static BOOL Trace;
@@ -417,6 +420,7 @@ static BOOL issue_get(struct work *, struct channel *);
 static void issue_wait(struct work *);
 static void print_error(struct work *);
 static void prologue(void);
+static void epilogue(void);
 
 /* Channel Access Interface Functions */
 static int EzcaAddArrayEvent(struct work *, struct monitor *);
@@ -502,32 +506,29 @@ void epicsShareAPI ezcaUnlock()
  *
  * Usage:
  *
- *   static int aborted;
- *
  *   static void sighandler()
  *   {
- *      if ( !aborted )
- *         aborted = ezcaAbort();
+ *         ezcaAbort();
  *   }
  *
  *   main()
  *   {
- *      aborted = 0;
  *      orig = signal(SIGINT, handler);
  *       / * "interruptable" ezca calls go here * /
  *      signal(SIGINT, orig);
- *       / * restore retry count * /
- *      if (aborted)
- *        ezcaSetRetryCount(aborted);
- *
  *   }
  */
-unsigned ezcaAbort()
+void epicsShareAPI ezcaAbort()
 {
-unsigned rval;
-	EZCA_LOCK();
-	rval = RetryCount;
 	RetryCount = 0;
+}
+
+EzcaPollCb epicsShareAPI ezcaPollCbInstall(EzcaPollCb newCb)
+{
+EzcaPollCb rval;
+	EZCA_LOCK();
+	rval = pollCb;
+	pollCb = newCb;
 	EZCA_UNLOCK();
 	return rval;
 }
@@ -923,7 +924,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 	    printf("%s\n", NOTINGROUP_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end endgroup() */
@@ -1347,7 +1348,7 @@ int rc;
 	    printf("%s\n", INVALID_ARG_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetErrorString() */
@@ -1437,7 +1438,7 @@ int rc;
 
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaNewMonitorValue() */
@@ -1557,7 +1558,7 @@ char *wtm;
 	} /* endfor */
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
 } /* end ezcaPerror() */
 
 /**************************************************************/
@@ -1604,7 +1605,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
 } /* end ezcaAutoErrorMessageOff() */
 
 /****************************************************************
@@ -1639,7 +1640,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
 } /* end ezcaAutoErrorMessageOn() */
 
 /****************************************************************
@@ -1771,7 +1772,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaClearMonitor() */
@@ -1809,7 +1810,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
 } /* end ezcaDebugOff() */
 
 /****************************************************************
@@ -1845,7 +1846,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
 } /* end ezcaDebugOn() */
 
 /****************************************************************
@@ -1911,7 +1912,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaDelay() */
@@ -1949,7 +1950,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
 } /* end ezcaFree() */
 
 /****************************************************************
@@ -1974,7 +1975,7 @@ int rc;
 	wp->worktype = GETRETRYCOUNT;
 	wp->rc = EZCA_OK;
 
-	rc  = (int) RetryCount;
+	rc  = (int) SavedRetryCount;
     }
     else
     {
@@ -1985,7 +1986,7 @@ int rc;
 
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetRetryCount() */
@@ -2023,7 +2024,7 @@ float rc;
 
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetTimeout() */
@@ -2110,7 +2111,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaPvToChid() */
@@ -2341,7 +2342,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaSetMonitor() */
@@ -2369,7 +2370,7 @@ int rc;
 
 	if (retry >= 0)
 	{
-	    RetryCount = (unsigned) retry;
+	    RetryCount = SavedRetryCount = (unsigned) retry;
 
 	    wp->rc = EZCA_OK;
 	}
@@ -2392,7 +2393,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaSetRetryCount() */
@@ -2443,7 +2444,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaSetTimeout() */
@@ -2504,7 +2505,7 @@ int rc;
 
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaStartGroup() */
@@ -2542,7 +2543,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
 } /* end ezcaTraceOff() */
 
 /****************************************************************
@@ -2578,7 +2579,7 @@ struct work *wp;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
 } /* end ezcaTraceOn() */
 
 /**************************************************************/
@@ -2724,7 +2725,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGet() */
@@ -2848,7 +2849,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetControlLimits() */
@@ -2973,7 +2974,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetGraphicLimits() */
@@ -3077,7 +3078,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetNelem() */
@@ -3191,7 +3192,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetPrecision() */
@@ -3336,7 +3337,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetStatus() */
@@ -3450,7 +3451,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetUnits() */
@@ -3616,7 +3617,7 @@ printf("ezcaGetWithStatus(): did not find an active monitor with a value\n");
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaGetWithStatus() */
@@ -3878,7 +3879,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaPut() */
@@ -4064,7 +4065,7 @@ int rc;
 	    printf("%s\n", FAILED_MALLOC_MSG);
     } /* endif */
 
-EZCA_UNLOCK();
+    epilogue();
     return rc;
 
 } /* end ezcaPutOldCa() */
@@ -4622,7 +4623,7 @@ int i;
     AutoErrorMessage = TRUE;
     InGroup = FALSE;
     TimeoutSeconds = (float)0.05;
-    RetryCount = 599;
+    SavedRetryCount = RetryCount = 599;
 
     Debug = FALSE;
     Trace = FALSE;
@@ -4842,6 +4843,13 @@ int rc;
     } /* endif */
 
 } /* end prologue() */
+
+static void epilogue()
+{
+	/* restore retry count in case they aborted */
+	RetryCount = SavedRetryCount;
+	EZCA_UNLOCK();
+}
 
 /**************************************/
 /*                                    */
@@ -5349,9 +5357,10 @@ static void EzcaInitializeChannelAccess()
 	printf("ca_task_initialize()\n");
 
 #ifdef EPICS_THREE_FOURTEEN
-	ca_context_create(ca_enable_preemptive_callback);
-#endif
+    ca_context_create(ca_enable_preemptive_callback);
+#else
     ca_task_initialize();
+#endif
 
 } /* end initialize_channel_access() */
 
@@ -5398,12 +5407,16 @@ int rc;
     if (Trace || Debug)
 	printf("ca_pend_event(%f)\n", (sec > 0 ? sec : SHORT_TIME));
 
+	if ( pollCb && pollCb() ) {
+		rc = ECA_TIMEOUT;
+	} else {
 EZCA_UNLOCK();
     if (sec > 0)
 	rc = ca_pend_event(sec);
     else
 	rc = ca_pend_event(SHORT_TIME);
 EZCA_LOCK();
+	}
 
     if (wp)
     {
@@ -5443,12 +5456,16 @@ int rc;
     if (Trace || Debug)
 	printf("ca_pend_io(%f)\n", (sec > 0 ? sec : SHORT_TIME));
 
+	if ( pollCb && pollCb() ) {
+		rc = ECA_TIMEOUT;
+	} else {
 EZCA_UNLOCK();
     if (sec > 0)
 	rc = ca_pend_io(sec);
     else
 	rc = ca_pend_io(SHORT_TIME);
 EZCA_LOCK();
+	}
 
     if (wp)
     {
