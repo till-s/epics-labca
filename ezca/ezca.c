@@ -459,6 +459,7 @@ static void init_work(struct work *);
 static void push_channel(struct channel *, struct channel**);
 static void push_monitor(struct monitor *);
 static void push_work(struct work *);
+static void recycle_work(struct work *);
 
 /* Debugging */
 static void print_avails(void);
@@ -6678,7 +6679,7 @@ EZCA_LOCK();
 	{
 	    if (Trace || Debug)
 		printf("my_get_callback() inactive work node\n");
-		/* TODO: could recycle the wp here */
+		recycle_work(wp);
 	} /* endif */
     }
     else
@@ -6961,7 +6962,7 @@ EZCA_LOCK();
 	{
 	    if (Trace || Debug)
 		printf("my_put_callback() inactive work node\n");
-		/* TODO: could recycle the wp here */
+		recycle_work(wp);
 	} /* endif */
     }
     else
@@ -7409,6 +7410,37 @@ static void push_monitor(struct monitor *p)
 *
 *
 ****************************************************************/
+
+static void recycle_work(struct work *wp)
+{
+struct work **ppw;
+
+    if (Debug)
+    {
+	printf("entering recycle_work() wp %p\n", wp); 
+	print_state();
+    } /* endif */
+
+	/* internal fields of wp have been released by push_work() when
+	 * the wp was put onto the discarded list
+	 */
+
+	for ( ppw = &Discarded_work; *ppw; ppw = &(*ppw)->next ) {
+		if ( *ppw ==  wp ) {
+			/* remove from Discarded_work list */
+			*ppw = wp->next;
+			wp->next = Work_avail_hdr;
+			Work_avail_hdr = wp;
+			if (Debug) {
+				printf("Success; %p moved from Discarded to Avail list\n", wp);
+				printf("exiting recycle_work()\n");
+				return;
+			}
+		}
+	}
+	fprintf(stderr,"EZCA FATAL ERROR: recycle_work() didn't find wp in Discarded list!\n");
+	exit(1);
+}
 
 static void push_work(struct work *p)
 {
