@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: ezcaGetGraphicLimits.c,v 1.2 2003/12/23 23:06:55 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetGraphicLimits */
 
@@ -42,7 +42,7 @@ int     i,nargs = 0;
 	if ( buildPVs(prhs[0],&pvs) )
 		goto cleanup;
 	
-	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (int (*)())ezcaGetGraphicLimits, NumberOf(args), args) )
+	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetGraphicLimits, NumberOf(args), args) )
 		goto cleanup;
 
 	for ( i=0; i<nlhs; i++ ) {

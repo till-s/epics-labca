@@ -50,6 +50,7 @@ PROD += ezcaSetSeverityWarnLevel
 PROD += ecget
 ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
 ezcaGetRetryCount_OBJS    := ezcaGetRetryCount.c
+
 EXE = $(MEXEXT)
 
 ifeq ($(ARCH_CLASS),WIN32)
@@ -88,10 +89,5 @@ include $(TOP)/config/RULES.Host
 
 %$(MEXEXT): %.c
 	$(MATLABDIR)/bin/$(MEX) $(MEXFLAGS) $(CPPFLAGS) $^ $(INCLUDES) $(sort $(USR_DIRS:%=-L%)) $(LDLIBS)
-
-$(PRODNAME): $(PRODNAME_OBJS)
-	echo $@ --> $^
-
-
 
 #	EOF Makefile.Host
