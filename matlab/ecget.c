@@ -8,25 +8,23 @@ long    *buf=0;
 int      nelems=0;
 mxArray  *mxa;
 double   *dptr;
-
-    assert(nlhs>=1);
     
     *plhs=0;
 
 	/* check for one argument of type string */
 	if ( nrhs != 1 ) {
-		mexErrMsgTxt( "usage:  data = ecget( PVName );\n" );
+		MEXERRPRINTF( "usage:  data = ecget( PVName );\n" );
 		return;
 	}
 	if ( mxIsChar( prhs[0] ) != 1 ) {
-		mexErrMsgTxt( "usage:  data = ecget( PVName );\n" );
+		MEXERRPRINTF( "usage:  data = ecget( PVName );\n" );
 		return;
 	}
 
     namelen = (mxGetM(prhs[0]) * mxGetN(prhs[0]) * sizeof(mxChar)) + 1;
     
     if (namelen>=sizeof(name)) {
-        mexErrMsgTxt("PV name too long\n");
+        MEXERRPRINTF("PV name too long\n");
         return;
     }
     
@@ -39,8 +37,8 @@ double   *dptr;
     }
     
     if (!(mxa = mxCreateDoubleMatrix(1,nelems,mxREAL))){
-        SYS_FREE(buf); buf=0;
-        mexErrMsgTxt("ecdrget: no memory");
+        mxFree(buf); buf=0;
+        MEXERRPRINTF("ecdrget: no memory");
         goto cleanup;
     }
     
@@ -51,7 +49,7 @@ double   *dptr;
     
 
 cleanup:
-    if (buf) SYS_FREE(buf);
+    if (buf) mxFree(buf);
 	if (mxa) {
 		mxDestroyArray(mxa);
 	}

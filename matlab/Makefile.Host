@@ -1,0 +1,80 @@
+#*************************************************************************
+# Copyright (c) 2002 The University of Chicago, as Operator of Argonne
+# National Laboratory.
+# Copyright (c) 2002 The Regents of the University of California, as
+# Operator of Los Alamos National Laboratory.
+# This file is distributed subject to a Software License Agreement found
+# in the file LICENSE that is included with this distribution. 
+#*************************************************************************
+#	Makefile.Host
+
+TOP = ../..
+include $(TOP)/config/CONFIG_APP
+CMPLR = STRICT
+
+
+# install header file
+#INC =
+
+# build share library
+SHARED_LIBRARIES = YES
+
+#
+#	Contents of library: generic, special and for all systems
+#
+ezcaGetNelem_OBJS         := ezcaGetNelem.c
+ezcaGet_OBJS              := ezcaGet.c
+ezcaPut_OBJS              := ezcaPut.c
+ezcaGetControlLimits_OBJS := ezcaGetControlLimits.c
+ezcaGetGraphicLimits_OBJS := ezcaGetGraphicLimits.c
+ecget_OBJS                := ecget.c
+
+# on generic system
+USR_CPPFLAGS += -DMATLAB_APP
+EPICS_INCLUDES += -I$(MATLABDIR)/extern/include
+PROD := ezcaGetNelem ezcaGet ezcaGetGraphicLimits ezcaGetControlLimits ezcaPut ecget
+EXE = $(MEXEXT_$(ARCH_CLASS))
+
+ifeq ($(ARCH_CLASS),WIN32)
+MEX=win32/mex.bat
+MEXFLAGS=
+else
+MEX=mex
+MEXFLAGS=-cxx
+endif
+
+#       Library to build:
+#       lib$(LIBRARY).a  or   ..dll/..exp/..lib
+#
+
+# need additional libs
+PROD_LIBS := mezcaglue ezca ca Com
+
+mezcaglue_DIR := $(TOP)/lib/$(T_A)
+ezca_DIR := $(TOP)/lib/$(T_A)
+ca_DIR := $(EPICS_BASE_LIB)
+Com_DIR := $(EPICS_BASE_LIB)
+
+USR_LIBS_WIN32 += libmx libmex
+
+libmx_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+
+ifndef BASE_3_14
+ifeq ($(OS_CLASS),solaris)
+ACC_DEP_CFLAGS = -KPIC -v
+CCC_DEP_CFLAGS = -KPIC -v
+endif
+endif
+
+include $(TOP)/config/RULES.Host
+
+%$(MEXEXT): %.c
+	$(MATLABDIR)/bin/$(MEX) $(MEXFLAGS) $(CPPFLAGS) $^ $(INCLUDES) $(sort $(USR_DIRS:%=-L%)) $(LDLIBS)
+
+$(PRODNAME): $(PRODNAME_OBJS)
+	echo $@ --> $^
+
+
+
+#	EOF Makefile.Host
