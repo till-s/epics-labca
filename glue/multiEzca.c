@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.9 2004/01/01 01:15:40 till Exp $ */
+/* $Id: multiEzca.c,v 1.10 2004/01/01 01:18:29 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -258,68 +258,18 @@ int i;
 	free((void*)*ip);
 }
 
-/* extra hacking - we store time into a complex number.
- * Scilab stores those into two separate arrays and hence this
- * routine is called twice; one for the real part and one more
- * time for the imaginary. Hence, we must keep some state information
- * to do the proper bookkeeping :-(
- */
-
-int
-timeArgsAlloc(TimeArg *pre, TimeArg *pim, int *phasImag)
-{
-int		rval;
-TimeArg re = 0, im = 0;
-
-	*pre = *pim = 0;
-
-	*phasImag = 1;
-
-	if ( (rval =  !( re = calloc( 1, sizeof(*re) )) || (*phasImag && !( im = calloc( 1, sizeof( *im ) ) ))) ) {
-		cerro("timeArgsAlloc: no memory");
-		goto cleanup;
-	}
-
-	if ( *phasImag ) {
-		im->doFree = 1; /* last call is for the imaginary part */
-		im->imag   = 1;
-	} else {
-		re->doFree = 1;
-	}
-
-	*pre = re; re = 0;
-	*pim = im; im = 0;
-
-cleanup:
-	free(re);
-	free(im);
-
-	return rval;
-}
+/* convert timestamps into complex array */
 
 void
-timeArgsRelease(TimeArg *pre, TimeArg *pim, int *phasImag)
-{
-	if ( (*pre) ) {
-		free( (*pre)->pts );
-		free(*pre); *pre = 0;
-	}
-	free(*pim); *pim = 0;
-	*phasImag = 0;
-}
-
-void C2F(cts_stampf_)(int *n, TimeArg *ip, double *op)
+multi_ezca_ts_cvt(int m, TS_STAMP *pts, double *pre, double *pim)
 {
 int i;
 struct timespec ts;
-	for ( i=0; i<*n; i++ ) {
-		epicsTimeToTimespec( &ts, (*ip)->pts + i );
-		op[i]=(double) ((*ip)->imag ? ts.tv_nsec : ts.tv_sec);
+	for ( i=0; i<m; i++ ) {
+		epicsTimeToTimespec( &ts, pts + i );
+		pre[i] = ts.tv_sec;
+		pim[i] = ts.tv_nsec;
 	}
-	if ( (*ip)->doFree )
-		free( (*ip)->pts );
-	free((void*)*ip);
-	*ip = 0;
 }
 
 static void
@@ -521,7 +471,7 @@ cleanup:
 }
 
 int
-multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TimeArg *pre, TimeArg *pim, int *hasImag)
+multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts)
 {
 void          *cbuf  = 0;
 void          *fbuf  = 0;
@@ -530,9 +480,9 @@ short         *stat  = 0;
 short         *sevr  = 0;
 int           rval   = 0;
 char          *types = 0;
-TS_STAMP      *ts    = 0;
 int           mo     = m;
 int           rowsize,typesz,nreq,nstrings;
+TS_STAMP      *ts    = 0;
 
 register int  i,n = 0;
 register char *bufp;
@@ -541,8 +491,7 @@ register char *bufp;
 
 	*pn   = 0;
 	*pres = 0;
-	*pre = *pim = 0;
-	*hasImag = 0;
+	*pts  = 0;
 
 	/* get buffers; since we do asynchronous processing, we
 	 * need to buffer the full array - we cannot do it row-wise
@@ -589,8 +538,7 @@ register char *bufp;
 	if ( !(cbuf = malloc( m * rowsize ))          ||
 		 !(stat = calloc( m,  sizeof(*stat)))     ||
 		 !(ts   = malloc( m * sizeof(TS_STAMP)))  ||
-		 !(sevr = malloc( m * sizeof(*sevr)))     ||
-		 timeArgsAlloc(pre, pim, hasImag) ) {
+		 !(sevr = malloc( m * sizeof(*sevr))) ) {
 		cerro("multi_ezca_get: not enough memory");
 		goto cleanup;
 	}
@@ -696,7 +644,7 @@ register char *bufp;
 	}
 
 	*pres = fbuf; fbuf  = 0;
-	(*pre)->pts = (*pim)->pts = ts; ts = 0;
+	*pts = ts; ts = 0;
 
 	*pn   = n;
 	rval  = m;
@@ -712,9 +660,7 @@ cleanup:
 	free(types);
 	free(stat);
 	free(sevr);
-	if ( ts ) {
-		timeArgsRelease(pre,pim,hasImag);
-	}
+	free(ts);
 	return rval;
 }
 

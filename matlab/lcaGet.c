@@ -1,4 +1,4 @@
-/* $Id: ezcaGet.c,v 1.3 2003/12/23 23:06:55 strauman Exp $ */
+/* $Id: ezcaGet.c,v 1.4 2004/01/01 01:16:33 till Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -21,10 +21,9 @@ int     i,n = 0;
 const mxArray *tmp;
 mxArray *clean0 = 0, *clean1 = 0;
 PVs     pvs = { 0 };
-TimeArg re=0,im=0;
-int		hasImag=0;
 char	type = ezcaNative;
 char	typestr[2] = { 'N', 0 };
+TS_STAMP *ts = 0;
 
 	for ( i=0; i<nlhs; i++ )
 		plhs[i] = 0;
@@ -58,7 +57,7 @@ char	typestr[2] = { 'N', 0 };
 	if ( buildPVs(prhs[0],&pvs) )
 		goto cleanup;
 
-    multi_ezca_get( pvs.names, &type, &pres, pvs.m, &n, &re, &im, &hasImag );
+    multi_ezca_get( pvs.names, &type, &pres, pvs.m, &n, &ts );
 
 	/* if pres != NULL, we have a valid reply... */
 	if ( pres ) {
@@ -96,8 +95,7 @@ char	typestr[2] = { 'N', 0 };
 				goto cleanup;
 			}
 			/* these actually release the timestamps in an obscure way */
-			cts_stampf_( &pvs.m, &re, mxGetPr(plhs[1]) );
-			cts_stampf_( &pvs.m, &im, mxGetPi(plhs[1]) );
+			multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[1]), mxGetPi(plhs[1]) );
 		}
 	}
 	clean0 = clean1 = 0;
@@ -118,6 +116,6 @@ cleanup:
 		}
 	}
 	mxFree(pres);
-	timeArgsRelease( &re, &im, &hasImag );
+	mxFree(ts);
 	releasePVs(&pvs);
 }

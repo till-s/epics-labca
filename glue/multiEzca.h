@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.7 2003/12/31 08:00:54 till Exp $ */
+/* $Id: multiEzca.h,v 1.8 2004/01/01 01:15:41 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -42,25 +42,13 @@ extern int ezcaSeverityWarnLevel;
 void C2F(cshortf)(int *n, short *ip[], double *op);
 
 /* extra hacking - we store time into a complex number.
- * Scilab stores those into two separate arrays and hence this
- * routine is called twice; one for the real part and one more
- * time for the imaginary. Hence, we must keep some state information
- * to do the proper bookkeeping :-(
+ * convert an array of timestamps into two arrays of 
+ * doubles holding the real (secs) and imaginary (nanosecs)
+ * parts, respectively.
  */
 
-typedef struct TimeArgRec_ {
-	TS_STAMP	*pts;	/* the array of timestamps */
-	char		doFree;	/* free timestamp array after use */
-	char		imag;   /* called for the real or imaginary part? */
-} TimeArgRec, *TimeArg;
-
-int
-timeArgsAlloc(TimeArg *pre, TimeArg *pim, int *phasImag);
-
 void
-timeArgsRelease(TimeArg *pre, TimeArg *pim, int *phasImag);
-
-void C2F(cts_stampf_)(int *n, TimeArg *ip, double *op);
+multi_ezca_ts_cvt(int m, TS_STAMP *pts, double *pre, double *pim);
 
 int
 multi_ezca_get_nelem(char **nms, int m, int *dims);
@@ -72,7 +60,7 @@ void
 multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n);
 
 int
-multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TimeArg *pre, TimeArg *pim, int *hasImag);
+multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts);
 
 typedef struct MultiArgRec_ {
 	int		size;

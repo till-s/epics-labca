@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.2 2003/12/31 08:01:06 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.3 2004/01/01 01:15:39 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -28,6 +28,7 @@ extern void C2F(cts_stampf_)();
 /* there's a typo in the scilab header :-( */
 #define check_column check_col
 
+/* convert a short array into an int array */
 static void
 s2iInPlace(void *buf, int m)
 {
@@ -68,11 +69,9 @@ char **s = 0;
 
 static int intsezcaGet(char *fname)
 {
-int mpvs, mtmp, ntmp, itmp, jtmp, idx;
+int mpvs, mtmp, ntmp, itmp, jtmp;
 void *buf       = 0;
-TimeArg      re = 0;
-TimeArg      im = 0;
-int		hasImag = 0;
+TS_STAMP  *ts   = 0;
 char  **pvs;
 int	n    = 0;
 char   type  = ezcaNative;
@@ -91,36 +90,36 @@ char   type  = ezcaNative;
 			return 0;
 	}
 
-	if ( !multi_ezca_get( pvs, &type, &buf, mpvs, &n, &re, &im, &hasImag ) ) {
+	ntmp = 1;
+	CreateCVar(Rhs + 1,"d",&ntmp,&mpvs,&ntmp,&itmp,&jtmp);
+
+	/* we can't preallocate the result matrix -- n is unknown at this point */
+
+	if ( !multi_ezca_get( pvs, &type, &buf, mpvs, &n, &ts ) ) {
 		for ( itmp = 1; itmp <= Lhs; itmp++ )
 			LhsVar(itmp) = 0; 
 		return 0;
 	}
 
+	multi_ezca_ts_cvt( mpvs, ts, stk(itmp), stk(jtmp) );
+	FreePtr( &ts );
+
 	/* NOTE: if CreateVarxxx fails, there is a memory leak
 	 *       (macro returns without chance to clean up)
 	 */
-	idx = Rhs+1;
 	if ( Lhs >= 1 ) {
 		if ( ezcaString == type ) {
-			CreateVarFromPtr(idx,"S",&mpvs,&n, buf);
+			CreateVarFromPtr(Rhs + 2, "S", &mpvs, &n, buf);
 		} else {
-			CreateVarFromPtr(idx,"d",&mpvs,&n,&buf);
+			CreateVarFromPtr(Rhs + 2, "d", &mpvs, &n, &buf);
 		}
-		LhsVar(1)=idx++;
+		LhsVar(1)=Rhs + 2;
 
 		if ( Lhs >= 2 ) {
- 			ntmp = 1;
-			CreateCVar(idx,"d",&hasImag,&mpvs,&ntmp,&itmp,&jtmp);
-			LhsVar(2)=idx++;
-			C2F(cts_stampf_)(&mpvs,&re,stk(itmp));
-			if ( hasImag > 0 ) {
-				C2F(cts_stampf_)(&mpvs,&im,stk(jtmp));
-			}
+			LhsVar(2)=Rhs + 1;
 		}
 	}
 
- 	timeArgsRelease(&re, &im, &hasImag);
 	if ( buf ) {
 		if ( ezcaString == type ) {
 			FreeRhsSVar(((char**)buf));
@@ -244,7 +243,6 @@ MultiArgRec args[2];
 int intsezcaGetStatus(char *fname)
 {
 TS_STAMP *ts;
-TimeArg  re,im;
 int      hasImag, m,n,i,j;
 char     **pvs;
 
@@ -255,19 +253,18 @@ MultiArgRec args[3];
 	GetRhsVar(1,"S",&m,&n,&pvs);
 	CheckColumn(1,m,n);
 
-	MSetArg(args[0], sizeof(TS_STAMP), 0, &ts);	/* timestamp */
+	MSetArg(args[0], sizeof(TS_STAMP), 0,       &ts); /* timestamp */
 
  	CreateVar(2,"i",&m,&n,&i);
-	MSetArg(args[1], sizeof(short),    istk(i), 0);/* status    */
+	MSetArg(args[1], sizeof(short),    istk(i), 0  ); /* status    */
 
  	CreateVar(3,"i",&m,&n,&i);
-	MSetArg(args[2], sizeof(short),    istk(i), 0);/* severity  */
+	MSetArg(args[2], sizeof(short),    istk(i), 0  ); /* severity  */
 
-	if ( timeArgsAlloc(&re, &im, &hasImag) )
-		return 0;
+	hasImag = 1;
+ 	CreateCVar(4,"d",&hasImag,&m,&n,&i,&j);
 
 	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args) ) {
-		re->pts = im->pts = ts;
 
 		s2iInPlace(args[2].buf, m);
  		LhsVar(1)=3;
@@ -277,16 +274,14 @@ MultiArgRec args[3];
  			LhsVar(2)=2;
 			
 			if ( Lhs >= 3 ) {
- 				CreateCVar(4,"d",&hasImag,&m,&n,&i,&j);
 				LhsVar(3)=4;
- 				C2F(cts_stampf_)(&m,&re,stk(i));
-				if ( hasImag )
-  					C2F(cts_stampf_)(&m,&im,stk(j));
+				multi_ezca_ts_cvt( m, ts, stk(i), stk(j) );
 			}
 		}
 	}
+	if ( ts )
+		FreePtr( &ts );
 
- 	timeArgsRelease(&re, &im, &hasImag);
  	return 0;
 }
 
@@ -319,8 +314,8 @@ int intsezcaGetUnits(char *fname)
 {
 int  m,n,i;
 char **pvs,**tmp;
-units_string *strbuf;
-MultiArgRec args[1];
+units_string *strbuf = 0;
+MultiArgRec  args[1];
 
 	CheckRhs(1,1);
 	CheckLhs(1,1);
@@ -351,8 +346,7 @@ int m=1,i;
 
 	CheckRhs(0,0);
 	CheckLhs(1,1);
-	/* cross variable size checking */
-	CreateVar(1,"i",&m,&m,&i);/* named: res */
+	CreateVar(1,"i",&m,&m,&i);
 	*istk(i) = ezcaGetRetryCount();
 	LhsVar(1)= 1;
 	return 0;
@@ -447,22 +441,22 @@ int m,n,i,nord;
 }
 
 static GenericTable Tab[]={
-  {(Myinterfun)sci_gateway,intsezcaGet,"ezcaGet"},
-  {(Myinterfun)sci_gateway,intsezcaPut,"ezcaPut"},
-  {(Myinterfun)sci_gateway,intsezcaGetNelem,"ezcaGetNelem"},
-  {(Myinterfun)sci_gateway,intsezcaGetControlLimits,"ezcaGetControlLimits"},
-  {(Myinterfun)sci_gateway,intsezcaGetGraphicLimits,"ezcaGetGraphicLimits"},
-  {(Myinterfun)sci_gateway,intsezcaGetStatus,"ezcaGetStatus"},
-  {(Myinterfun)sci_gateway,intsezcaGetPrecision,"ezcaGetPrecision"},
-  {(Myinterfun)sci_gateway,intsezcaGetUnits,"ezcaGetUnits"},
-  {(Myinterfun)sci_gateway,intsezcaGetRetryCount,"ezcaGetRetryCount"},
-  {(Myinterfun)sci_gateway,intsezcaSetRetryCount,"ezcaSetRetryCount"},
-  {(Myinterfun)sci_gateway,intsezcaGetTimeout,"ezcaGetTimeout"},
-  {(Myinterfun)sci_gateway,intsezcaSetTimeout,"ezcaSetTimeout"},
-  {(Myinterfun)sci_gateway,intsezcaDebugOn,"ezcaDebugOn"},
-  {(Myinterfun)sci_gateway,intsezcaDebugOff,"ezcaDebugOff"},
-  {(Myinterfun)sci_gateway,intsezcaSetSeverityWarnLevel,"ezcaSetSeverityWarnLevel"},
-  {(Myinterfun)sci_gateway,intsecdrGet,"ecdrGet"},
+  {(Myinterfun)sci_gateway, intsezcaGet,					"ezcaGet"},
+  {(Myinterfun)sci_gateway, intsezcaPut,					"ezcaPut"},
+  {(Myinterfun)sci_gateway, intsezcaGetNelem,				"ezcaGetNelem"},
+  {(Myinterfun)sci_gateway, intsezcaGetControlLimits,		"ezcaGetControlLimits"},
+  {(Myinterfun)sci_gateway, intsezcaGetGraphicLimits,		"ezcaGetGraphicLimits"},
+  {(Myinterfun)sci_gateway, intsezcaGetStatus,				"ezcaGetStatus"},
+  {(Myinterfun)sci_gateway, intsezcaGetPrecision,			"ezcaGetPrecision"},
+  {(Myinterfun)sci_gateway, intsezcaGetUnits,				"ezcaGetUnits"},
+  {(Myinterfun)sci_gateway, intsezcaGetRetryCount,			"ezcaGetRetryCount"},
+  {(Myinterfun)sci_gateway, intsezcaSetRetryCount,			"ezcaSetRetryCount"},
+  {(Myinterfun)sci_gateway, intsezcaGetTimeout,				"ezcaGetTimeout"},
+  {(Myinterfun)sci_gateway, intsezcaSetTimeout,				"ezcaSetTimeout"},
+  {(Myinterfun)sci_gateway, intsezcaDebugOn,				"ezcaDebugOn"},
+  {(Myinterfun)sci_gateway, intsezcaDebugOff,				"ezcaDebugOff"},
+  {(Myinterfun)sci_gateway, intsezcaSetSeverityWarnLevel,	"ezcaSetSeverityWarnLevel"},
+  {(Myinterfun)sci_gateway, intsecdrGet,					"ecdrGet"},
 };
                                                                                             
 int
