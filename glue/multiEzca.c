@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.20 2004/03/24 04:05:17 till Exp $ */
+/* $Id: multiEzca.c,v 1.21 2004/06/19 01:57:54 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -35,15 +35,18 @@
 #include "shareLib.h"
 #include "multiEzca.h"
 
+#ifndef NAN
 #if defined(WIN32) || defined(_WIN32) 
 static unsigned long mynan[2] = { 0xffffffff, 0x7fffffff };
 #define NAN (*(double*)mynan)
 #else
 #define NAN (0./0.)
 #endif
+#endif
 
 /* GLOBAL VARIABLES */
-static int ezcaSeverityWarnLevel = INVALID_ALARM;
+static int ezcaSeverityWarnLevel   = INVALID_ALARM;
+static int ezcaSeverityRejectLevel = INVALID_ALARM;
 
 /* FWD DECLS        */
 static char * my_strdup(const char *str);
@@ -584,7 +587,7 @@ register char *bufp;
 						alarmStatusString[stat[i]],
 						alarmSeverityString[sevr[i]]);
 		/* refuse to return an invalid VAL field */
-		if ( INVALID_ALARM == sevr[i] && ( !(dotp=strrchr(nms[i],'.')) || !strcmp(dotp, ".VAL") )  )
+		if ( sevr[i] >= ezcaSeverityRejectLevel && ( !(dotp=strrchr(nms[i],'.')) || !strcmp(dotp, ".VAL") )  )
 			dims[i] = 0;
 	}
 
@@ -870,7 +873,13 @@ int  rval   = types ? 0 : -1;
 void epicsShareAPI
 ezcaSetSeverityWarnLevel(int level)
 {
-ezcaSeverityWarnLevel = level;
+if ( level >= 10 ) {
+  level-=10;
+  mexPrintf("Setting severity REJECTION level to %i\n", level);
+  ezcaSeverityRejectLevel = level;
+} else {
+  ezcaSeverityWarnLevel = level;
+}
 }
 
 int epicsShareAPI
