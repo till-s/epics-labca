@@ -1,0 +1,100 @@
+#*************************************************************************
+# Copyright (c) 2002 The University of Chicago, as Operator of Argonne
+# National Laboratory.
+# Copyright (c) 2002 The Regents of the University of California, as
+# Operator of Los Alamos National Laboratory.
+# This file is distributed subject to a Software License Agreement found
+# in the file LICENSE that is included with this distribution. 
+#*************************************************************************
+#	Makefile.Host
+
+TOP = ../..
+include $(TOP)/config/CONFIG_APP
+CMPLR = STRICT
+
+
+# install header file
+INC = mglue.h multiEzca.h
+
+# build share library
+SHARED_LIBRARIES = YES
+
+#
+#	Contents of library: generic, special and for all systems
+#
+
+LIBSRCS := multiEzca.c
+
+# on generic system
+ifeq ($(MAKEFOR),MATLAB)
+USR_CFLAGS += -DMATLAB_APP
+#USR_CFLAGS += -Dmex_h -DmxFree=free -DmxMalloc=malloc -DmxCalloc=calloc  -DmexWarnMsgTxt=tillprintf
+EPICS_INCLUDES += -I$(MATLABDIR)/extern/include
+LIBSRCS += mglue.c
+LIBRARY := mezcaglue
+#SCRIPTS+=mkmezca.m
+else
+USR_CFLAGS+=-DSCILAB_APP
+EPICS_INCLUDES += -I$(SCILABDIR)/routines
+LIBSRCS+= ezcaWrap.c ecget.c ezca.o
+LIBRARY := sezcaglue
+SCRIPTS+=ezca.sce
+endif
+
+#       Library to build:
+#       lib$(LIBRARY).a  or   ..dll/..exp/..lib
+#
+
+# need additional libs
+PROD_LIBS := ezca ca Com
+
+ifeq ($(ARCH_CLASS),WIN32)
+PROD_LIBS += libmx libmex
+endif
+
+libmx_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+
+ca_DIR := $(EPICS_BASE_LIB)
+Com_DIR := $(EPICS_BASE_LIB)
+
+ezca_DIR := $(TOP)/lib/$(T_A)
+
+ifndef BASE_3_14
+ifeq ($(OS_CLASS),solaris)
+ACC_DEP_CFLAGS = -KPIC -v
+CCC_DEP_CFLAGS = -KPIC -v
+endif
+endif
+
+include $(TOP)/config/RULES.Host
+
+mkmezca.m: ../mkmezca.m.tmpl
+	sed -e 's/%%TARCH%%/$(T_A)/g' -e 's/%%ARCH%%/$(ARCH_CLASS)/g' -e 's$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g' < $^ >$@
+
+ezca.o: ezca.tmp.f
+	$(FC) -c $(FFLAGS) -o $@ $<
+
+%.tmp.f: %.f
+	$(RM) -f $@
+	sed -e 's|SCIDIR|$(SCILABDIR)|g' $^ > $@
+
+ezca.sce: ezca.f
+
+%.f:	%.desc
+	$(SCILABDIR)/bin/intersci $(<:%.desc=%)
+	$(MV) $(<:%.desc=%.sce) $(<:%.desc=%.tmp.sce)
+	sed -e "/^[^/]/s/files/'lib$(LIBRARY).so'/g" > $(<:%.desc=%.sce) < $(<:%.desc=%.tmp.sce)
+	echo 'ezcaLibInit();' >> $(<:%.desc=%.sce)
+	$(RM) $(<:%.desc=%.tmp.sce)
+
+%.desc: ../%.desc
+	ln -s $^ $@
+
+../ecget.c: ../../ecget.c
+	ln -s '../ecget.c' $@
+
+#
+# solaris SED is buggy... sed -e '/^\([^/]\|[/][^/]\)/s/files/'"'"ezca.o"'"'/g'
+
+#	EOF Makefile.Host
