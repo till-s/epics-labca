@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.2 2001/09/20 05:37:20 till Exp $ */
+/* $Id: ecget.c,v 1.3 2001/09/21 00:11:50 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -8,10 +8,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#ifndef MATLAB_APP
 #include <unistd.h>
+#endif
 #include <string.h>
 
 #include <cadef.h>
+
+/* our local buffer is an array of buf_t */
+typedef long buf_t;
 
 #define DEBUG
 
@@ -20,10 +25,10 @@
 #define SYS_MALLOC(nbytes)	malloc(nbytes)
 #define SYS_FREE(charptr)	free(charptr)
 /* wrapper for printing error messages */
-#define ecErr(arg) do { fprintf(stderr,arg); fputc('\n',stderr);} while (0)
+#define ecErr(arg)          do { fprintf(stderr,arg); fputc('\n',stderr);} while (0)
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) fprintf(stderr, "invalid PV %s", pv_name)
-#define C2F(name) name
-
+#define C2F(name)           name
+#define EC_STATIC           static
 #elif defined(SCILAB_APP) /***************************** SCILAB INTERFACE DEFINITIONS  **********************/
 
 #if defined(DEBUG)
@@ -37,8 +42,71 @@ extern void cerro(char*);
 #define SYS_MALLOC(nbytes)	malloc(nbytes)
 #define SYS_FREE(charptr)	free(charptr)
 /* wrapper for printing error messages */
-#define ecErr(arg) do { cerro(arg); cerro("\n");} while (0)
+#define ecErr(arg)          do { cerro(arg); cerro("\n");} while (0)
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) cerro("invalid PV")
+#define EC_STATIC
+
+#elif defined(MATLAB_APP) /***************************** MATLAB INTERFACE DEFINITIONS  **********************/
+#include "matrix.h"
+#include "mex.h"
+
+#ifdef DEBUG
+#undef DEBUG
+#endif
+
+#define SYS_MALLOC(nbytes) mxMalloc(nbytes)
+#define SYS_FREE(ptr)      mxFree(ptr)
+/* wrapper for printing error messages */
+#define ecErr(arg)         mexWarnMsgTxt(arg)
+#define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) mexWarnMsgTxt("invalid PV")
+#define C2F(name)          name
+#define EC_STATIC          static
+
+EC_STATIC void C2F(ecdrget)(char *name, int *nlen, buf_t **buf, int *nelms);
+
+void mexFunction(	int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+int      namelen,i;
+char     name[100];
+buf_t    *buf=0;
+long     nelems=0;
+mxArray  *mxa;
+double   *dptr;
+
+    assert(nlhs>=1);
+    
+    *plhs=0;
+
+    namelen = (mxGetM(prhs[0]) * mxGetN(prhs[0]) * sizeof(mxChar)) + 1;
+    
+    if (namelen>=sizeof(name)) {
+        mexErrMsgTxt("PV name too long\n");
+        return;
+    }
+    
+    mxGetString(prhs[0], name, namelen);
+    
+    ecdrget(name,&namelen,&buf,&nelems);
+    
+    if (!buf) {
+        return;
+    }
+    
+    if (!(mxa = mxCreateDoubleMatrix(1,nelems,mxREAL))){
+        SYS_FREE(buf); buf=0;
+        mexErrMsgTxt("ecdrget: no memory");
+        goto cleanup;
+    }
+    
+    for (i=0, dptr=mxGetPr(mxa); i<nelems; i++, dptr++)
+        *dptr = (double)buf[i];
+    
+    plhs[0] = mxa; mxa=0;
+    
+
+cleanup:
+    if (buf) SYS_FREE(buf);
+}
 
 #else
 
@@ -47,8 +115,6 @@ extern void cerro(char*);
 #endif
 
 
-/* our local buffer is an array of buf_t */
-typedef long buf_t;
 
 /* struct caching all the necessary information about a board */
 typedef struct EcdrBoardCRec_ {
@@ -164,6 +230,7 @@ cleanup:
  *              passed 0.
  *
  */
+EC_STATIC
 void C2F(ecdrget)(char *pv_name, int *l, buf_t **result, int *nord)
 {
 long		i,j,blsz,zero=0,nelms,chunk,elsz;
