@@ -279,10 +279,11 @@ static char *ErrorMsgs[] =
 
 struct channel
 {
-    struct channel *next;
-    char *pvname;
-    chid cid;
-    BOOL ever_successfully_searched;
+    struct channel	*next;
+    char 			*pvname;
+    chid			cid;
+	int				refcnt;
+    BOOL			ever_successfully_searched;
 }; /* end struct channel */
 
 /* map to easily printable chars at offset 'U'... */
@@ -426,7 +427,7 @@ static void my_get_callback(struct event_handler_args);
 static void my_put_callback(struct event_handler_args);
 
 /* Memory Management */
-static void clean_and_push_channel(struct channel *);
+static void clean_and_push_channel(struct channel **);
 static struct channel *pop_channel(void);
 static struct work *pop_work(void);
 static void init_work(struct work *);
@@ -592,8 +593,7 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 				/* something went wrong ... rc and */
 				/* error msg have already been set */
 
-				clean_and_push_channel(wp->cp);
-				wp->cp= (struct channel *) NULL;
+				clean_and_push_channel(&wp->cp);
 			    } /* endif */
 			}
 			else
@@ -644,8 +644,7 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 	    if (wp->rc == EZCA_OK && wp->cp && !EzcaConnected(wp->cp))
 	    {
 		/* remove */
-		clean_and_push_channel( wp->cp );
-		wp->cp = (struct channel *) NULL;
+		clean_and_push_channel( &wp->cp );
 
 		wp->rc = EZCA_NOTIMELYRESPONSE;
 		wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
@@ -1798,6 +1797,8 @@ int rc;
 			wp->rc = EZCA_OK;
 			*cid = &(cp->cid);
 		    } /* endif */
+
+			release_channel( &cp );
 		}
 		else
 		{
@@ -2042,7 +2043,7 @@ int rc;
 		if ( cp ) {
 	    if (Trace || Debug)
 	printf("ezcaClearChannel() about to call clean_and_push_channel()\n");
-			clean_and_push_channel(cp);
+			clean_and_push_channel( &cp );
 	    	wp->rc = EZCA_OK;
 		}
 	} /* endif */
@@ -2095,7 +2096,7 @@ int rc,i;
 		for ( i = 0; i < HASHTABLESIZE; i++ ) {
 			for ( cp = Channels[i]; cp; ) {
 				if ( !disconnectedOnly || !EzcaConnected(cp) ) {
-					clean_and_push_channel(cp);
+					clean_and_push_channel(&cp);
 					/* start over */
 					cp = Channels[i];
 				} else {
@@ -3777,6 +3778,8 @@ struct channel *rc;
 	while (rc && !found)
 	    if (!(found = !strcmp(rc->pvname, pvname)))
 		rc = rc->next;
+		else
+		rc->refcnt++;
     }
     else
 	rc = (struct channel *) NULL;
@@ -3865,8 +3868,7 @@ printf("get_channel(): could not find_channel(). must ca_search_and_connect() an
 			} /* endfor */
 
 			if ( !done ) {
-		    	clean_and_push_channel( *cpp );
-				*cpp = (struct channel *) NULL;
+		    	clean_and_push_channel( cpp );
 		
 				wp->rc = EZCA_NOTIMELYRESPONSE;
 				wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
@@ -3881,8 +3883,7 @@ printf("get_channel(): could not find_channel(). must ca_search_and_connect() an
 			/* something went wrong ... rc and */
 			/* error msg have already been set */
 
-			clean_and_push_channel(*cpp);
-			*cpp = (struct channel *) NULL;
+			clean_and_push_channel( cpp );
 		    } /* endif */
 		}
 		else
@@ -6008,13 +6009,20 @@ EZCA_UNLOCK();
 *
 ****************************************************************/
 
-static void clean_and_push_channel(struct channel *cp)
+static void clean_and_push_channel(struct channel **cpp)
 {
 
 int    clear_failed;
 
-    if (cp)
-    {
+    if ( *cpp )
+    {  
+	if ( (*cpp)->refcnt <=0 ) {
+		fprintf(stderr,"EZCA FATAL ERROR: clean_and_push_channel() with refcnt <=0\n");
+		exit(1);
+	}
+
+	if ( 0 == --(*cpp)->refcnt ) {
+
 	/* clearing the chid */
 
 	clear_failed = EzcaClearChannel(cp);
@@ -6024,7 +6032,10 @@ int    clear_failed;
 
 	push_channel(cp, clear_failed ? &Discarded_channels : &Channel_avail_hdr);
 
+	}
+
     } /* endif */
+	*cpp = 0;
 
 } /* end clean_and_push_channel() */
 
@@ -6063,6 +6074,7 @@ int i;
             for (rc = Channel_avail_hdr, i=0; i < (NODESPERMAL-1); i ++)
             {
                 rc->next = rc + 1;
+				rc->refcnt = 0;
 		rc->pvname = (char *) NULL;
 		if (Debug)
 		    printf("i = %d rc %p rc->next %p\n", i, rc, rc->next);
@@ -6088,6 +6100,11 @@ int i;
 	    rc->pvname = (char *) NULL;
 	} /* endif */
 	rc->ever_successfully_searched = FALSE;
+	if ( rc->refcnt ) {
+		fprintf("EZCA FATAL ERROR: pop_channel refcnt != 0\n"); 
+		exit(1);
+	}
+	rc->refcnt = 1;
     } /* endif */
 
     if (Debug)
