@@ -21,8 +21,9 @@ MEXEXT_solaris=.mexsol
 MLBARCH_solaris=sol2
 MEXEXT_Darwin=.mexmac
 MLBARCH_Darwin=mac
-MEXEXT=$(MEXEXT_$(ARCH_CLASS))
+MEXEXT_WIN32=.dll
 MLBARCH_WIN32=win32
+MEXEXT=$(MEXEXT_$(ARCH_CLASS))
 MLBARCH=$(MLBARCH_$(ARCH_CLASS))
 
 # install matlab executables and help files
