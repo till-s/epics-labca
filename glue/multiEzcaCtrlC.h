@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_CTRLC_H
 #define MULTI_EZCA_CTRLC_H
-/* $Id: multiEzca.h,v 1.14 2004/01/28 05:46:42 till Exp $ */
+/* $Id: multiEzcaCtrlC.h,v 1.1 2004/01/29 05:42:29 till Exp $ */
 
 /* interface to Ctrl-C handling */
 
@@ -8,11 +8,15 @@
 
 /* LICENSE: EPICS open license, see ../LICENSE file */
 
+#if !defined(WIN32) && !defined(_WIN32)
 #include <signal.h>
+#endif
 
 typedef struct CtrlCStateRec_ {
 	void		(*handler)(int);
+#if !defined(WIN32) && !defined(_WIN32)
 	sigset_t	mask;
+#endif
 } CtrlCStateRec, *CtrlCState;
 
 #ifdef __cplusplus
