@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.4 2003/12/23 20:30:52 till Exp $ */
+/* $Id: mglue.h,v 1.5 2003/12/23 23:15:56 strauman Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -24,7 +24,9 @@ releasePVs(PVs *pvs);
 int
 buildPVs(const mxArray *pin, PVs *pvs);
 
-/* mexErrMsgTxt() crashes matlab14-beta :-( */
+/* mexErrMsgTxt() crashes matlab14-beta - also, we don't want
+ * to jump out of context
+ */
 #define MEXERRPRINTF mexWarnMsgTxt
 
 void
