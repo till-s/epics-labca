@@ -13,7 +13,7 @@ include $(TOP)/config/CONFIG_APP
 CMPLR = STRICT
 
 # install header file
-INC = ezca.h
+#INC = ezca.h
 
 # build share library
 SHARED_LIBRARIES = YES
