@@ -21,6 +21,12 @@ CONFIG_USE_CTRLC=NO
 # optionally, set installation top directory
 #INSTALL_LOCATION=/install/everything/here
 
+# obsolete, special purpose routine for reading
+# ECDR data (only relevant for SSRL - You should
+# say 'NO' here unless you are at SSRL)
+# 
+CONFIG_ECDRGET=YES
+
 # No need to change anything below here
 # (except for adding more matlab extensions for
 # other platforms...)
