@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.15 2004/03/27 00:22:30 till Exp $ */
+/* $Id: mglue.c,v 1.16 2004/04/27 01:23:51 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -179,7 +179,7 @@ mxArray *dummy = 0;
 			MEXERRPRINTF("Not enough memory");
 			goto cleanup;
 		}
-		mxSetCell(dummy, 0, (mxArray*)tmp);
+		mxSetCell(dummy, 0, (mxArray*)mxDuplicateArray((mxArray*)tmp));
 		tmp = dummy;
 	}
 
@@ -251,7 +251,6 @@ cleanup:
 		mxFree( pstr );
 	}
 	if ( dummy ) {
-		mxSetCell( dummy, 0, 0 );
 		mxDestroyArray( dummy );
 	}
 	releasePVs(&pvs);
