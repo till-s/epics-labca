@@ -127,7 +127,7 @@ mkmezca.m: ../mkmezca.m.tmpl
 
 %.sce: ../%.sce.in
 	$(RM) $@
-	sed -e 's/THELIB/$(SHRLIBNAME)/g' -e 's/THEFILE/$@/g' <$^ >$@
+	sed -e's/TARCH/$(T_A)/g' -e 's/THELIB/$(SHRLIBNAME)/g' -e 's/THEFILE/$@/g' <$^ >$@
 
 ../%.def: ../%.def.in
 	$(CPP) $(CPPFLAGS) -I$(SCILABDIR)/routines $< | sed -n -e '/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p' > $@
