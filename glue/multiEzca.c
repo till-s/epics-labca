@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.21 2004/06/19 01:57:54 till Exp $ */
+/* $Id: multiEzca.c,v 1.22 2004/06/23 01:21:01 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -470,6 +470,9 @@ register char *bufp;
 			else
 				ezcaPutOldCa(nms[i], types[i], dims[i], bufp);
 		}
+
+		if (!doWait4Callback)
+			ca_flush_io(); /* make sure request goes out */
 
 	if ( EZCA_OK != do_end_group(0, m, 0) ) {
 		ezErr("multi_ezca_put - ", 0);
