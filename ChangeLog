@@ -1,3 +1,6 @@
+Changes since labca_2_0_alpha (T.S):
+    2005/6/7 (TS):
+	- flush output buffers (lcaPutNoWait())
 Changes since labca_1_5 (T.S):
     2004/3/24 (TS):
 	- EZCA modifications:
