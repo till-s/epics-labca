@@ -28,5 +28,5 @@ ezca_funs=[...
 ezca_top=get_absolute_file_path('THEFILE')+'../../';
 addinter(ezca_top+'lib/TARCH/THELIB','ezca',ezca_funs);
 if grep(%helps(:,1),ezca_top)== [] then
-   %helps=[%helps;[ezca_top+"/html/help", "EPICS CA Interface"]];
+   %helps=[%helps;[ezca_top+"html/help", "EPICS CA Interface"]];
 end
