@@ -76,7 +76,7 @@ SYS_PROD_LIBS_WIN32 += user32
 ifeq ($(MAKEFOR),MATLAB)
 #PROD += gnelm
 ifeq ($(ARCH_CLASS),WIN32)
-PROD_LIBS += libmx libmex
+PROD_LIBS += libut libmx libmex
 else
 #PROD_LIBS += mx mex
 #CC         = $(MATLABDIR)/bin/mex -cxx
@@ -98,11 +98,13 @@ endif
 #GCC_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
 #G++_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
 
-libmx_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+libmx_DIR  := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+libut_DIR  := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 
-mx_DIR := $(MATLABDIR)/bin/$(MLBARCH)
+mx_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
 mex_DIR := $(MATLABDIR)/bin/$(MLBARCH)
+ut_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
 
 export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(mx_DIR)
 
