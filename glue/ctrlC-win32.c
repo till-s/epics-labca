@@ -1,4 +1,4 @@
-/* $Id: ctrlC-win32.c,v 1.3 2004/01/30 01:43:49 till Exp $ */
+/* $Id: ctrlC-win32.c,v 1.4 2004/02/11 18:51:52 till Exp $ */
 
 /* Ctrl-C processing for WIN32 */
 
@@ -12,15 +12,17 @@
 #include <cadef.h>
 #include <ezca.h>
 #include <multiEzcaCtrlC.h>
-#include <epicsVersion.h>
-
-#if (EPICS_VERSION > 3 || (EPICS_VERSION == 3 && EPICS_REVISION >= 14))
-#define EPICS_THREE_FOURTEEN
-#endif
-
 
 #ifdef MATLAB_APP
+
+/* We now use undocumented 'utHandlePendingInterrupt()'
+ * rather than messing with reverse engineered windows messages
+ */
+#define HAVE_UT_HANDLE_INTERRUPT
+
+#ifndef HAVE_UT_HANDLE_INTERRUPT
 #define WM_MTLBHACK (WM_USER + 10)
+#endif
 #endif
 
 #define K_STAT(flags) (((flags)>>30) & 3)
@@ -43,6 +45,20 @@
  * we do here).
  */
 
+#ifdef HAVE_UT_HANDLE_INTERRUPT
+
+extern unsigned char utHandlePendingInterrupt();
+
+static int multi_ezca_pollCb()
+{
+	if ( utHandlePendingInterrupt() ) {
+		ezcaAbort();
+		return 1;
+	}
+	return 0;
+}
+
+#else
 
 static volatile int ctrl = -1;
 
@@ -84,25 +100,19 @@ int  i;
 #endif
 
 #ifdef MATLAB_APP
+
 static int procMsg(PMSG pmsg)
 {
-#ifdef DEBUG
-	recMsg(pmsg);
-#endif
 	return ( WM_MTLBHACK == pmsg->message );
 }
 
-#define MYPEEK (PeekMessage(&m, 0, WM_MTLBHACK, WM_MTLBHACK, PM_NOREMOVE))
+#define MYPEEK(pm) (PeekMessage(pm, 0, WM_MTLBHACK, WM_MTLBHACK, PM_NOREMOVE))
 
 #else /* SCILAB_APP */
 
 static int procMsg(PMSG pmsg)
 {
 DWORD m = pmsg->message;
-
-#ifdef DEBUG
-	recMsg(pmsg);
-#endif
 
 	if ( WM_KEYFIRST <= m && WM_KEYLAST >= m ) {
 		switch ( pmsg->wParam ) {
@@ -122,13 +132,17 @@ DWORD m = pmsg->message;
 	return 0;
 }
 
-#define MYPEEK (PeekMessage (&m, 0, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
+#define MYPEEK(pm) (PeekMessage (pm, 0, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
 #endif
+
 
 static int multi_ezca_pollCb()
 {
 MSG m;
-	while ( MYPEEK ) {
+	while ( MYPEEK(&m) ) {
+#ifdef DEBUG
+		recMsg(pmsg);
+#endif
 		if ( procMsg(&m) ) {
 			ezcaAbort();
 			return 1;
@@ -136,6 +150,8 @@ MSG m;
 	}
 	return 0;
 }
+
+#endif
 
 void
 multi_ezca_ctrlC_prologue(CtrlCState psave)
