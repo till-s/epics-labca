@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.23 2005/06/07 21:26:12 till Exp $ */
+/* $Id: multiEzca.c,v 1.24 2006/04/10 22:14:50 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -873,7 +873,7 @@ int  rval   = types ? 0 : -1;
 
 	if ( types ) {
 		for ( i=0; i<m; i++ ) {
-			val[i] = -1 == types[i] ? -3 : ezcaNewMonitorValue(nms[i], types[i]);
+			val[i] = -1 == types[i] ? -10 : ezcaNewMonitorValue(nms[i], types[i]);
 		}
 	}
 
