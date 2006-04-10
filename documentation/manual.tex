@@ -17,7 +17,7 @@
 \newcommand{\NAN}{\mbox{NaN}}
 \newcommand{\pbrk}{\pagebreak[3]}
 \newcommand{\pbrkf}{\pagebreak}
-\newcommand{\comref}[2]{\hyperref[ref]{\com{#1}}{\com{#1} (see }{ )}{#2}}
+\newcommand{\comref}[2]{\hyperref[ref]{\com{#1}}{\com{#1} (see }{)}{#2}}
 
 \newcommand{\ita}[1]{\emph{#1}}
 
@@ -53,11 +53,11 @@ of \mhack{} strings.
 
 \title{\sca{} --- An EPICS Channel Access Interface for \scilab{} and \matlab{}}
 \author{Till Straumann $<$straumanATslac.stanford.edu$>$, 2003}
-\date{June 23, 2004}
+\date{April 10, 2006}
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.24 2004/06/22 01:57:47 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.25 2004/06/23 01:26:04 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -634,9 +634,20 @@ satisfies this condition.
 Column vector of flag values. A value of zero indicates that no new data are available --
 the monitored PV has not changed since it was last read (i.e., the data {\em not the flag}).
 A value of one indicates that new data are available for reading (\com{lcaGet}). A negative
-The flag value can be negative, indicating a problem e.g., non-existing PV, no connection,
-no monitor established (\comref{lcaSetMonitor}{lcasetmonitor} never called for this
-PV/data type).
+The flag value can be negative, indicating a problem e.g.,
+\begin{description}
+\item[-1:]
+  no monitor established (\comref{lcaSetMonitor}{lcasetmonitor} never
+  called for this PV/data type),
+\item[-2:]
+  non-existing PV (no successful CA search so far),
+\item[-3:]
+  invalid type argument,
+\item[-4:]
+  invalid PV argument,
+\item[-10:]
+  currently no connection.
+\end{description}
 \end{description}
 \subsubsection{Examples}
 \begin{verbatim}
