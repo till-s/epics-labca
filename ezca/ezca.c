@@ -304,7 +304,9 @@ struct channel
     chid		cid;
 	struct monitor *monitor_list;
     int			refcnt;
-    BOOL		ever_successfully_searched;
+#define SEARCHED	1
+#define CONNECTED	2
+    char		ever_successfully_searched;
 }; /* end struct channel */
 
 /* map to printable chars at offset 'U'... */
@@ -683,15 +685,25 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 	{
 	    if (wp->rc == EZCA_OK && wp->cp && !EzcaConnected(wp->cp))
 	    {
-		/* remove */
-		clean_and_push_channel( &wp->cp );
 
-		wp->rc = EZCA_NOTIMELYRESPONSE;
-		wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
-		wp->aux_error_msg = strdup(wp->pvname);
+	        if ( CONNECTED == wp->cp->ever_successfully_searched )
+	        {
+		   	    wp->rc = EZCA_NOTCONNECTED;
+	            wp->error_msg = ErrorMsgs[NOT_CONNECTED_MSG_IDX];
+	        }
+	        else
+	        {
+	            /* remove */
+	            clean_and_push_channel( &wp->cp );
 
-		if (AutoErrorMessage)
-		    print_error(wp);
+	            wp->rc = EZCA_NOTIMELYRESPONSE;
+	            wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
+	        }
+
+		    wp->aux_error_msg = strdup(wp->pvname);
+
+		    if (AutoErrorMessage)
+		        print_error(wp);
 	    } /* endif */
 	} /* endfor */
 
@@ -5184,9 +5196,12 @@ static BOOL EzcaConnected(struct channel *cp)
 
 BOOL rc;
 
-    if (cp)
+    if (cp) {
 	rc = (cp->ever_successfully_searched && ca_state(cp->cid) == cs_conn);
-    else
+	if ( rc )
+		cp->ever_successfully_searched = CONNECTED;
+    }
+	else
     {
 	fprintf(stderr, "EZCA WARNING: EzcaConnected() rcvd NULL cp\n");
 	rc = FALSE;
@@ -5728,7 +5743,7 @@ int rc;
 	    my_connection_callback, (void *) NULL);
 
     if (rc == ECA_NORMAL)
-	cp->ever_successfully_searched = TRUE;
+	cp->ever_successfully_searched = SEARCHED;
     else
     {
 	wp->rc = EZCA_CAFAILURE;
