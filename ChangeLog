@@ -1,4 +1,18 @@
 Changes since labca_2_0_alpha (T.S):
+    2006/4/10 (TS):
+    - ezcaEndGroupWithReport() used to clear out unconnected channels
+      assuming that the disconnected state was a result of a failing
+      search_and_connect(). We now clear only channels that never were
+      successfully connected and leave other ones alone. This allows
+      monitors to pick up seamlessly after IOC reboots.
+    - disallow implicit mapping of native type -> FLOAT for monitors.
+      (The old behavior let disconnected channels look for a FLOAT
+      type monitor. We now let lcaNewMonitorValue() report -10 if
+      asking for the native type of a disconnected channel).
+    2006/2/17 (TS):
+    - we now use (undocumented) MATLAB 'utHandlePendingInterrupt()' to poll
+      for pending 'Ctrl-C' rather than hacking into the windows event loop.
+      Our hack didn't work with matlab 7.2(?)/win32 anymore.
     2005/6/7 (TS):
 	- flush output buffers (lcaPutNoWait())
 Changes since labca_1_5 (T.S):
