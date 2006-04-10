@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.22 2004/06/23 01:21:01 till Exp $ */
+/* $Id: multiEzca.c,v 1.23 2005/06/07 21:26:12 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -308,13 +308,17 @@ static int typesize(char type)
 	return -1;
 }
 
-static char nativeType(char *pv, int acceptString)
+static char nativeType(char *pv, int acceptString, int acceptNotConn)
 {
 chid *pid;
 
 	if ( EZCA_OK == ezcaPvToChid( pv, &pid ) && pid ) {
 		switch( ca_field_type(*pid) ) {
-			default:	/* includes TYPE_NOTCONN */
+			case TYPENOTCONN:
+							 if ( !acceptNotConn )
+								return -1;
+							 /* else fall through and default to FLOAT */
+			default:	
 				             break;
 
 			case DBF_CHAR:   return ezcaByte;
@@ -421,7 +425,7 @@ register char *bufp;
 	typesz = 0;
 	for ( i=0; i<m; i++ ) {
 		int tmp;
-		types[i] = ezcaNative == type ? nativeType(nms[i], 0) : type;
+		types[i] = ezcaNative == type ? nativeType(nms[i], 0, 1) : type;
 		if ( (tmp = typesize(types[i])) > typesz ) {
 			typesz = tmp;
 		}
@@ -532,7 +536,7 @@ register char *bufp;
 		if ( dims[i] > n )
 			n = dims[i];
 		/* nativeType uses ezcaPvToChid() which is non-groupable */
-		if ( ezcaString == (types[i] = ezcaNative == *type ? nativeType(nms[i], 1) : *type) )
+		if ( ezcaString == (types[i] = ezcaNative == *type ? nativeType(nms[i], 1, 1) : *type) )
 			nstrings++;
 
 		if ( (tmp = typesize(types[i])) > typesz )
@@ -806,7 +810,7 @@ int  i;
 
 	if ( ezcaNative == type ) {
 		for ( i=0; i<m; i++ ) {
-			if ( ezcaNative == (types[i] = nativeType(nms[i], 1)) )
+			if ( ezcaNative == (types[i] = nativeType(nms[i], 1, 0)) )
 				break;
 		}
 	}
@@ -843,7 +847,10 @@ int  rval = -1;
 		for ( i=0; i<m; i++ ) {
 			if ( clip && clip < dims[i] )
 				dims[i] = clip;
-			if ( ezcaSetMonitor(nms[i], types[i], dims[i]) ) {
+			if ( -1 == types[i] ) {
+				ezErr("multi_ezca_set_monitor - channel not connected", 0);
+				rval = -1;
+			} else if ( ezcaSetMonitor(nms[i], types[i], dims[i]) ) {
 				rval = -1;
 				ezErr("multi_ezca_set_monitor - ", 0);
 			}
@@ -865,8 +872,9 @@ int  i;
 int  rval   = types ? 0 : -1;
 
 	if ( types ) {
-		for ( i=0; i<m; i++ )
-			val[i] = ezcaNewMonitorValue(nms[i], types[i]);
+		for ( i=0; i<m; i++ ) {
+			val[i] = -1 == types[i] ? -3 : ezcaNewMonitorValue(nms[i], types[i]);
+		}
 	}
 
 	free( types );
