@@ -1,4 +1,4 @@
-/* $Id: ctrlC-sig.c,v 1.2 2004/02/11 18:51:52 till Exp $ */
+/* $Id: ctrlC-sig.c,v 1.3 2004/06/23 01:23:56 till Exp $ */
 
 /* Ctrl-C handling for solaris and linux */
 
@@ -48,19 +48,18 @@
 #define ISLINUX
 #endif
 
-#include <epicsVersion.h>
 
-#if (EPICS_VERSION > 3 || (EPICS_VERSION == 3 && EPICS_REVISION >= 14))
+#include <cadef.h>
+#include <ezca.h>
+
+#if BASE_IS_MIN_VERSION(3,14,0)
 #define DO_MASK
 #endif
-
 
 #if defined(DEBUG) || defined(DO_MASK)
 #include <pthread.h>
 #endif
 
-#include <cadef.h>
-#include <ezca.h>
 #include <multiEzcaCtrlC.h>
 
 #ifdef DEBUG

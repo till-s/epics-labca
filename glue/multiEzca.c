@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.24 2006/04/10 22:14:50 till Exp $ */
+/* $Id: multiEzca.c,v 1.25 2006/04/10 22:20:23 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -230,7 +230,7 @@ char *rval = 0;
 	return rval;
 }
 
-#if (EPICS_VERSION < 3 || (EPICS_VERSION == 3 && EPICS_REVISION < 14))
+#if !BASE_IS_MIN_VERSION(3,14,0)
 
 
 #if !defined(_POSIX_TIMERS)

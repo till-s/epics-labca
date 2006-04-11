@@ -46,8 +46,7 @@
 extern char *strdup(const char *s1);
 #endif
 
-#include <epicsVersion.h>
-#if 1 && (EPICS_VERSION > 3 || (EPICS_VERSION == 3 && EPICS_REVISION >= 14))
+#if 1 && BASE_IS_MIN_VERSION(3,14,0) 
 #define EPICS_THREE_FOURTEEN
 #include <epicsMutex.h>
 #include <epicsThread.h>

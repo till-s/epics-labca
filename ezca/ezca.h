@@ -28,6 +28,14 @@
 #define ezcaPut ezcaPut
 #endif
 
+#include <epicsVersion.h>
+
+#define BASE_IS_MIN_VERSION(a,b,c) \
+	(   EPICS_VERSION > (a)    \
+	|| (EPICS_VERSION==(a) && EPICS_REVISION > (b)) \
+	|| (EPICS_VERSION==(a) && EPICS_REVISION == (b) && EPICS_MODIFICATION >= (c)) \
+	)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
