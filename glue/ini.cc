@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.18 2006/04/11 02:08:17 strauman Exp $ */
+/* $Id: ini.cc,v 1.19 2006/04/11 02:11:51 till Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -28,11 +28,11 @@
 class multiEzcaInitializer {
 public:
 	multiEzcaInitializer();
-	~multiEzcaInitializer()
 #if BASE_IS_MIN_VERSION(3,14,7)
+	~multiEzcaInitializer()
 		{ epicsExit(0);}
-#endif
 	;
+#endif
 };
 
 multiEzcaInitializer::
