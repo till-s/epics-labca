@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.17 2004/06/24 01:59:54 strauman Exp $ */
+/* $Id: ini.cc,v 1.18 2006/04/11 02:08:17 strauman Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -8,7 +8,9 @@
 #include <multiEzcaCtrlC.h>
 #include <multiEzca.h>
 
+#if BASE_IS_MIN_VERSION(3,14,7)
 #include <epicsExit.h>
+#endif
 
 /* This is now done via the '-z nodelete' linker option */
 #define USE_DLOPEN
