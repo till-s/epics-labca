@@ -1,11 +1,11 @@
 #Makefile at top of application tree
 TOP = .
-include $(TOP)/config/CONFIG_APP
-DIRS += config
+include $(TOP)/configure/CONFIG
+DIRS += configure
 DIRS += ezca
 DIRS += glue
 DIRS += documentation
 ifeq ($(MAKEFOR),MATLAB)
 DIRS += matlab
 endif
-include $(TOP)/config/RULES_TOP
+include $(TOP)/configure/RULES_TOP

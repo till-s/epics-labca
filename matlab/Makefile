@@ -6,9 +6,100 @@
 # This file is distributed subject to a Software License Agreement found
 # in the file LICENSE that is included with this distribution. 
 #*************************************************************************
-#
-# Makefile,v 1.3 2002/08/02 15:38:41 jba Exp
-#
+#	Makefile.Host
+
 TOP = ..
-include $(TOP)/config/CONFIG_APP
-include $(TOP)/config/RULES_ARCHS
+include $(TOP)/configure/CONFIG
+CMPLR = STRICT
+
+
+USR_INCLUDES += -I../../ezca -I../../glue
+# install header file
+#INC =
+
+# build share library
+SHARED_LIBRARIES = YES
+
+USR_CPPFLAGS += -DMATLAB_APP
+USR_INCLUDES += -I$(MATLABDIR)/extern/include
+
+MEXF := lcaGetNelem
+MEXF += lcaGet
+MEXF += lcaGetStatus
+MEXF += lcaGetGraphicLimits
+MEXF += lcaGetControlLimits
+MEXF += lcaPut
+MEXF += lcaPutNoWait
+MEXF += lcaGetRetryCount
+MEXF += lcaSetRetryCount
+MEXF += lcaGetTimeout
+MEXF += lcaSetTimeout
+MEXF += lcaSetSeverityWarnLevel
+MEXF += lcaClear
+MEXF += lcaSetMonitor
+MEXF += lcaNewMonitorValue
+MEXF += lcaDelay
+ifeq ($(CONFIG_ECDRGET),YES)
+MEXF += ecget
+endif
+
+MEXTARGET=$(addsuffix $(MEXEXT),$(MEXF))
+
+MATDOCS=$(wildcard $(addprefix $(TOP)/documentation/help/,$(MEXF:%=%.m) Contents.m))
+
+SCRIPTS+=$(notdir $(MATDOCS))
+
+
+#       Library to build:
+#       lib$(LIBRARY).a  or   ..dll/..exp/..lib
+#
+
+# need additional libs
+PROD_LIBS := mezcaglue ezcamt ca Com
+
+PROD_LIBS_WIN32+= ezcamt ca Com
+
+ca_DIR = $(EPICS_BASE_LIB)
+Com_DIR = $(EPICS_BASE_LIB)
+
+## USR_LIBS_WIN32 += libmx libmex
+
+## libmx_DIR     := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+## libmex_DIR    := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+mezcaglue_DIR := $(INSTALL_LIB)
+ezcamt_DIR    := $(INSTALL_LIB)
+
+
+ifndef BASE_3_14
+ifeq ($(OS_CLASS),solaris)
+ACC_DEP_CFLAGS = -KPIC -v
+CCC_DEP_CFLAGS = -KPIC -v
+endif
+endif
+
+
+INSTALL_PROD=$(MEXTARGET:%=$(INSTALL_BIN)/%)
+include $(TOP)/configure/RULES
+PRODNAME=$(MEXTARGET)
+
+
+
+$(notdir $(MATDOCS)):%.m:$(TOP)/documentation/help/%.m 
+	$(CP) $^ $@
+
+#MEXLIBS  = $(PROD_LDLIBS) -lpthread -lreadline -lcurses -lrt -lm
+MEXLIBS  = -lmezcaglue 
+
+#LINK.cpp = $(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(CPPFLAGS) $(@:%$(MEXEXT)=%$(OBJ)) $(INCLUDES) $(PRODDIR_LDFLAGS) $(MEXLIBS)  -o $@
+
+$(PRODNAME):%$(MEXEXT):../%.c $(PROD_DEPLIBS)
+	@$(RM) $@
+	$(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(CPPFLAGS) $< $(INCLUDES) $(PRODDIR_LDFLAGS) $(MEXLIBS)  -o $@
+
+build:	$(MEXTARGET)
+
+
+buildInstall:
+	@echo matdocs $(MATDOCS)
+
+#	EOF Makefile.Host
