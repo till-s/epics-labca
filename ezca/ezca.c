@@ -57,17 +57,17 @@ static epicsMutexId	ezcaMutex = 0;
 #define	EZCA_LOCK() \
 	do { \
 		if (DEBUG_LOCK)								\
-		printf("Thread %s (0x%x) tries to lock\n",	\
+		printf("Thread %s (0x%lx) tries to lock\n",	\
 			epicsThreadGetNameSelf(),				\
-			epicsThreadGetIdSelf()); 				\
+			(unsigned long)epicsThreadGetIdSelf()); \
 		epicsMutexLock(ezcaMutex);					\
 	} while (0)
 #define	EZCA_UNLOCK()	\
 	do { \
 		if (DEBUG_LOCK) \
-		printf("Thread %s (0x%x) unlocks\n",		\
+		printf("Thread %s (0x%lx) unlocks\n",		\
 			epicsThreadGetNameSelf(),				\
-			epicsThreadGetIdSelf()); 				\
+			(unsigned long)epicsThreadGetIdSelf()); \
 		epicsMutexUnlock(ezcaMutex); 				\
 	} while (0)
 #define DO_INIT_ONCE() \
