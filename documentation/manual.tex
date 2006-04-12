@@ -53,11 +53,11 @@ of \mhack{} strings.
 
 \title{\sca{} --- An EPICS Channel Access Interface for \scilab{} and \matlab{}}
 \author{Till Straumann $<$straumanATslac.stanford.edu$>$, 2003}
-\date{April 10, 2006}
+\date{April 11, 2006}
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.25 2004/06/23 01:26:04 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.26 2006/04/10 22:32:11 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -687,7 +687,7 @@ A timeout value in seconds.
 \pbrkf
 \section{Building and Using \sca{}}
 \subsection{Build}
-\sca{} comes with a `\com{config}' subdirectory and Makefiles conforming to the
+\sca{} comes with a `\com{configure}' subdirectory and Makefiles conforming to the
 EPICS build system. Following a configuration step which involves editing
 two small files, '\com{make}' is executed to install the generated libraries
 and scripts.
@@ -711,7 +711,7 @@ to 3.14.4 on \ita{linux-x86}, \ita{linux-ppc}, \ita{solaris-sparc-gnu}
 and \windoze.
 
 \subsubsection{Configuration}
-Two files, `\com{config/CONFIG}' and `\com{config/RELEASE}' need to
+Two files, `\com{configure/CONFIG}' and `\com{configure/RELEASE}' need to
 be adapted to the user's installation:
 \begin{description}
 \item[\tt CONFIG:] A handful of configuration parameters must be defined
