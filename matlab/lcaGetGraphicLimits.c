@@ -1,4 +1,4 @@
-/* $Id: lcaGetGraphicLimits.c,v 1.5 2004/02/27 01:24:34 till Exp $ */
+/* $Id: lcaGetGraphicLimits.c,v 1.6 2004/06/23 01:15:55 till Exp $ */
 
 /* matlab wrapper for ezcaGetGraphicLimits */
 
@@ -16,10 +16,10 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-PVs     pvs = { 0 };
+PVs     pvs = { {0} };
 MultiArgRec args[]={ { sizeof(double), 0, (void**)0 }, { sizeof(double), 0, (void**)0 } };
 void	*pres[NumberOf(args)];
-int     i,nargs = 0;
+int     i;
 
 	if ( 0==nlhs )
 		nlhs=1;

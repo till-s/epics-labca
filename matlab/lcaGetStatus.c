@@ -1,4 +1,4 @@
-/* $Id: lcaGetStatus.c,v 1.2 2004/02/27 01:24:34 till Exp $ */
+/* $Id: lcaGetStatus.c,v 1.3 2004/06/23 01:15:55 till Exp $ */
 
 /* matlab wrapper for ezcaGetStatus */
 
@@ -17,7 +17,7 @@
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 int			i;
-PVs			pvs = { 0 };
+PVs			pvs = { {0} };
 TS_STAMP	*ts = 0;
 MultiArgRec	args[3];
 mxArray		*res[2] = {0};

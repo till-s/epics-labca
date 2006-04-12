@@ -1,4 +1,4 @@
-/* $Id: lcaSetMonitor.c,v 1.1 2004/06/20 04:25:55 till Exp $ */
+/* $Id: lcaSetMonitor.c,v 1.2 2004/06/23 01:15:55 till Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -18,7 +18,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 int     i,n = 0;
 const mxArray *tmp;
-PVs     pvs = { 0 };
+PVs     pvs = { {0} };
 char	type = ezcaNative;
 
 	if ( nlhs == 0 )

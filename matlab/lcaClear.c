@@ -1,4 +1,4 @@
-/* $Id: lcaClear.c,v 1.1 2004/03/24 04:05:23 till Exp $ */
+/* $Id: lcaClear.c,v 1.2 2004/06/23 01:15:54 till Exp $ */
 
 /* matlab wrapper for ezcaGetNelem */
 
@@ -16,7 +16,7 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-PVs     pvs = { 0 };
+PVs     pvs = { {0} };
 char	**s;
 int		m = -1;
 

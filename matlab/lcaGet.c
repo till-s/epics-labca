@@ -1,4 +1,4 @@
-/* $Id: lcaGet.c,v 1.7 2004/02/27 01:24:34 till Exp $ */
+/* $Id: lcaGet.c,v 1.8 2004/06/23 01:15:54 till Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -20,9 +20,8 @@ void	*pres = 0;
 int     i,n = 0;
 const mxArray *tmp;
 mxArray *clean0 = 0, *clean1 = 0;
-PVs     pvs = { 0 };
+PVs     pvs = { {0} };
 char	type = ezcaNative;
-char	typestr[2] = { 'N', 0 };
 TS_STAMP *ts = 0;
 
 	if ( nlhs == 0 )
