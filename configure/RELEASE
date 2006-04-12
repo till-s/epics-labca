@@ -1,0 +1,69 @@
+#RELEASE Location of external products
+# Run "gnumake clean uninstall install" in the application
+# top directory each time this file is changed.
+#
+# NOTE: The build does not check dependancies on files
+# external to this application. Thus you should run
+# "gnumake clean uninstall install" in the top directory
+# each time EPICS_BASE, SNCSEQ, or any other external
+# module defined in the RELEASE file is rebuilt.
+
+# If you don't want to install into $(TOP) then
+# define INSTALL_LOCATION_APP here
+#INSTALL_LOCATION_APP=<fullpathname>
+
+# Note: This file will be scanned to automatically generate
+#       include path definitions etc.
+#       The order of the following declarations will be retained
+#       within those definitions.
+#
+# Add your declarations here
+
+##########################################
+## Tell us where EPICS base is installed
+
+EPICS_BASE=$(TOP)/../
+
+##########################################
+# Tell us where SCILAB is installed (only
+# needed if MAKEFOR != MATLAB [in CONFIG])
+
+SCILABDIR=/usr/lib/scilab-3.0
+
+##########################################
+# Tell us where MATLAB is installed (only
+# needed if MAKEFOR=MATLAB [in CONFIG])
+
+SUBPATH_Linux=linux
+MATLABDIR=/afs/slac/package/matlab/$(SUBPATH_$(OS_CLASS))/14/
+
+##########################################
+# Finally, we need to know what compiler
+# you use to get the correct matlab libmx and
+# libmex versions. This points to the compiler
+# specific subdir (example for MS visual C 6.0)
+# ONLY NEEDED ON WINDOZE (setting is ignored on
+# other platforms)
+
+#MATLIB_SUBDIR=win32/microsoft/msvc60
+
+TEMPLATE_TOP=$(TOP)/..//templates/makeBaseApp/top
+
+######### DELETE EVERYTHING BELOW HERE
+######### (These are SSRL specific paths)
+
+
+#EPICS_BASE=M:/g/spear/3.14.2epics/base
+#MATLABDIR=C:/MATLAB6p5
+
+#EPICS_BASE=Q:/Groups/Accel/Controls/EPICS/R3.13.4/base
+
+#EPICS_BASE=C:\epics\base
+#MATLABDIR=C:\matlabR14beta2
+#MATLIB_SUBDIR=win32/microsoft/msvc60
+#MATLIB_SUBDIR=win32/microsoft/msvc70
+#EPICS_BASE=N:/g/spear/3.14.2epics/base
+#EPICS_BASE=/afs/slac/g/spear/3.14.2epics/base
+#EPICS_BASE=/afs/slac/package/epics/R3.13.2/base
+#MATLABDIR=/afs/slac/package/matlab/linux/14B2/
+#MATLABDIR=/afs/slac/package/matlab/14B2/
