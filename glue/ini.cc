@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.19 2006/04/11 02:11:51 till Exp $ */
+/* $Id: ini.cc,v 1.20 2006/04/11 02:18:29 till Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -9,6 +9,7 @@
 #include <multiEzca.h>
 
 #if BASE_IS_MIN_VERSION(3,14,7)
+#include <stdlib.h>
 #include <epicsExit.h>
 #endif
 
@@ -24,13 +25,19 @@
 #ifdef SCILAB_APP
 #include <signal.h>
 #endif
+#if BASE_IS_MIN_VERSION(3,14,7)
+void do_epics_exit()
+{
+	epicsExit(0);
+}
+#endif
 
 class multiEzcaInitializer {
 public:
 	multiEzcaInitializer();
 #if BASE_IS_MIN_VERSION(3,14,7)
 	~multiEzcaInitializer()
-		{ epicsExit(0);}
+		{ do_epics_exit(); }
 	;
 #endif
 };
@@ -68,6 +75,10 @@ multi_ezca_ctrlC_initialize();
 multi_ezca_ctrlC_prologue(&saved);
 ezcaAutoErrorMessageOff(); /* calls ezca init() */
 multi_ezca_ctrlC_epilogue(&saved);
+#if BASE_IS_MIN_VERSION(3,14,7)
+atexit(do_epics_exit);
+#endif
+
 }
 
 #if 0 /* this doesn't work properly */
