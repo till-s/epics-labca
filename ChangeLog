@@ -1,4 +1,6 @@
 Changes since labca_2_0_alpha (T.S):
+    2006/4/11 (TS):
+    - upgraded to 3.14(.8.2)-style Makefiles.
     2006/4/10 (TS):
     - ezcaEndGroupWithReport() used to clear out unconnected channels
       assuming that the disconnected state was a result of a failing
