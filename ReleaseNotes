@@ -9,6 +9,10 @@ INSTALL LOCATION CHANGES:
  (.mex files are still underneath 'labca' but they are found by matlab
  provided the matlab path points there [which is still necessary].)
 
+EPICS BASE RELEASE:
+
+ The binary release comes with EPICS 3.14.8.2 built in.
+
 LINUX/MATLAB PECULARITIES:
 
 MATLAB Version 7.1.0.183 (R14) Service Pack 3, dated August 02, 2005:
