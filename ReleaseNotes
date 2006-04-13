@@ -1,4 +1,31 @@
- labca_2_0_alpha (T.S, 2004/6/23):
+################################
+#  labca_2_1 (T.S, 2006/4/13): #
+################################
+
+INSTALL LOCATION CHANGES:
+
+ Note that all executables and DLLs are now installed under 'bin/<arch>'
+ i.e., it is not necessary anymore to add 'bin/<arch>/labca' to the PATH.
+ (.mex files are still underneath 'labca' but they are found by matlab
+ provided the matlab path points there [which is still necessary].)
+
+LINUX/MATLAB PECULARITIES:
+
+MATLAB Version 7.1.0.183 (R14) Service Pack 3, dated August 02, 2005:
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ This release worked fine here at slac (RHEL3) w/o the need for
+ setting LD_PRELOAD as described below (workaround still needed for
+ other MATLAB versions). However, when quitting, the message
+
+  'libgcc_s.so.1 must be installed for pthread_cancel to work'
+
+ appears which doesn't happen if LD_PRELOAD is set in the way
+ described below.
+
+
+#####################################
+# labca_2_0_alpha (T.S, 2004/6/23): #
+#####################################
 
 LINUX/MATLAB PECULARITIES:
 
