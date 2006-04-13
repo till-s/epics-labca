@@ -96,6 +96,12 @@ CCC_DEP_CFLAGS = -KPIC -v
 endif
 endif
 
+# install matlab executables and help files
+# to a 'labca' subdir so 'help labca' lists
+# the 'Contents.m' summary
+INSTALL_BIN:=$(INSTALL_BIN)/labca
+
+
 include $(TOP)/config/RULES.Host
 
 $(notdir $(MATDOCS)):%.m:$(TOP)/documentation/help/%.m 
