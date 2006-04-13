@@ -1,7 +1,17 @@
-# RELEASE - Location of external products
+#RELEASE Location of external products
+# Run "gnumake clean uninstall install" in the application
+# top directory each time this file is changed.
 #
-# (Architecture dependent declarations should go into RELEASE.<arch>)
-#
+# NOTE: The build does not check dependancies on files
+# external to this application. Thus you should run
+# "gnumake clean uninstall install" in the top directory
+# each time EPICS_BASE, SNCSEQ, or any other external
+# module defined in the RELEASE file is rebuilt.
+
+# If you don't want to install into $(TOP) then
+# define INSTALL_LOCATION_APP here
+#INSTALL_LOCATION_APP=<fullpathname>
+
 # Note: This file will be scanned to automatically generate
 #       include path definitions etc.
 #       The order of the following declarations will be retained
@@ -18,13 +28,13 @@
 # Tell us where SCILAB is installed (only
 # needed if MAKEFOR != MATLAB [in CONFIG])
 
-#SCILABDIR=/usr/lib/scilab-2.7
+#SCILABDIR=
 
 ##########################################
 # Tell us where MATLAB is installed (only
 # needed if MAKEFOR=MATLAB [in CONFIG])
 
-#MATLABDIR=C:\matlabR14beta2
+#MATLABDIR=
 
 ##########################################
 # Finally, we need to know what compiler
@@ -34,23 +44,17 @@
 # ONLY NEEDED ON WINDOZE (setting is ignored on
 # other platforms)
 
-#MATLIB_SUBDIR=win32/microsoft/msvc60
+#MATLIB_SUBDIR=win32/microsoft/msvc70
 
 ######### DELETE EVERYTHING BELOW HERE
 ######### (These are SSRL specific paths)
 
+#MATLABDIR_WIN32=C:/Program\ Files/MATLAB704
+#MATLABDIR_Linux=/afs/slac/package/matlab/linux/14/
+#MATLABDIR_solaris=/afs/slac/package/matlab/14/
+#MATLABDIR=$(MATLABDIR_$(OS_CLASS))
 
-#EPICS_BASE=M:/g/spear/3.14.2epics/base
-#MATLABDIR=C:/MATLAB6p5
-
-#EPICS_BASE=Q:/Groups/Accel/Controls/EPICS/R3.13.4/base
-
-#EPICS_BASE=C:\epics\base
-#MATLABDIR=C:\matlabR14beta2
-#MATLIB_SUBDIR=win32/microsoft/msvc60
-#MATLIB_SUBDIR=win32/microsoft/msvc70
-#EPICS_BASE=N:/g/spear/3.14.2epics/base
-#EPICS_BASE=/afs/slac/g/spear/3.14.2epics/base
-#EPICS_BASE=/afs/slac/package/epics/R3.13.2/base
-#MATLABDIR=/afs/slac/package/matlab/linux/14B2/
-#MATLABDIR=/afs/slac/package/matlab/14B2/
+#SCILABDIR_Linux=/usr/lib/scilab-3.0
+#SCILABDIR_WIN32=C:/scilab-4.0
+#SCILABDIR_solaris=/afs/slac/u/qb/strauman/vol3/scilab-solaris/scilab-3.1.1
+#SCILABDIR=$(SCILABDIR_$(OS_CLASS))
