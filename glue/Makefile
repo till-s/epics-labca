@@ -20,7 +20,12 @@ SHARED_LIBRARIES = YES
 ifeq ($(MAKEFOR),MATLAB)
 PROD_HOST += gnelm
 ifeq ($(OS_CLASS),WIN32)
-LIB_LIBS += libut libmx libmex
+#LIB_LIBS += libut libmx libmex
+# $(addprefix) et al. can't deal with paths containing white space
+# therefore, we assemble the list of dlls manually :-(
+TARGET_LDFLAGS += $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)/libut.lib
+TARGET_LDFLAGS += $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)/libmx.lib
+TARGET_LDFLAGS += $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)/libmex.lib
 else
 LIB_LIBS += mx mex
 #CC         = $(MATLABDIR)/bin/mex -cxx
@@ -93,7 +98,7 @@ SHRLIB_VERSION:=0
 # USR_LIBS_WIN32 += libmx libmex
 LIB_LIBS_WIN32 += ca Com
 
-SYS_PROD_LIBS_WIN32 += user32
+USR_SYS_LIBS_WIN32 += user32
 
 # matlab tries to unload MEX files on exit;
 # since we cannot exit ezca/CA cleanly, this
@@ -104,6 +109,7 @@ SYS_PROD_LIBS_WIN32 += user32
 #GCC_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
 #G++_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
 
+# these are not used since we pass the path manually (TARGET_LDFLAGS above)
 libmx_DIR  := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 libut_DIR  := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
@@ -126,6 +132,12 @@ CCC_DEP_CFLAGS = -KPIC -v
 endif
 endif
 
+ifeq ($(OS_CLASS),WIN32)
+LIBSUB=bin
+else
+LIBSUB=lib
+endif
+
 include $(TOP)/configure/RULES
 
 $(SHRLIBNAME): ../$(LIBRARY_HOST).def
@@ -135,7 +147,7 @@ mkmezca.m: ../mkmezca.m.tmpl
 
 %.sce: ../%.sce.in
 	$(RM) $@
-	sed -e's/TARCH/$(T_A)/g' -e 's/THELIB/$(SHRLIBNAME)/g' -e 's/THEFILE/$@/g' <$^ >$@
+	sed -e 's%THELIB%$(LIBSUB)/$(T_A)/$(SHRLIBNAME)%g' -e 's/THEFILE/$@/g' <$^ >$@
 
 ../%.def: ../%.def.in
 	$(CPP) $(CPPFLAGS) -I$(SCILABDIR)/routines $< | sed -n -e '/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p' > $@
@@ -145,5 +157,3 @@ PRODNAME_LINKER=$(MATLABDIR)/bin/$(MEX) -f $(MATLABDIR)/bin/engopts.sh $(TARGET_
 endif
 
 #	EOF Makefile.Host
-test:
-	echo $(OS_CLASS)

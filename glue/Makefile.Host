@@ -120,6 +120,12 @@ CCC_DEP_CFLAGS = -KPIC -v
 endif
 endif
 
+ifeq ($(OS_CLASS),WIN32)
+LIBSUB=bin
+else
+LIBSUB=lib
+endif
+
 include $(TOP)/config/RULES.Host
 
 $(SHRLIBNAME): ../$(LIBRARY).def
@@ -129,7 +135,7 @@ mkmezca.m: ../mkmezca.m.tmpl
 
 %.sce: ../%.sce.in
 	$(RM) $@
-	sed -e's/TARCH/$(T_A)/g' -e 's/THELIB/$(SHRLIBNAME)/g' -e 's/THEFILE/$@/g' <$^ >$@
+	sed -e 's%THELIB%$(LIBSUB)/$(T_A)/$(SHRLIBNAME)%g' -e 's/THEFILE/$@/g' <$^ >$@
 
 ../%.def: ../%.def.in
 	$(CPP) $(CPPFLAGS) -I$(SCILABDIR)/routines $< | sed -n -e '/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p' > $@

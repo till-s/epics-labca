@@ -26,7 +26,7 @@ ezca_funs=[...
   'lecdrGet';
   ];
 ezca_top=get_absolute_file_path('THEFILE')+'../../';
-addinter(ezca_top+'lib/TARCH/THELIB','ezca',ezca_funs);
+addinter(ezca_top+'THELIB','ezca',ezca_funs);
 if grep(%helps(:,1),ezca_top)== [] then
    %helps=[%helps;[ezca_top+"html/help", "EPICS CA Interface"]];
 end
