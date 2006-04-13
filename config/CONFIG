@@ -1,3 +1,4 @@
+
 USR_CFLAGS=-g
 #CONFIG
 
@@ -42,22 +43,15 @@ MEXEXT_Darwin=.mexmac
 MLBARCH_Darwin=mac
 MEXEXT_WIN32=.dll
 MLBARCH_WIN32=win32
-MEXEXT=$(MEXEXT_$(ARCH_CLASS))
-MLBARCH=$(MLBARCH_$(ARCH_CLASS))
+MEXEXT=$(MEXEXT_$(OS_CLASS))
+MLBARCH=$(MLBARCH_$(OS_CLASS))
 
-ifeq ($(ARCH_CLASS),WIN32)
+ifeq ($(OS_CLASS),WIN32)
 MEX=win32/mex.bat
 MEXCXXFLAGS=
 else
 MEX=mex
 MEXCXXFLAGS=-cxx
-endif
-
-# install matlab executables and help files
-# to a 'labca' subdir so 'help labca' lists
-# the 'Contents.m' summary
-ifeq ($(MAKEFOR),MATLAB)
-INSTALL_BIN:=$(INSTALL_BIN)/labca
 endif
 
 # dont hardcode searchpaths
