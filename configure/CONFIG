@@ -56,13 +56,6 @@ MEX=mex
 MEXCXXFLAGS=-cxx
 endif
 
-# install matlab executables and help files
-# to a 'labca' subdir so 'help labca' lists
-# the 'Contents.m' summary
-ifeq ($(MAKEFOR),MATLAB)
-INSTALL_BIN:=$(INSTALL_BIN)/labca
-endif
-
 # dont hardcode searchpaths
 RUNTIME_LDFLAGS=
 
