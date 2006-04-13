@@ -53,11 +53,11 @@ of \mhack{} strings.
 
 \title{\sca{} --- An EPICS Channel Access Interface for \scilab{} and \matlab{}}
 \author{Till Straumann $<$straumanATslac.stanford.edu$>$, 2003}
-\date{April 11, 2006}
+\date{April 13, 2006}
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.26 2006/04/10 22:32:11 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.27 2006/04/12 02:19:35 strauman Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -81,9 +81,16 @@ to execute \ezca{} calls on groups of PVs, simply by
 passing the respective \sca{} routine a column vector
 of PV names.
 
-\sca{} has been tested with EPICS 3.13, 3.14, \scilab-2.7,
+\sca{} has been tested with EPICS 3.13, 3.14, \scilab-2.7 .. \scilab-4.0,
 \matlab-6.5, \matlab-7 on \ita{linux}, \ita{solaris} and
-\windoze.
+\windoze. Note that while some of these combinations have been
+tested and been known working in the past, only the latest
+versions of the respective components have been tested
+and verified to build and run successfully with the
+current version of \sca{}. Modifications to the \com{Makefile}s
+might be necessary to build older versions. Note also
+that support for EPICS~3.13 is being deprecated. Future
+versions of \sca{} will have the old \com{Makefile}s removed.
 
 \section{Supported EZCA Calls}
 \sca{} implements an interface to almost all public
@@ -692,6 +699,12 @@ EPICS build system. Following a configuration step which involves editing
 two small files, '\com{make}' is executed to install the generated libraries
 and scripts.
 
+Note that EPICS 3.13 is being deprecated. This is the last version of \sca{}
+supporting the old EPICS build system. In order to use it, you must manually
+replace all \com{Makefile}s by the respective \com{Makefile.R13}s and you
+have to edit the \com{CONFIG} and \com{RELEASE} files in the \com{config}
+rather than the \com{configure} directory.
+
 Prior to invoking the \scilab{} or \matlab{} application, the system
 must be properly set up in order for the applications to locate the
 \sca{} and channel access libraries.
@@ -705,10 +718,16 @@ would end up in the running \matlab{} application with possible adverse
 effects. It should be possible to build and use the \scilab{} interface
 with static libraries --- minor tweaks to the Makefiles might be necessary.
 
-\sca{} has been tested with \matlab-6.5, \matlab-7.0 and \scilab-2.7
+\sca{} has been tested with \matlab-6.5, \matlab-7.0 and \scilab-2.7 .. \scilab-4.0
 under a variety of EPICS releases ranging from 3.13.2
-to 3.14.4 on \ita{linux-x86}, \ita{linux-ppc}, \ita{solaris-sparc-gnu}
+to 3.14.8.2 on \ita{linux-x86}, \ita{linux-ppc}, \ita{solaris-sparc-gnu}
 and \windoze.
+
+Note that the binary distribution of \sca{} usually ships with the
+necessary EPICS base libraries so there is no need to download anything
+besides \sca. The \ita{linux}
+and \ita{solaris} versions have these libraries built-in, the \windoze
+version comes with the appropriate DLLs.
 
 \subsubsection{Configuration}
 Two files, `\com{configure/CONFIG}' and `\com{configure/RELEASE}' need to
@@ -768,6 +787,13 @@ corresponding to the C-compiler that is used for the build. (e.g.
 Any irrelevant variables (such as \com{MATLABDIR} if \com{MAKEFOR=SCILAB})
 are ignored.
 
+Note that the EPICS build system has problems with path names containing
+white space as they are commonly used on \windoze. Although I have
+tried to work around this, you still might encounter problems. I found
+that setting the environment variable \com{MATLAB} to point to the \matlab{}
+directory helped (\ita{cygwin}). It is best to avoid white space in path
+names, however.
+
 \subsubsection{Building \sca}
 After setting the
 `\com{EPICS\_HOST\_ARCH}' (for EPICS 3.14) and `\com{HOST\_ARCH}' (EPICS 3.13)
@@ -790,15 +816,15 @@ in \matlab) at the prompt with obscure error messages.
 
 Under \ita{linux} or \ita{solaris}, the \com{LD\_LIBRARY\_PATH} environment
 variable or the \com{ld.so.conf / ldconfig} facility are used to point
-to the executable shared libraries (located in \com{lib/<system>}).
+to the executable shared libraries (located in \com{lib/<arch>}).
+If using a binary distribution, the \com{PATH} variable also should point
+to \com{bin/<arch>} so that the \ita{CA repeater} executable is found.
+If you build from source using your own EPICS base installation then
+we assume that locating the \ita{CA repeater} has already been taken
+care of.
 
 Under \windoze{}, the \com{PATH} environment variable must point to the
-correct EPICS BASE and \sca{} DLLs (located in \com{bin/<system>} for
-\scilab{} and \com{bin/<system>/labca}%
-\footnote{
-the extra subdirectory was added in order for the \matlab{} \com{help} command
-to easily locate the \com{Contents.m} file when the user types \com{help labca}.
-} for \matlab, respectively).
+correct EPICS BASE and \sca{} DLLs (located in \com{bin/<arch>}).
 
 Note that the paths to the correct EPICS BASE and \sca{} shared libraries
 must be set up \ita{prior} to starting the \scilab{} or \matlab{} application.
@@ -820,7 +846,7 @@ has no influence on the system search path.
 \subsubsection{Using \sca{} with \scilab}
 Set up the shared library search path (as described above) and start
 \scilab. Run the \com{\sca.sce} script which was generated by the build process
-(\com{<\sca-top>/bin/<system>/\sca.sce}) to load the \sca{} interface.
+(\com{<\sca-top>/bin/<arch>/\sca.sce}) to load the \sca{} interface.
 The script also adds to the \com{\%helps} variable making on-line
 help available.
 
@@ -831,8 +857,13 @@ It is also possible to permanently link \sca{} to \scilab{}. Consult
 the \scilab{} documentation for more information.
 
 \subsubsection{Using \sca{} with \matlab}
-Every entry point / \com{lcaXXX} routine is contained in a separate
-shared object file in the \com{<\sca-top>/bin/<system>/labca} directory
+Every entry point / \com{lcaXXX} routine 
+is contained in a separate
+shared object (AKA ``\com{mex}-'') file in the \com{<\sca-top>/bin/<arch>/labca}%
+\footnote{
+the extra subdirectory was added in order for the \matlab{} \com{help} command
+to easily locate the \com{Contents.m} file when the user types \com{help labca}.
+} directory
 which must be added to the \matlab{} search path.
 Note that this is in \ita{addition}
 to setting the system library search path which must be performed prior
