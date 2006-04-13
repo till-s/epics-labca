@@ -21,7 +21,7 @@ USR_INCLUDES += -I../../ezca -I../../glue
 SHARED_LIBRARIES = YES
 
 USR_CPPFLAGS += -DMATLAB_APP
-USR_INCLUDES += -I$(MATLABDIR)/extern/include
+#USR_INCLUDES += -I$(MATLABDIR)/extern/include
 
 MEXF := lcaGetNelem
 MEXF += lcaGet
@@ -79,6 +79,11 @@ endif
 
 
 INSTALL_PROD=$(MEXTARGET:%=$(INSTALL_BIN)/%)
+# install matlab executables and help files
+# to a 'labca' subdir so 'help labca' lists
+# the 'Contents.m' summary
+INSTALL_BIN:=$(INSTALL_BIN)/labca
+
 include $(TOP)/configure/RULES
 PRODNAME=$(MEXTARGET)
 
@@ -87,14 +92,11 @@ PRODNAME=$(MEXTARGET)
 $(notdir $(MATDOCS)):%.m:$(TOP)/documentation/help/%.m 
 	$(CP) $^ $@
 
-#MEXLIBS  = $(PROD_LDLIBS) -lpthread -lreadline -lcurses -lrt -lm
-MEXLIBS  = -lmezcaglue 
-
-#LINK.cpp = $(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(CPPFLAGS) $(@:%$(MEXEXT)=%$(OBJ)) $(INCLUDES) $(PRODDIR_LDFLAGS) $(MEXLIBS)  -o $@
+MEXLIBS = $(PROD_LDLIBS)
 
 $(PRODNAME):%$(MEXEXT):../%.c $(PROD_DEPLIBS)
 	@$(RM) $@
-	$(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(CPPFLAGS) $< $(INCLUDES) $(PRODDIR_LDFLAGS) $(MEXLIBS)  -o $@
+	$(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(USR_CPPFLAGS) $< $(INCLUDES) $(PRODDIR_LDFLAGS) $(MEXLIBS)
 
 build:	$(MEXTARGET)
 
