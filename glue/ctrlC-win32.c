@@ -1,4 +1,4 @@
-/* $Id: ctrlC-win32.c,v 1.4 2004/02/11 18:51:52 till Exp $ */
+/* $Id: ctrlC-win32.c,v 1.5 2006/02/17 19:26:22 till Exp $ */
 
 /* Ctrl-C processing for WIN32 */
 
@@ -156,10 +156,12 @@ MSG m;
 void
 multi_ezca_ctrlC_prologue(CtrlCState psave)
 {
+#ifndef HAVE_UT_HANDLE_INTERRUPT
 #ifdef DEBUG
 	rec    = 0;
 #endif
 	ctrl   = -1;
+#endif
 }
 
 void
