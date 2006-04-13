@@ -22,7 +22,7 @@
 ##########################################
 ## Tell us where EPICS base is installed
 
-EPICS_BASE=$(TOP)/../
+#EPICS_BASE=$(TOP)/../
 
 ##########################################
 # Tell us where SCILAB is installed (only
