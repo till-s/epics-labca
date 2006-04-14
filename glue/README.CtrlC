@@ -1,3 +1,12 @@
+TS, 2006/4/14:
+NOTE: most of this is now obsolete. For both, scilab and matlab,
+we now use (undocumented) calls to poll a 'ctrlC' flag. The
+'ctrlC-polled.c' solution is much more stable and portable than
+the earlier 'hacks' (which probably go away with the next release).
+
+----------------------------------------------------------------------
+
+
 Would be nice to be able to abort 'lca' calls by hitting
 Ctrl-C. Unfortunately, this is non-trivial and causes
 cumbersome and obscure portability problems:
