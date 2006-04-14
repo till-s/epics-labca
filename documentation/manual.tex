@@ -57,7 +57,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.27 2006/04/12 02:19:35 strauman Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.28 2006/04/13 22:22:49 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -743,21 +743,15 @@ Any setting other than \com{MATLAB} is treated like \com{SCILAB}.
 
 \item[\tt CONFIG\_USE\_CTRLC:] Set this to {\tt YES} or {\tt NO} to enable
 or disable, respectively, code for handling ``Ctrl-C'' keystroke sequences.
-When enabled, \sca{} operations may be aborted by hitting ``Ctrl-C''. Note
-that \sca{} polls for an ``abort condition'' with a granularity of the
+When enabled, \sca{} operations ({\em except for} \com{lcaDelay}) may be aborted
+by hitting ``Ctrl-C''.
+Note that \sca{} polls for an ``abort condition'' with a granularity of the
 \hyperref[ref]{\ezca{} timeout parameter}{timeout parameter (see }{ )}{timeout}.
-Unfortunately, neither \matlab{} nor \scilab{} feature an API for handling
-Ctrl-C events and therefore the implementation is highly system dependent.
-Currently, the feature is supported on \linux, \solaris{} and \windoze.
-Also, it should be noted that due to the lack of a clean interface, Ctrl-C
-handling must be considered ``experimental'', i.e. it might cause problems
-on certain system and/or \scilab/\matlab{} versions. Nonetheless, Ctrl-C
-handling can be very useful and works well on the aforementioned
-systems on some combinations of \scilab-2.7, \matlab-13, \matlab-14, EPICS 3.13
-and EPICS 3.14.
-
-Ctrl-C handling does {\em not} work with \scilab{}
-versions using the {\em Xaw} GUI -- the {\em Gtk} GUI should work, however.
+Unfortunately, neither \matlab{} nor \scilab{} feature a documented API for handling
+Ctrl-C events and therefore Ctrl-C support -- the implementation using undocumented
+features of \sca{} and \matlab -- must be considered ``experimental''
+i.e., it might cause problems on certain operating system and/or \scilab/\matlab{}
+versions.
 
 \item[\tt INSTALL\_LOCATION:] Set this variable to install in a location
 different from the \sca{} top directory.
