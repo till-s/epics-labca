@@ -13,6 +13,36 @@ EPICS BASE RELEASE:
 
  The binary release comes with EPICS 3.14.8.2 built in.
 
+MATLAB RELEASE:
+ 
+ The binary release comes built against
+
+  solaris: Version 7.0.0.19901 (R14), MAY 06, 2004
+		tested with:
+               Version 7.0.1.24704 (R14) Service Pack 1, September 13, 2004
+               Version 7.0.4.352 (R14) Service Pack 2, January 29, 2005
+               Version 7.1.0.183 (R14) Service Pack 3, August 02, 2005
+
+  linux:   Version 7.0.0.19901 (R14), May 06, 2004
+		tested with [using LD_PRELOAD, see below]:
+               Version 7.0.1.24704 (R14) Service Pack 1, September 13, 2004
+               Version 7.0.4.352 (R14) Service Pack 2, January 29, 2005
+               Version 7.1.0.183 (R14) Service Pack 3, August 02, 2005
+
+
+  win32:   Version 7.0.4.365 (R14) Service Pack 2, January 29, 2005
+
+		tested with:
+               Version 7.2.0.232 (R2006a), January 27, 2006
+
+SCILAB RELEASE
+
+ The binary release comes built against
+
+  solaris:     Version 3.1.1
+  linux-x86:   Version 3.1.1
+  win32:       Version 4.0
+
 LINUX/MATLAB PECULARITIES:
 
 MATLAB Version 7.1.0.183 (R14) Service Pack 3, dated August 02, 2005:
