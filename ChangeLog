@@ -1,4 +1,11 @@
 Changes since labca_2_0_alpha (T.S):
+    2006/4/14 (TS):
+    - scilab now also uses polled 'ctrlC' handling (undocumented
+      'isbrk() and inibrk()' routines.
+    - changed shutdown procedure. This is still a pain and I don't
+      understand exactly what needs to be done to avoid crashing
+      the app on exit. Current solution seems to work on all
+      platforms for both scilab and matlab.
     2006/4/11 (TS):
     - upgraded to 3.14(.8.2)-style Makefiles.
     2006/4/10 (TS):

@@ -22,7 +22,7 @@
 ##########################################
 ## Tell us where EPICS base is installed
 
-#EPICS_BASE=$(TOP)/../
+EPICS_BASE=$(TOP)/../
 
 ##########################################
 # Tell us where SCILAB is installed (only
@@ -44,19 +44,19 @@
 # ONLY NEEDED ON WINDOZE (setting is ignored on
 # other platforms)
 
-#MATLIB_SUBDIR=win32/microsoft/msvc70
+MATLIB_SUBDIR=win32/microsoft/msvc70
 
 TEMPLATE_TOP=$(TOP)/..//templates/makeBaseApp/top
 
 ######### DELETE EVERYTHING BELOW HERE
 ######### (These are SSRL specific paths)
 
-#MATLABDIR_WIN32=C:/Program\ Files/MATLAB704
-#MATLABDIR_Linux=/afs/slac/package/matlab/linux/14/
-#MATLABDIR_solaris=/afs/slac/package/matlab/14/
-#MATLABDIR=$(MATLABDIR_$(OS_CLASS))
+MATLABDIR_WIN32=C:/Program\ Files/MATLAB704
+MATLABDIR_Linux=/afs/slac/package/matlab/linux/14/
+MATLABDIR_solaris=/afs/slac/package/matlab/14/
+MATLABDIR=$(MATLABDIR_$(OS_CLASS))
 
-#SCILABDIR_Linux=/usr/lib/scilab-3.0
-#SCILABDIR_WIN32=C:/scilab-4.0
-#SCILABDIR_solaris=/afs/slac/u/qb/strauman/vol3/scilab-solaris/scilab-3.1.1
-#SCILABDIR=$(SCILABDIR_$(OS_CLASS))
+SCILABDIR_Linux=/home/till/scilab-3.1.1
+SCILABDIR_WIN32=C:/scilab-4.0
+SCILABDIR_solaris=/afs/slac/u/qb/strauman/vol3/scilab-solaris/scilab-3.1.1
+SCILABDIR=$(SCILABDIR_$(OS_CLASS))
