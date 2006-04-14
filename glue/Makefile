@@ -42,15 +42,9 @@ endif
 #
 #	Contents of library: generic, special and for all systems
 #
-CTRLC_SRC_WIN32   = ctrlC-win32.c
-CTRLC_SRC_solaris = ctrlC-sig.c
-CTRLC_SRC_Linux   = ctrlC-sig.c
 
-ifeq ($(CTRLC_SRC_$(OS_CLASS))xx,xx)
-CTRLC_SRC_YES = ctrlC-def.c
-else
-CTRLC_SRC_YES = $(CTRLC_SRC_$(OS_CLASS))
-endif
+CTRLC_SRC_YES = ctrlC-polled.c
+
 CTRLC_SRC_NO  = ctrlC-def.c
 CTRLC_CFLAGS_NO = -DCTRLC_DISABLED
 

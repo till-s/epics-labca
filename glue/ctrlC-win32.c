@@ -1,4 +1,4 @@
-/* $Id: ctrlC-win32.c,v 1.5 2006/02/17 19:26:22 till Exp $ */
+/* $Id: ctrlC-win32.c,v 1.6 2006/04/13 22:18:42 till Exp $ */
 
 /* Ctrl-C processing for WIN32 */
 
@@ -15,14 +15,8 @@
 
 #ifdef MATLAB_APP
 
-/* We now use undocumented 'utHandlePendingInterrupt()'
- * rather than messing with reverse engineered windows messages
- */
-#define HAVE_UT_HANDLE_INTERRUPT
-
-#ifndef HAVE_UT_HANDLE_INTERRUPT
 #define WM_MTLBHACK (WM_USER + 10)
-#endif
+
 #endif
 
 #define K_STAT(flags) (((flags)>>30) & 3)
@@ -44,21 +38,6 @@
  * -- in that case we can as well process it which is what
  * we do here).
  */
-
-#ifdef HAVE_UT_HANDLE_INTERRUPT
-
-extern unsigned char utHandlePendingInterrupt();
-
-static int multi_ezca_pollCb()
-{
-	if ( utHandlePendingInterrupt() ) {
-		ezcaAbort();
-		return 1;
-	}
-	return 0;
-}
-
-#else
 
 static volatile int ctrl = -1;
 
@@ -151,17 +130,13 @@ MSG m;
 	return 0;
 }
 
-#endif
-
 void
 multi_ezca_ctrlC_prologue(CtrlCState psave)
 {
-#ifndef HAVE_UT_HANDLE_INTERRUPT
 #ifdef DEBUG
 	rec    = 0;
 #endif
 	ctrl   = -1;
-#endif
 }
 
 void
