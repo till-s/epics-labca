@@ -13,7 +13,7 @@
        labCA is distributed subject to the following license conditions:
 
        NOTE This license applies only to labCA itself and _NOT_ to the
-            ezca library found in the ezca subdirectories. Ezca is distributed
+            ezca library found in the ezca subdirectory. Ezca is distributed
             with labCA for convenience. If you decide to use the ezca library
             you must read and agree to the respective licensing
             conditions.
