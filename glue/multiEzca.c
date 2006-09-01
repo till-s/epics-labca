@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.25 2006/04/10 22:20:23 till Exp $ */
+/* $Id: multiEzca.c,v 1.26 2006/04/11 02:07:29 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -78,7 +78,7 @@ int j;
 			switch(type) {
 				case ezcaByte:   printf(" %i", ((char*)bufp)[j]); break;
 				case ezcaShort:  printf(" %i", ((short*)bufp)[j]); break;
-				case ezcaLong:   printf(" %i", ((long*)bufp)[j]); break;
+				case ezcaLong:   printf(" %i", ((int*)bufp)[j]); break;
 				case ezcaFloat:  printf(" %g", ((float*)bufp)[j]); break;
 				case ezcaDouble: printf(" %g", ((double*)bufp)[j]); break;
 				case ezcaString: printf(" '%s'",&((dbr_string_t*)bufp)[j][0]); break;
@@ -184,7 +184,7 @@ unsigned idx,i;
 	switch (type) {
 		case ezcaByte:   ((char*)bufp)[i]  =tstSht[3*idx+i]; break;
 		case ezcaShort:  ((short*)bufp)[i] =tstSht[3*idx+i]; break;
-		case ezcaLong:   ((long*)bufp)[i]  =tstLng[3*idx+i]; break;
+		case ezcaLong:   ((int*)bufp)[i]  =tstLng[3*idx+i]; break;
 		case ezcaFloat:  ((float*)bufp)[i] =tstFlt[3*idx+i]; break;
 		case ezcaDouble: ((double*)bufp)[i]=tstDbl[3*idx+i]; break;
 		case ezcaString: strcpy(&((dbr_string_t*)bufp)[i][0], tstChr[3*idx+i] ? tstChr[3*idx+i]:""); break;
@@ -298,7 +298,7 @@ static int typesize(char type)
 	switch (type) {
 		case ezcaByte:		return sizeof(char);
 		case ezcaShort:		return sizeof(short);
-		case ezcaLong:		return sizeof(long);
+		case ezcaLong:		return sizeof(int);
 		case ezcaFloat:		return sizeof(float);
 		case ezcaDouble:	return sizeof(double);
 		case ezcaString:	return sizeof(dbr_string_t);
@@ -449,7 +449,7 @@ register char *bufp;
 	switch ( types[i] ) {
 		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), char,   *cpt=(char)*fpt ); break;
 		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), short,  *cpt=(short)*fpt ); break;
-		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), long,   *cpt=(long)*fpt ); break;
+		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), int,    *cpt=(int)*fpt ); break;
 		case ezcaFloat:   CVTVEC( double, isnan(*(double*)fpt), float,  *cpt=(float)*fpt ); break;
 		case ezcaDouble:  CVTVEC( double, isnan(*(double*)fpt), double, *cpt=*fpt ); break;
 		case ezcaString:  CVTVEC( char*,
@@ -630,7 +630,7 @@ register char *bufp;
 
 			case ezcaLong :   CVTVEC( double,
 										(0),
-										long,
+										int,
 										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
 							  break;
