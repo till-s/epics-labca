@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.21 2006/04/12 02:15:06 strauman Exp $ */
+/* $Id: ini.cc,v 1.22 2006/04/14 23:52:13 till Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -25,17 +25,18 @@ extern "C" int _getpid();
 #include <signal.h>
 #endif
 
-#undef  DEBUG
+#define  DEBUG
 
 #define USE_DLOPEN
+#define USE_ATEXIT
 
 #if defined(WIN32) || defined(_WIN32) || BASE_IS_MIN_VERSION(3,14,7)
 #undef USE_DLOPEN
 #endif
 
 #if defined(USE_DLOPEN)
-/* matlab tries to unload mex files and dependent libraries when terminating - something
- * we want to prevent as ezca/CA cannot be shutdown cleanly.
+/* 
+ * we want to prevent unloading dynamic libraries since ezca/CA cannot be shutdown cleanly.
  */
 #include <dlfcn.h>
 #endif
@@ -45,6 +46,9 @@ static	pid_t thepid;
 static void
 multiEzcaFinalizer()
 {
+#ifdef DEBUG
+	mexPrintf("Entering labca finalizer\n");
+#endif
 	if ( thepid != getpid() ) {
 		/* DONT run this if a forked caRepeater exits */
 #ifdef DEBUG
@@ -70,8 +74,16 @@ multiEzcaFinalizer()
 class multiEzcaInitializer {
 public:
 	multiEzcaInitializer();
+	~multiEzcaInitializer();
 };
 
+multiEzcaInitializer::
+~multiEzcaInitializer()
+{
+#ifndef USE_ATEXIT
+	multiEzcaFinalizer();
+#endif
+}
 
 multiEzcaInitializer::
 multiEzcaInitializer()
@@ -88,19 +100,16 @@ CtrlCStateRec saved;
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
-mexPrintf((char*)"Initializing labCA Release '$Name:  $'...\n");
+mexPrintf((char*)"Initializing labCA Release '$Name: labca_2_1_beta $'...\n");
 mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 
-#if defined(USE_DLOPEN)
 #ifdef MATLAB_APP
-/* matlab tries to unload mex files and dependent libraries when terminating.
- * CA is not really prepared for a clean shutdown, so we lock our library
- * stack into memory
- */
-  if ( !dlopen("libmezcaglue.so",RTLD_NOW) ) {
-	mexPrintf((char*)"Locking library in memory failed: %s\n",dlerror());
-  }
+  /* Under matlab, always lock the library in memory - otherwise, CLEAR ALL & friends
+   * would unload us calling finalizer who calls epicsExit() who calls exit :-(
+   */
+  mexLock();
 #endif
+#if defined(USE_DLOPEN)
 #ifdef SCILAB_APP
   if ( !dlopen("libsezcaglue.so",RTLD_NOW) ) {
 	mexPrintf((char*)"Locking library in memory failed: %s\n",dlerror());
@@ -122,7 +131,9 @@ multi_ezca_ctrlC_epilogue(&saved);
  * finalizer...
  */
 thepid = getpid();
+#ifdef USE_ATEXIT
 atexit(multiEzcaFinalizer);
+#endif
 }
 
 static multiEzcaInitializer theini;
