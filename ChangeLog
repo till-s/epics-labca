@@ -1,4 +1,10 @@
 Changes since labca_2_1_beta (T.S):
+	2007/4/10 (Jim Sebek):
+	- attempts to mcc-compile matlab scripts that use labCA had failed
+	  apparently because the help (.m) files are in the same directory
+	  as the respective mex object files.
+	  Jim found a work-around that tests if a compilation is in progress
+	  and which skips labca initialization if this is the case.
 	2006/12/19 (TS):
 	- mexLock() glue and CA libraries so that EPICS is not shut down
       as a result of matlab 'clear' operations [epics shutdown -> exit()].
