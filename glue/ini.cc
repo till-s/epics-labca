@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.22 2006/04/14 23:52:13 till Exp $ */
+/* $Id: ini.cc,v 1.23 2006/12/19 20:27:46 guest Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -90,6 +90,23 @@ multiEzcaInitializer()
 {
 CtrlCStateRec saved;
 
+#ifdef MATLAB_APP
+	{
+	/* Check if this is executed from an mcc run
+	 *
+	 * (Thanks to Jim Sebek who suggested this fix
+	 * on 4/10/07).
+	 */
+	mxArray *lhs = NULL;
+
+	if ( 0 == mexCallMATLAB(1, &lhs, 0, NULL, "ismcc") &&
+		 *(int*)mxGetData(lhs) ) {
+		mexPrintf("no initialization of multiEzcaInitializer in ini.cc during mcc compilation\n");
+		return;
+	}
+	}
+#endif
+
 #ifdef SCILAB_APP
 	/* uninstall scilabs recovery method; I'd rather have
 	 * a coredump to debug...
@@ -100,7 +117,7 @@ CtrlCStateRec saved;
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
-mexPrintf((char*)"Initializing labCA Release '$Name: labca_2_1_beta $'...\n");
+mexPrintf((char*)"Initializing labCA Release '$Name:  $'...\n");
 mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 
 #ifdef MATLAB_APP
