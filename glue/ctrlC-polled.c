@@ -1,4 +1,4 @@
-/* $Id: ctrlC-def.c,v 1.5 2004/02/12 00:23:58 till Exp $ */
+/* $Id: ctrlC-polled.c,v 1.1 2006/04/14 23:45:29 till Exp $ */
 
 /* scilab Ctrl-C handling */
 
@@ -45,8 +45,11 @@ extern int C2F(sxevents)();
 static int poll_cb()
 {
 int rval;
+	/* processing X loop necessary? */
+	C2F(checkevts)(&rval);
 	/* process X loop */
-	C2F(sxevents)();
+	if ( rval )
+		C2F(sxevents)();
 	C2F(isbrk)(&rval);
 	if (rval) {
 		/* reset irq flag so scilab doesn't detect another abort */

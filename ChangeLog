@@ -1,4 +1,8 @@
 Changes since labca_2_1_beta (T.S):
+	2007/4/11 (TS):
+	- scilab got stuck when initializing labca in non-windowing mode (-nw).
+	  This was because we still checked the X loop in ctrlC-polled.c.
+	  Now we use checkevts_() to find out if we have should work the X loop.
 	2007/4/10 (Jim Sebek):
 	- attempts to mcc-compile matlab scripts that use labCA had failed
 	  apparently because the help (.m) files are in the same directory
