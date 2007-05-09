@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.18 2004/06/19 01:57:52 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.19 2004/06/20 04:32:31 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -14,6 +14,22 @@
 #include <multiEzcaCtrlC.h>
 
 epicsShareFunc int epicsShareAPI C2F(ezca)();
+
+/* We get a lot of 'type-punned' pointer warnings, mostly
+ * because the scilab header doesn't properly declare things
+ * (using integer* or double* where a void* would be more
+ * appropriate). In fact, we can probably expect that the
+ * pointers in question are eventually accessing data objects
+ * of the correct type.
+ * Nevertheless, in order to silence warnings (and avoid possible
+ * problems) we declare all such pointers with the attribute
+ * 'may_alias' [gnu only].
+ */
+#ifdef __GNUC__
+#define MAY_ALIAS __attribute__((may_alias))
+#else
+#define MAY_ALIAS
+#endif
 
 #if 0
 #define getRhsVar(n,ct,mx,nx,lx) \
@@ -47,7 +63,7 @@ static int
 arg2ezcaType(char *pt, int idx)
 {
 int m,n;
-char **s = 0;
+char **s MAY_ALIAS = 0;
 
 	if ( Rhs < idx )
 		return 0;
@@ -75,11 +91,11 @@ char **s = 0;
 static int intsezcaGet(char *fname)
 {
 int mpvs, mtmp, ntmp, itmp, jtmp;
-void *buf       = 0;
-TS_STAMP  *ts   = 0;
-char     **pvs;
-int	n           = 0;
-char      type  = ezcaNative;
+char     **pvs MAY_ALIAS;
+void *buf MAY_ALIAS = 0;
+TS_STAMP  *ts       = 0;
+int	n               = 0;
+char      type      = ezcaNative;
 
 	CheckRhs(1,3);
 	CheckLhs(1,2);
@@ -141,8 +157,8 @@ char      type  = ezcaNative;
 static int dosezcaPut(char *fname, int doWait)
 {
 int mpvs, mval, ntmp, n, i;
-void *buf;
-char **pvs;
+void *buf MAY_ALIAS;
+char **pvs MAY_ALIAS;
 char type  = ezcaNative;
 
 	CheckRhs(2,3);
@@ -198,7 +214,7 @@ static int intsezcaPut(char *fname)
 static int intsezcaGetNelem(char *fname)
 {
 int m,n,i;
-char  **pvs;
+char  **pvs MAY_ALIAS;
 
 	CheckRhs(1,1);
 	CheckLhs(1,1);
@@ -215,7 +231,7 @@ char  **pvs;
 static int intsezcaGetControlLimits(char *fname)
 {
 int m,n,d1,d2;
-char **pvs;
+char **pvs MAY_ALIAS;
 MultiArgRec args[2];
 
 	CheckRhs(1,1);
@@ -241,7 +257,7 @@ MultiArgRec args[2];
 static int intsezcaGetGraphicLimits(char *fname)
 {
 int m,n,d1,d2;
-char **pvs;
+char **pvs MAY_ALIAS;
 MultiArgRec args[2];
 
 	CheckRhs(1,1);
@@ -266,9 +282,9 @@ MultiArgRec args[2];
 
 static int intsezcaGetStatus(char *fname)
 {
-TS_STAMP *ts;
+TS_STAMP *ts MAY_ALIAS;
 int      hasImag, m,n,i,j;
-char     **pvs;
+char     **pvs MAY_ALIAS;
 
 MultiArgRec args[3];
 
@@ -312,7 +328,7 @@ MultiArgRec args[3];
 static int intsezcaGetPrecision(char *fname)
 {
 int m,n,i;
-char  **pvs;
+char  **pvs MAY_ALIAS;
 MultiArgRec	args[1];
 
 	CheckRhs(1,1);
@@ -336,8 +352,8 @@ typedef char units_string[EZCA_UNITS_SIZE];
 static int intsezcaGetUnits(char *fname)
 {
 int  m,n,i;
-char **pvs,**tmp;
-units_string *strbuf = 0;
+char **pvs MAY_ALIAS,**tmp;
+units_string *strbuf MAY_ALIAS = 0;
 MultiArgRec  args[1];
 
 	CheckRhs(1,1);
@@ -448,7 +464,7 @@ static int intsezcaDebugOff(char *fname)
 static int intsezcaClearChannels(char *fname)
 {
 int m,n;
-char **s;
+char **s MAY_ALIAS;
 	CheckRhs(0,1);
 	CheckLhs(1,1);
 	if ( Rhs > 0 ) {
@@ -482,7 +498,7 @@ int m,n,i;
 static int intsezcaSetMonitor(char *fname)
 {
 int mpvs, mtmp, ntmp, itmp, n = 0;
-char     **pvs;
+char     **pvs MAY_ALIAS;
 char      type  = ezcaNative;
 
 	CheckRhs(1,3);
@@ -508,7 +524,7 @@ char      type  = ezcaNative;
 static int intsezcaNewMonitorValue(char *fname)
 {
 int mpvs, ntmp, i;
-char     **pvs;
+char     **pvs MAY_ALIAS;
 char      type  = ezcaNative;
 
 	CheckRhs(1,2);
