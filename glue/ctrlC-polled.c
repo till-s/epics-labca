@@ -1,4 +1,4 @@
-/* $Id: ctrlC-polled.c,v 1.1 2006/04/14 23:45:29 till Exp $ */
+/* $Id: ctrlC-polled.c,v 1.2 2007-04-12 00:12:14 till Exp $ */
 
 /* scilab Ctrl-C handling */
 
@@ -41,6 +41,7 @@ extern void C2F(inibrk)();
 
 /* X loop */
 extern int C2F(sxevents)();
+extern int C2F(checkevts)(int *);
 
 static int poll_cb()
 {
