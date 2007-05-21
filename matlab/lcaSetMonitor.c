@@ -1,6 +1,6 @@
-/* $Id: lcaSetMonitor.c,v 1.2 2004/06/23 01:15:55 till Exp $ */
+/* $Id: lcaSetMonitor.c,v 1.3 2006/04/12 02:14:19 strauman Exp $ */
 
-/* matlab wrapper for ezcaGet */
+/* matlab wrapper for ezcaSetMonitor */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003  */
 

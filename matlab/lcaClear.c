@@ -1,6 +1,6 @@
-/* $Id: lcaClear.c,v 1.2 2004/06/23 01:15:54 till Exp $ */
+/* $Id: lcaClear.c,v 1.3 2006/04/12 02:14:18 strauman Exp $ */
 
-/* matlab wrapper for ezcaGetNelem */
+/* matlab wrapper for ezcaClearChannel / ezcaPurge */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003  */
 

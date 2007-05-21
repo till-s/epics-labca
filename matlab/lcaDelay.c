@@ -1,6 +1,6 @@
-/* $Id: lcaDelay.c,v 1.1 2004/06/20 04:32:31 strauman Exp $ */
+/* $Id: lcaDelay.c,v 1.2 2004/06/23 01:15:54 till Exp $ */
 
-/* matlab wrapper for ezcaSetTimeout */
+/* matlab wrapper for ezcaDelay */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003  */
 

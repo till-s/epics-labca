@@ -1,6 +1,6 @@
-/* $Id: lcaPut.c,v 1.5 2004/03/04 21:57:37 till Exp $ */
+/* $Id: lcaPutNoWait.c,v 1.1 2004/03/23 23:52:07 till Exp $ */
 
-/* matlab wrapper for ezcaPut */
+/* matlab wrapper for ezcaPutOldCa */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2003  */
 
