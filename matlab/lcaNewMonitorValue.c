@@ -1,4 +1,4 @@
-/* $Id: lcaNewMonitorValue.c,v 1.3 2006/04/12 02:14:19 strauman Exp $ */
+/* $Id: lcaNewMonitorValue.c,v 1.4 2007-05-21 22:01:54 till Exp $ */
 
 /* matlab wrapper for ezcaNewMonitorValue */
 
@@ -19,6 +19,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 int     i   = 0;
 PVs     pvs = { {0} };
 char	type = ezcaNative;
+LcaError theErr;
+
+	lcaErrorInit(&theErr);
 
 	if ( nlhs == 0 )
 		nlhs = 1;
@@ -27,36 +30,36 @@ char	type = ezcaNative;
 		plhs[i] = 0;
 
 	if ( nlhs > 1 ) {
-		MEXERRPRINTF("Too many output args");
+		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
 		goto cleanup;
 	}
 
 	if ( nrhs < 1 || nrhs > 2 ) {
-		MEXERRPRINTF("Expected 1..2 rhs argument");
+		lcaRecordError(EZCA_INVALIDARG, "Expected 1..2 rhs argument", &theErr);
 		goto cleanup;
 	}
 
 	/* check for an optional data type argument */
 	if ( nrhs > 1 ) {
-		if ( ezcaInvalid == (type = marg2ezcaType( prhs[1] )) ) {
+		if ( ezcaInvalid == (type = marg2ezcaType( prhs[1], &theErr )) ) {
 			goto cleanup;
 		}
 	}
 
-	if ( buildPVs(prhs[0],&pvs) )
+	if ( buildPVs(prhs[0], &pvs, &theErr) )
 		goto cleanup;
 
 	if ( ! (plhs[0] = mxCreateNumericMatrix( pvs.m, 1, mxINT32_CLASS, mxREAL )) ) {
-		MEXERRPRINTF("Not enough memory");
+		lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
 		goto cleanup;
 	}
 
-    multi_ezca_check_mon( pvs.names, pvs.m, type, mxGetData(plhs[0]) );
-
-	nlhs = 0;
+    if ( 0 == multi_ezca_check_mon( pvs.names, pvs.m, type, mxGetData(plhs[0]), &theErr) ) {
+		nlhs = 0;
+	}
 
 cleanup:
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */
-	ERR_CHECK(nlhs, plhs);
+	ERR_CHECK(nlhs, plhs, &theErr);
 }

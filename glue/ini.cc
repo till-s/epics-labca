@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.23 2006/12/19 20:27:46 guest Exp $ */
+/* $Id: ini.cc,v 1.24 2007/04/11 00:32:24 till Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -56,7 +56,7 @@ multiEzcaFinalizer()
 #endif
 		return;
 	}
-	multi_ezca_clear_channels(0,-1);
+	multi_ezca_clear_channels(0,-1, 0);
 	ezcaLock();
 #if (!defined(WIN32) && !defined(_WIN32)) || defined(MATLAB_APP)
 	/* ca_context_destroy() hangs (scilab/win32) :-( */

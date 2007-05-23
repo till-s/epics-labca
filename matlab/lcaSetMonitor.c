@@ -1,4 +1,4 @@
-/* $Id: lcaSetMonitor.c,v 1.3 2006/04/12 02:14:19 strauman Exp $ */
+/* $Id: lcaSetMonitor.c,v 1.4 2007-05-21 22:02:01 till Exp $ */
 
 /* matlab wrapper for ezcaSetMonitor */
 
@@ -20,6 +20,9 @@ int     i,n = 0;
 const mxArray *tmp;
 PVs     pvs = { {0} };
 char	type = ezcaNative;
+LcaError theErr;
+
+	lcaErrorInit(&theErr);
 
 	if ( nlhs == 0 )
 		nlhs = 1;
@@ -28,19 +31,19 @@ char	type = ezcaNative;
 		plhs[i] = 0;
 
 	if ( nlhs > 1 ) {
-		MEXERRPRINTF("Too many output args");
+		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
 		goto cleanup;
 	}
 
 	if ( nrhs < 1 || nrhs > 3 ) {
-		MEXERRPRINTF("Expected 1..3 rhs argument");
+		lcaRecordError(EZCA_INVALIDARG, "Expected 1..3 rhs argument", &theErr);
 		goto cleanup;
 	}
 
 	/* check for an optional 'column dimension' argument */
 	if ( nrhs > 1 ) {
 		if ( ! mxIsNumeric(tmp = prhs[1]) || 1 != mxGetM(tmp) || 1 != mxGetN(tmp) ) {
-			MEXERRPRINTF("2nd argument must be a numeric scalar");
+			lcaRecordError(EZCA_INVALIDARG, "2nd argument must be a numeric scalar", &theErr);
 			goto cleanup;
 		}
 		n = (int)mxGetScalar( tmp );
@@ -48,20 +51,20 @@ char	type = ezcaNative;
 
 	/* check for an optional data type argument */
 	if ( nrhs > 2 ) {
-		if ( ezcaInvalid == (type = marg2ezcaType( prhs[2] )) ) {
+		if ( ezcaInvalid == (type = marg2ezcaType( prhs[2], &theErr )) ) {
 			goto cleanup;
 		}
 	}
 
-	if ( buildPVs(prhs[0],&pvs) )
+	if ( buildPVs(prhs[0], &pvs, &theErr) )
 		goto cleanup;
 
-    multi_ezca_set_mon( pvs.names, pvs.m, type, n );
-
-	nlhs = 0;
+    if ( 0 == multi_ezca_set_mon( pvs.names, pvs.m, type, n, &theErr ) ) {
+		nlhs = 0;
+	}
 
 cleanup:
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */
-	ERR_CHECK(nlhs, plhs);
+	ERR_CHECK(nlhs, plhs, &theErr);
 }

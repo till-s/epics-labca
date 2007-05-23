@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.28 2007/05/09 05:09:12 guest Exp $ */
+/* $Id: multiEzca.c,v 1.29 2007-05-09 19:09:44 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -35,6 +35,7 @@
 #define epicsExportSharedSymbols
 #include "shareLib.h"
 #include "multiEzca.h"
+#include "lcaError.h"
 
 #ifndef NAN
 #if defined(WIN32) || defined(_WIN32) 
@@ -270,10 +271,14 @@ struct timespec ts;
 #define CHUNK 100
 
 static void
-ezErr(char *nm, int warnflag)
+ezErr(int rc, char *nm, LcaError *pe)
 {
-	char *msg,*b,ch;
+	char *msg,*b,ch,*ok, *nl;
 	int	 l;
+
+	if ( pe )
+		pe->err = rc;
+
 	ezcaGetErrorString(nm,&msg);
 	if (msg) {
 		/* long strings passed to sciprint crash
@@ -286,11 +291,43 @@ ezErr(char *nm, int warnflag)
 			b[CHUNK]=ch;
 		}
 		mexPrintf(b);
+
+		if ( pe ) {
+			/* Look for first error */
+			for ( b=msg; (nl = strchr(b,'\n')); ) { 
+				/* if no "OK\n" is there, or it is found after the newline
+				 * then an error message is there first
+				 */
+				if ( (ok = strstr(b,"OK\n")) && ok < nl ) {
+					b = ok + 3;
+				} else {
+					break;
+				}
+			}
+			l = sizeof(pe->msg) - 1;
+			if ( nl ) {
+				if ( l > (nl-b) )
+					l = nl-b;
+			}
+			strncpy(pe->msg, b, l);
+			pe->msg[l] = 0;
+		}
 		
-		if ( !warnflag )
-			cerro("Errors encountered...");
+	} else {
+		if ( pe )
+			strcpy(pe->msg,"Unknown Error\n");
 	}
 	ezcaFree(msg);
+}
+
+static void
+ezErr1(int rc, char *msg, LcaError *pe)
+{
+	if ( !pe )
+		return;
+	pe->err = rc;
+	snprintf(pe->msg, sizeof(pe->msg), msg);
+	pe->msg[sizeof(pe->msg)-1] = 0;
 }
 
 /* determine the size of an ezcaXXX type */
@@ -342,21 +379,21 @@ chid *pid;
 }
 
 int epicsShareAPI
-multi_ezca_get_nelem(char **nms, int m, int *dims)
+multi_ezca_get_nelem(char **nms, int m, int *dims, LcaError *pe)
 {
-int i;
+int i, rc;
 
 	EZCA_START_NELEM_GROUP();
 
 		for ( i=0; i<m; i++) {
-			if ( ezcaGetNelem( nms[i], dims+i ) ) {
-				ezErr("multi_ezca_get_nelem - ", 0);
+			if ( (rc = ezcaGetNelem( nms[i], dims+i )) ) {
+				ezErr(rc, "multi_ezca_get_nelem - ", pe);
 				return -1;
 			}
 		}
 
-	if ( EZCA_END_NELEM_GROUP() ) {
-		ezErr("multi_ezca_get_nelem - ", 0);
+	if ( ( rc = EZCA_END_NELEM_GROUP()) ) {
+		ezErr(rc, "multi_ezca_get_nelem - ", pe);
 		return -1;
 	}
 
@@ -389,25 +426,32 @@ int i;
 	}
 
 int epicsShareAPI
-multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n, int doWait4Callback)
+multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n, int doWait4Callback, LcaError *pe)
 {
 void          *cbuf  = 0;
 int           *dims  = 0;
 char		  *types = 0;
 int           rowsize,typesz;
 int           rval = -1;
+int           rc;
 
 register int  i;
 register char *bufp;
 
 	if ( mo != 1 && mo != m ) {
-		cerro("multi_ezca_put: invalid dimension of 'value' matrix; must have 1 or m rows");
+		ezErr1(
+			EZCA_FAILEDMALLOC,
+			"multi_ezca_put: invalid dimension of 'value' matrix; must have 1 or m rows",
+			pe);
 		goto cleanup;
 	}
 
 	if ( !(dims  = malloc( m * sizeof(*dims) )) ||
 	     !(types = malloc( m * sizeof(*types) )) ) {
-		cerro("multi_ezca_put: not enough memory");
+		ezErr1(
+			EZCA_FAILEDMALLOC,
+			"multi_ezca_put: not enough memory",
+			pe);
 		goto cleanup;
 	}
 
@@ -418,7 +462,7 @@ register char *bufp;
      * through a number of PvToChids
      */
 	if ( ezcaNative == type ) {
-		if ( multi_ezca_get_nelem( nms, m, dims ) )
+		if ( multi_ezca_get_nelem( nms, m, dims, pe ) )
 			goto cleanup;
 	}
 #endif
@@ -440,7 +484,10 @@ register char *bufp;
 	 */
 
 	if ( !(cbuf  = malloc( m * rowsize )) ) {
-		cerro("multi_ezca_put: not enough memory");
+		ezErr1(
+			EZCA_FAILEDMALLOC,
+			"multi_ezca_put: not enough memory",
+			pe);
 		goto cleanup;
 	}
 
@@ -457,7 +504,7 @@ register char *bufp;
 								    (!*fpt || !**fpt),
 									dbr_string_t,
 									if ( strlen(*fpt) >= sizeof(dbr_string_t) ) { \
-									    cerro("string too long");\
+									    ezErr1(EZCA_FAILEDMALLOC,"string too long", pe);\
 										goto cleanup; \
 									} else \
 										strcpy(&(*cpt)[0],*fpt)
@@ -476,8 +523,8 @@ register char *bufp;
 				ezcaPutOldCa(nms[i], types[i], dims[i], bufp);
 		}
 
-	if ( EZCA_OK != do_end_group(0, m, 0) ) {
-		ezErr("multi_ezca_put - ", 0);
+	if ( EZCA_OK != (rc = do_end_group(0, m, 0)) ) {
+		ezErr(rc, "multi_ezca_put - ", pe);
 	} else {
 		rval = m;
 	}
@@ -493,7 +540,7 @@ cleanup:
 }
 
 int epicsShareAPI
-multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts)
+multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts, LcaError *pe)
 {
 void          *cbuf  = 0;
 void          *fbuf  = 0;
@@ -505,6 +552,7 @@ char          *types = 0;
 int           mo     = m;
 int           rowsize,typesz,nreq,nstrings;
 TS_STAMP      *ts    = 0;
+int           rc;
 
 register int  i,n = 0;
 register char *bufp;
@@ -519,11 +567,11 @@ register char *bufp;
 	 * need to buffer the full array - we cannot do it row-wise
 	 */
 	if ( !(dims = calloc( m , sizeof(*dims) )) || !(types = malloc( m * sizeof(*types) )) ) {
-		cerro("multi_ezca_get: not enough memory");
+		ezErr1( EZCA_FAILEDMALLOC, "multi_ezca_get: not enough memory", pe);
 		goto cleanup;
 	}
 
-	if ( multi_ezca_get_nelem( nms, m, dims ) )
+	if ( multi_ezca_get_nelem( nms, m, dims, pe ) )
 		goto cleanup;
 
 	typesz = 0;
@@ -546,9 +594,11 @@ register char *bufp;
 
 	if ( nstrings ) {
 		if ( nstrings !=m ) {
-			mexPrintf("multi_ezca_get: type mismatch native 'string/enum' PVs cannot be\n");
-			mexPrintf("mixed with numericals -- use 'char' type to enforce conversion\n");
-			cerro("");
+			ezErr1(
+				EZCA_INVALIDARG,
+				"multi_ezca_get: type mismatch native 'string/enum' PVs cannot be\n"
+				"mixed with numericals -- use 'char' type to enforce conversion\n",
+				pe);
 			goto cleanup;
 		} else {
 			*type = ezcaString;
@@ -561,28 +611,28 @@ register char *bufp;
 		 !(stat = calloc( m,  sizeof(*stat)))     ||
 		 !(ts   = malloc( m * sizeof(TS_STAMP)))  ||
 		 !(sevr = malloc( m * sizeof(*sevr))) ) {
-		cerro("multi_ezca_get: not enough memory");
+		ezErr1( EZCA_FAILEDMALLOC, "multi_ezca_get: not enough memory", pe);
 		goto cleanup;
 	}
 
 	/* get the values along with status */
 	ezcaStartGroup();
 		for ( i=0, bufp=cbuf; i<m; i++, bufp+=rowsize ) {
-			if ( ezcaGetWithStatus(nms[i],types[i],dims[i], bufp,ts + i,stat+i,sevr+i) ) {
-				ezErr("multi_ezca_get - ", 0);
+			if ( (rc = ezcaGetWithStatus(nms[i],types[i],dims[i], bufp,ts + i,stat+i,sevr+i)) ) {
+				ezErr(rc, "multi_ezca_get - ", pe);
 				goto cleanup;
 			}
 		}
 #ifdef SILENT_AND_PROGRESS
 	{
 	int *rcs = 0;
-	if ( EZCA_OK != do_end_group(dims, m, &rcs) )
-		ezErr("multi_ezca_get - ", 1);
+	if ( EZCA_OK != (rc = do_end_group(dims, m, &rcs)) )
+		ezErr(rc, "multi_ezca_get - ", pe);
 	ezcaFree(rcs);
 	}
 #else
-	if ( EZCA_OK != do_end_group(dims, m, 0) ) {
-		ezErr("multi_ezca_get - ", 0);
+	if ( EZCA_OK != (rc = do_end_group(dims, m, 0)) ) {
+		ezErr(rc, "multi_ezca_get - ", pe);
 		goto cleanup;
 	}
 #endif
@@ -607,7 +657,7 @@ register char *bufp;
 		fbuf = malloc( m*n * sizeof(double) );
 
 	if ( !fbuf ) {
-		cerro("multi_ezca_get: no memory");
+		ezErr1( EZCA_FAILEDMALLOC, "multi_ezca_get: not enough memory", pe);
 		goto cleanup;
 	}
 
@@ -655,7 +705,7 @@ register char *bufp;
 										dbr_string_t,
 										do {  \
 										  if ( !(*fpt=my_strdup(j>=dims[i] ? "" : &(*cpt)[0])) ) { \
-										     cerro("strdup: no memory"); \
+										     ezErr1(EZCA_FAILEDMALLOC, "strdup: no memory", pe); \
 											 goto cleanup; \
 										  } \
 										} while (0)
@@ -687,10 +737,10 @@ cleanup:
 }
 
 int epicsShareAPI
-multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args)
+multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args, LcaError *pe)
 {
 int		rval = 0;
-int		i;
+int		i, rc;
 char	*bufp0;
 char	*bufp1;
 char	*bufp2;
@@ -705,7 +755,7 @@ char	*bufp3;
 			continue; /* caller allocated/owns the buffer */
 
 		if ( !(args[i].buf = calloc( m, args[i].size )) ) {
-			cerro("no memory");
+			ezErr1(EZCA_FAILEDMALLOC, "multi_ezca_get_misc: no memory", pe);
 			goto cleanup;
 		}
 	}
@@ -772,8 +822,8 @@ char	*bufp3;
 		assert(!"multi_ezca_get_misc: invalid number of arguments - should never happen");
 	}
 
-	if ( EZCA_OK != do_end_group(0, m, 0) ) {
-		ezErr("multi_ezca_get - ", 0);
+	if ( EZCA_OK != (rc = do_end_group(0, m, 0)) ) {
+		ezErr(rc, "multi_ezca_get - ", pe);
 		goto cleanup;
 	}
 
@@ -802,7 +852,6 @@ char *rval  = 0;
 int  i;
 
 	if ( !(types = malloc( m * sizeof(*types) )) ) {
-		cerro("multi_ezca_set_mon: not enough memory");
 		goto cleanup;
 	}
 
@@ -825,19 +874,19 @@ cleanup:
 }
 
 int epicsShareAPI
-multi_ezca_set_mon(char **nms,  int m, int type, int clip)
+multi_ezca_set_mon(char **nms,  int m, int type, int clip, LcaError *pe)
 {
 char *types = 0;
 int  *dims  = 0;
-int  i;
+int  i, rc;
 int  rval = -1;
 
 	if ( !(dims  = malloc( m * sizeof(*dims) )) ) {
-		cerro("multi_ezca_set_mon: not enough memory");
+		ezErr1(EZCA_FAILEDMALLOC, "multi_ezca_set_mon: not enough memory", pe);
 		goto cleanup;
 	}
 
-	if ( multi_ezca_get_nelem( nms, m, dims ) )
+	if ( multi_ezca_get_nelem( nms, m, dims, pe ) )
 		goto cleanup;
 
 	rval = 0;
@@ -849,13 +898,15 @@ int  rval = -1;
 			if ( clip && clip < dims[i] )
 				dims[i] = clip;
 			if ( -1 == types[i] ) {
-				ezErr("multi_ezca_set_monitor - channel not connected", 0);
+				ezErr(EZCA_NOTCONNECTED, "multi_ezca_set_monitor - channel not connected", pe);
 				rval = -1;
-			} else if ( ezcaSetMonitor(nms[i], types[i], dims[i]) ) {
+			} else if ( (rc = ezcaSetMonitor(nms[i], types[i], dims[i])) ) {
 				rval = -1;
-				ezErr("multi_ezca_set_monitor - ", 0);
+				ezErr(rc, "multi_ezca_set_monitor - ", pe);
 			}
 		}
+	} else {
+		ezErr1(EZCA_FAILEDMALLOC, "multi_ezca_set_monitor - no memory", pe);
 	}
 
 cleanup:
@@ -866,16 +917,42 @@ cleanup:
 }
 
 int epicsShareAPI
-multi_ezca_check_mon(char **nms, int m, int type, int *val)
+multi_ezca_check_mon(char **nms, int m, int type, int *val, LcaError *pe)
 {
-char *types = getTypes(nms, m, type);
-int  i;
-int  rval   = types ? 0 : -1;
+char *types   = getTypes(nms, m, type);
+int  i,rc;
+int  rval     = types ? 0 : -1;
+char errmsg[100];
 
 	if ( types ) {
 		for ( i=0; i<m; i++ ) {
-			val[i] = -1 == types[i] ? -10 : ezcaNewMonitorValue(nms[i], types[i]);
+			val[i] = -1 == types[i] ? (rc = -10) : (rc = ezcaNewMonitorValue(nms[i], types[i]));
+
+			if ( !rval && rc < 0 ) {
+				switch ( rc ) {
+					case -10: rc = EZCA_NOTCONNECTED;
+							  snprintf(errmsg, sizeof(errmsg), "multi_ezca_check_mon: PV '%s' not connected\n", nms[i]);
+							  break;
+
+					case  -1: rc = EZCA_NOMONITOR;
+							  snprintf(errmsg, sizeof(errmsg), "multi_ezca_check_mon: no monitor on '%s' set\n", nms[i]);
+							  break;
+					case  -2: rc = EZCA_NOCHANNEL;
+							  snprintf(errmsg, sizeof(errmsg), "multi_ezca_check_mon: no channel for PV '%s' found\n", nms[i]);
+							  break;
+					case  -3: rc = EZCA_INVALIDARG;
+							  snprintf(errmsg, sizeof(errmsg), "multi_ezca_check_mon: invalid type requested (PV '%s')\n", nms[i]);
+							  break;
+					default:  rc = EZCA_INVALIDARG;
+							  snprintf(errmsg, sizeof(errmsg), "multi_ezca_check_mon: invalid argument (PV: %s)\n", nms[i]);
+							  break;
+				}
+				ezErr1(rc, errmsg, pe);
+				rval = -1;	
+			}
 		}
+	} else {
+		ezErr1(EZCA_FAILEDMALLOC, "multi_ezca_check_mon: no memory", pe);
 	}
 
 	free( types );
@@ -895,18 +972,18 @@ if ( level >= 10 ) {
 }
 
 int epicsShareAPI
-multi_ezca_clear_channels(char **nms, int m)
+multi_ezca_clear_channels(char **nms, int m, LcaError *pe)
 {
 int rval = EZCA_OK, i, r = EZCA_OK;
 
 	if ( !nms ) {
 		if ( (rval = ezcaPurge( m<0 ? 0 : 1 )) )
-			ezErr("multi_ezca_clear_channels - ", 0);
+			ezErr(rval, "multi_ezca_clear_channels - ", pe);
 	} else {
 
 		for ( i=0; i<m; i++ ) {
 			if ( EZCA_OK != (r = ezcaClearChannel(nms[i])) )
-				ezErr("multi_ezca_clear_channels - ", 0);
+				ezErr(r, "multi_ezca_clear_channels - ", (EZCA_OK == rval ? pe : 0));
 
 			if ( EZCA_OK == rval )
 				rval = r;

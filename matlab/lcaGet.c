@@ -1,4 +1,4 @@
-/* $Id: lcaGet.c,v 1.8 2004/06/23 01:15:54 till Exp $ */
+/* $Id: lcaGet.c,v 1.9 2006/04/12 02:14:18 strauman Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -23,6 +23,9 @@ mxArray *clean0 = 0, *clean1 = 0;
 PVs     pvs = { {0} };
 char	type = ezcaNative;
 TS_STAMP *ts = 0;
+LcaError theErr;
+
+	lcaErrorInit(&theErr);
 
 	if ( nlhs == 0 )
 		nlhs = 1;
@@ -31,19 +34,19 @@ TS_STAMP *ts = 0;
 		plhs[i] = 0;
 
 	if ( nlhs > 2 ) {
-		MEXERRPRINTF("Too many output args");
+		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
 		goto cleanup;
 	}
 
 	if ( nrhs < 1 || nrhs > 3 ) {
-		MEXERRPRINTF("Expected 1..3 rhs argument");
+		lcaRecordError(EZCA_INVALIDARG, "Expected 1..3 rhs argument", &theErr);
 		goto cleanup;
 	}
 
 	/* check for an optional 'column dimension' argument */
 	if ( nrhs > 1 ) {
 		if ( ! mxIsNumeric(tmp = prhs[1]) || 1 != mxGetM(tmp) || 1 != mxGetN(tmp) ) {
-			MEXERRPRINTF("2nd argument must be a numeric scalar");
+			lcaRecordError(EZCA_INVALIDARG, "2nd argument must be a numeric scalar", &theErr);
 			goto cleanup;
 		}
 		n = (int)mxGetScalar( tmp );
@@ -51,15 +54,15 @@ TS_STAMP *ts = 0;
 
 	/* check for an optional data type argument */
 	if ( nrhs > 2 ) {
-		if ( ezcaInvalid == (type = marg2ezcaType( prhs[2] )) ) {
+		if ( ezcaInvalid == (type = marg2ezcaType( prhs[2], &theErr )) ) {
 			goto cleanup;
 		}
 	}
 
-	if ( buildPVs(prhs[0],&pvs) )
+	if ( buildPVs(prhs[0], &pvs, &theErr) )
 		goto cleanup;
 
-    multi_ezca_get( pvs.names, &type, &pres, pvs.m, &n, &ts );
+    multi_ezca_get( pvs.names, &type, &pres, pvs.m, &n, &ts, &theErr );
 
 	if ( !pres )
 		goto cleanup;
@@ -68,12 +71,12 @@ TS_STAMP *ts = 0;
 	if ( ezcaString == type ) {
 		/* convert string array to a matlab cell array of matlab strings */
 		if ( !(clean0 = plhs[0] = mxCreateCellMatrix(pvs.m, n)) ) {
-			MEXERRPRINTF("Not enough memory");
+			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
 			goto cleanup;
 		}
 		for ( i = 0; i < pvs.m * n; i++ ) {
 			if ( !(tmp = mxCreateString(((const char**)pres)[i])) ) {
-				MEXERRPRINTF("Not enough memory");
+				lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
 				goto cleanup;
 			}
 			mxSetCell(plhs[0], i, (mxArray*)tmp);
@@ -85,7 +88,7 @@ TS_STAMP *ts = 0;
 		 */
 
 		if ( !(clean0 = plhs[0] = mxCreateDoubleMatrix(pvs.m,n,mxREAL)) ) {
-			MEXERRPRINTF("Not enough memory");
+			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
 			goto cleanup;
 		}
 		memcpy(mxGetPr(plhs[0]), pres, sizeof(double) * pvs.m * n);
@@ -95,7 +98,7 @@ TS_STAMP *ts = 0;
 	if ( nlhs > 1 ) {
 		/* give them the time stamps */
 		if ( !(clean1 = plhs[1] = mxCreateDoubleMatrix(pvs.m,1,mxCOMPLEX)) ) {
-			MEXERRPRINTF("Not enough memory");
+			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
 			goto cleanup;
 		}
 		multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[1]), mxGetPi(plhs[1]) );
@@ -122,5 +125,5 @@ cleanup:
 	mxFree(ts);
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */
-	ERR_CHECK(nlhs, plhs);
+	ERR_CHECK(nlhs, plhs, &theErr);
 }

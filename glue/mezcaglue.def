@@ -9,6 +9,7 @@ multi_ezca_get_nelem
 multi_ezca_put
 multi_ezca_ts_cvt
 buildPVs
+lcaRecordError
 marg2ezcaType
 releasePVs
 flagError

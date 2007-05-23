@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.21 2004/03/24 04:05:17 till Exp $ */
+/* $Id: multiEzca.h,v 1.22 2004/06/19 01:57:55 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -16,6 +16,8 @@
 #include <assert.h>
 
 #include <mex.h> /* fortran/C name conversion for scilab */
+
+#include <lcaError.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,16 +61,16 @@ epicsShareFunc void epicsShareAPI
 multi_ezca_ts_cvt(int m, TS_STAMP *pts, double *pre, double *pim);
 
 epicsShareFunc int epicsShareAPI
-multi_ezca_get_nelem(char **nms, int m, int *dims);
+multi_ezca_get_nelem(char **nms, int m, int *dims, LcaError *pe);
 
 #define ezcaNative  ((char)-1)
 #define ezcaInvalid ((char)-2)
 
 epicsShareFunc int epicsShareAPI
-multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n, int doWait4Callback);
+multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n, int doWait4Callback, LcaError *pe);
 
 epicsShareFunc int epicsShareAPI
-multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts);
+multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts, LcaError *pe);
 
 typedef struct MultiArgRec_ {
 	int		size;
@@ -85,7 +87,7 @@ typedef struct MultiArgRec_ {
 typedef epicsShareFunc int (epicsShareAPI *MultiEzcaFunc)();
 
 epicsShareFunc int epicsShareAPI
-multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args);
+multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args, LcaError *pe);
 
 /* destroy a number (column vector) of channels;
  * if 'nms==NULL', 'm' has a special meaning:
@@ -93,13 +95,13 @@ multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiA
  *  m <  0 : all channels are cleared
  */
 epicsShareFunc int epicsShareAPI
-multi_ezca_clear_channels(char **nms, int m);
+multi_ezca_clear_channels(char **nms, int m, LcaError *pe);
 
 epicsShareFunc int epicsShareAPI
-multi_ezca_set_mon(char **nms,  int m, int type, int clip);
+multi_ezca_set_mon(char **nms,  int m, int type, int clip, LcaError *pe);
 
 epicsShareFunc int epicsShareAPI
-multi_ezca_check_mon(char **nms, int m, int type, int *val);
+multi_ezca_check_mon(char **nms, int m, int type, int *val, LcaError *pe);
 
 #ifdef __cplusplus
 };

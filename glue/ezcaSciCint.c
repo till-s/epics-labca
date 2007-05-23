@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.19 2004/06/20 04:32:31 strauman Exp $ */
+/* $Id: ezcaSciCint.c,v 1.20 2007-05-09 19:19:32 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -81,7 +81,7 @@ char **s MAY_ALIAS = 0;
 			case 'N': *pt = ezcaNative; break;
                                                                                             
 			default:
-					cerro("Invalid type - must be 'byte', 'short', 'long', 'float', 'double' or 'char'");
+					Scierror(EZCA_INVALIDARG + 10000, "Invalid type - must be 'byte', 'short', 'long', 'float', 'double' or 'char'");
 			return 0;
 	}
 
@@ -96,6 +96,7 @@ void *buf MAY_ALIAS = 0;
 TS_STAMP  *ts       = 0;
 int	n               = 0;
 char      type      = ezcaNative;
+LcaError  theErr;
 
 	CheckRhs(1,3);
 	CheckLhs(1,2);
@@ -116,7 +117,9 @@ char      type      = ezcaNative;
 
 	/* we can't preallocate the result matrix -- n is unknown at this point */
 
-	if ( !multi_ezca_get( pvs, &type, &buf, mpvs, &n, &ts ) ) {
+	lcaErrorInit(&theErr);
+	if ( !multi_ezca_get( pvs, &type, &buf, mpvs, &n, &ts, &theErr ) ) {
+		LCA_RAISE_ERROR(&theErr);
 		for ( itmp = 1; itmp <= Lhs; itmp++ )
 			LhsVar(itmp) = 0; 
 		return 0;
@@ -160,6 +163,7 @@ int mpvs, mval, ntmp, n, i;
 void *buf MAY_ALIAS;
 char **pvs MAY_ALIAS;
 char type  = ezcaNative;
+LcaError  theErr;
 
 	CheckRhs(2,3);
 	CheckLhs(1,1);
@@ -180,12 +184,13 @@ char type  = ezcaNative;
 		if ( !arg2ezcaType( &t, 3 ) )
 			return 0;
 		if ( (ezcaString == type) != (ezcaString == t) )  {
-			cerro("string value type conversion not implemented, sorry");
+			Scierror(EZCA_INVALIDARG+10000, "string value type conversion not implemented, sorry");
 			return 0;
 		}
 		type = t;
 	}
 
+	lcaErrorInit(&theErr);
 #ifdef LCAPUT_RETURNS_VALUE
 	{ int one=1;
 	CreateVar(4,"r",&one,&one,&i);
@@ -195,7 +200,9 @@ char type  = ezcaNative;
 	/* cross variable size checking */
 	*sstk(i) =
 #endif
-		multi_ezca_put(pvs, mpvs, type, buf, mval, n, doWait);
+		multi_ezca_put(pvs, mpvs, type, buf, mval, n, doWait, &theErr);
+
+	LCA_RAISE_ERROR(&theErr);
 
 	return 0;
 }
@@ -215,6 +222,7 @@ static int intsezcaGetNelem(char *fname)
 {
 int m,n,i;
 char  **pvs MAY_ALIAS;
+LcaError theErr;
 
 	CheckRhs(1,1);
 	CheckLhs(1,1);
@@ -223,8 +231,11 @@ char  **pvs MAY_ALIAS;
 	CheckColumn(1,m,n);
 
 	CreateVar(2,"i",&m,&n,&i);
-	if ( !multi_ezca_get_nelem(pvs, m, istk(i)) )
+	lcaErrorInit(&theErr);
+	if ( !multi_ezca_get_nelem(pvs, m, istk(i), &theErr) )
  		LhsVar(1)=2;
+	else
+		LCA_RAISE_ERROR(&theErr);
  	return 0;
 }
 
@@ -233,6 +244,7 @@ static int intsezcaGetControlLimits(char *fname)
 int m,n,d1,d2;
 char **pvs MAY_ALIAS;
 MultiArgRec args[2];
+LcaError theErr;
 
 	CheckRhs(1,1);
 	CheckLhs(1,2);
@@ -246,9 +258,12 @@ MultiArgRec args[2];
 	MSetArg(args[0], sizeof(double), stk(d1), 0); 
 	MSetArg(args[1], sizeof(double), stk(d2), 0); 
 
-	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetControlLimits, NumberOf(args), args) ) {
+	lcaErrorInit(&theErr);
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetControlLimits, NumberOf(args), args, &theErr) ) {
 		for ( n=1; n<=Lhs; n++ )
 			LhsVar(n) = Rhs + n;
+	} else {
+		LCA_RAISE_ERROR(&theErr);
 	}
 	
 	return 0;
@@ -259,6 +274,7 @@ static int intsezcaGetGraphicLimits(char *fname)
 int m,n,d1,d2;
 char **pvs MAY_ALIAS;
 MultiArgRec args[2];
+LcaError theErr;
 
 	CheckRhs(1,1);
 	CheckLhs(1,2);
@@ -272,9 +288,12 @@ MultiArgRec args[2];
 	MSetArg(args[0], sizeof(double), stk(d1), 0); 
 	MSetArg(args[1], sizeof(double), stk(d2), 0); 
 
-	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetGraphicLimits, NumberOf(args), args) ) {
+	lcaErrorInit(&theErr);
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetGraphicLimits, NumberOf(args), args, &theErr) ) {
 		for ( n=1; n<=Lhs; n++ )
 			LhsVar(n) = Rhs + n;
+	} else {
+		LCA_RAISE_ERROR(&theErr);
 	}
 	
 	return 0;
@@ -285,6 +304,7 @@ static int intsezcaGetStatus(char *fname)
 TS_STAMP *ts MAY_ALIAS;
 int      hasImag, m,n,i,j;
 char     **pvs MAY_ALIAS;
+LcaError theErr;
 
 MultiArgRec args[3];
 
@@ -304,7 +324,8 @@ MultiArgRec args[3];
 	hasImag = 1;
  	CreateCVar(4,"d",&hasImag,&m,&n,&i,&j);
 
-	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args) ) {
+	lcaErrorInit(&theErr);
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args, &theErr) ) {
 
 		s2iInPlace(args[2].buf, m);
  		LhsVar(1)=3;
@@ -318,6 +339,8 @@ MultiArgRec args[3];
 				multi_ezca_ts_cvt( m, ts, stk(i), stk(j) );
 			}
 		}
+	} else {
+		LCA_RAISE_ERROR(&theErr);
 	}
 	if ( ts )
 		free( ts );
@@ -330,6 +353,7 @@ static int intsezcaGetPrecision(char *fname)
 int m,n,i;
 char  **pvs MAY_ALIAS;
 MultiArgRec	args[1];
+LcaError theErr;
 
 	CheckRhs(1,1);
 	CheckLhs(1,1);
@@ -340,9 +364,12 @@ MultiArgRec	args[1];
 
 	MSetArg(args[0], sizeof(short), istk(i), 0);
 
-	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetPrecision, NumberOf(args), args) ) {
+	lcaErrorInit(&theErr);
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetPrecision, NumberOf(args), args, &theErr) ) {
 		s2iInPlace(istk(i),m);
 		LhsVar(1) = 2;
+	} else {
+		LCA_RAISE_ERROR(&theErr);
 	}
  	return 0;
 }
@@ -355,6 +382,7 @@ int  m,n,i;
 char **pvs MAY_ALIAS,**tmp;
 units_string *strbuf MAY_ALIAS = 0;
 MultiArgRec  args[1];
+LcaError theErr;
 
 	CheckRhs(1,1);
 	CheckLhs(1,1);
@@ -363,7 +391,8 @@ MultiArgRec  args[1];
 
 	MSetArg(args[0], sizeof(units_string), 0, &strbuf);
 
-	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetUnits, NumberOf(args), args) &&
+	lcaErrorInit(&theErr);
+	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetUnits, NumberOf(args), args, &theErr) &&
 		 /* scilab expects NULL terminated char** list */
 		 (tmp = malloc(sizeof(char*) * (m+1))) ) {
 		for ( i=0; i<m; i++ ) {
@@ -373,6 +402,8 @@ MultiArgRec  args[1];
  		CreateVarFromPtr(2, "S",&m,&n,tmp);
 		free(tmp);
  		LhsVar(1)= 2;
+	} else {
+		LCA_RAISE_ERROR(&theErr);
 	}
  	free(strbuf);
  	return 0;
@@ -431,13 +462,13 @@ int m,n,i;
 
 static int intsezcaDelay(char *fname)
 {
-int m,n,i;
+int m,n,i,rc;
 	CheckRhs(1,1);
 	CheckLhs(1,1);
 	GetRhsVar(1,"r",&m,&n,&i);
 	CheckScalar(1,m,n);
-	if ( ezcaDelay(*sstk(i)) )
-		cerro("Error encountered (need 1 arg > 0.0)");
+	if ( (rc = ezcaDelay(*sstk(i))) )
+		Scierror(rc + 10000, "Error encountered (need 1 arg > 0.0)");
 	LhsVar(1)=0;
 	return 0;
 }
@@ -465,6 +496,8 @@ static int intsezcaClearChannels(char *fname)
 {
 int m,n;
 char **s MAY_ALIAS;
+LcaError theErr;
+
 	CheckRhs(0,1);
 	CheckLhs(1,1);
 	if ( Rhs > 0 ) {
@@ -478,7 +511,11 @@ char **s MAY_ALIAS;
 		s = 0;
 		m = -1;
 	}
-	multi_ezca_clear_channels(s,m);
+
+	lcaErrorInit(&theErr);
+	if ( multi_ezca_clear_channels(s,m,&theErr) ) {
+		LCA_RAISE_ERROR(&theErr);
+	}
 		
 	return 0;
 }
@@ -500,6 +537,7 @@ static int intsezcaSetMonitor(char *fname)
 int mpvs, mtmp, ntmp, itmp, n = 0;
 char     **pvs MAY_ALIAS;
 char      type  = ezcaNative;
+LcaError  theErr;
 
 	CheckRhs(1,3);
 	CheckLhs(1,1);
@@ -516,7 +554,10 @@ char      type  = ezcaNative;
 			return 0;
 	}
 
-	multi_ezca_set_mon(pvs, mpvs, type, n);
+	lcaErrorInit(&theErr);
+	if ( multi_ezca_set_mon(pvs, mpvs, type, n, &theErr) ) {
+		LCA_RAISE_ERROR(&theErr);
+	}
 
 	return 0;
 }
@@ -526,6 +567,7 @@ static int intsezcaNewMonitorValue(char *fname)
 int mpvs, ntmp, i;
 char     **pvs MAY_ALIAS;
 char      type  = ezcaNative;
+LcaError  theErr;
 
 	CheckRhs(1,2);
 	CheckLhs(1,1);
@@ -539,7 +581,10 @@ char      type  = ezcaNative;
 	ntmp = 1;
 	CreateVar(Rhs+1,"i",&mpvs,&ntmp,&i);
  		
-	multi_ezca_check_mon(pvs, mpvs, type, istk(i));
+	lcaErrorInit(&theErr);
+	if ( multi_ezca_check_mon(pvs, mpvs, type, istk(i), &theErr) ) {
+		LCA_RAISE_ERROR(&theErr);
+	}
 
 	LhsVar(1) = Rhs+1;
 

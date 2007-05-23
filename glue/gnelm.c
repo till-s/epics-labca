@@ -1,4 +1,4 @@
-/* $Id: gnelm.c,v 1.4.2.1 2004/03/31 00:24:14 till Exp $ */
+/* $Id: gnelm.c,v 1.5 2004/03/31 00:32:45 till Exp $ */
 
 #include <cadef.h>
 #include <multiEzca.h>
@@ -25,7 +25,7 @@ if (!argc) {
 	exit(1);
 }
 argv++; 
-multi_ezca_get_nelem(argv,argc,blah);
+multi_ezca_get_nelem(argv,argc,blah,0);
 printf("Numbers of elements of the requested PV(s) is/are:\n");
 for (i=0; i<argc; i++)
 	printf("%040s: %6i element%s\n",argv[i],blah[i], 1==blah[i] ? "":"s" );

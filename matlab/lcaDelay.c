@@ -1,4 +1,4 @@
-/* $Id: lcaDelay.c,v 1.2 2004/06/23 01:15:54 till Exp $ */
+/* $Id: lcaDelay.c,v 1.3 2007-05-21 22:01:52 till Exp $ */
 
 /* matlab wrapper for ezcaDelay */
 
@@ -13,7 +13,11 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	buildPVs(0,0); /* enforce initialization of mglue library */
+LcaError theErr;
+
+	lcaErrorInit(&theErr);
+
+	buildPVs(0,0,&theErr); /* enforce initialization of mglue library */
 
 	if ( 1 < nlhs ) {
 		MEXERRPRINTF("Need one output arg");
@@ -38,5 +42,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
 
 	/* do this LAST (in case mexErrMsgTxt is called) */
-	ERR_CHECK(nlhs, plhs);
+	ERR_CHECK(nlhs, plhs, &theErr);
 }

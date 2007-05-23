@@ -1,4 +1,4 @@
-/* $Id: lcaGetRetryCount.c,v 1.2 2003/12/23 23:06:56 strauman Exp $ */
+/* $Id: lcaGetRetryCount.c,v 1.3 2004/02/12 00:24:50 till Exp $ */
 
 /* matlab wrapper for ezcaGetRetryCount */
 
@@ -13,7 +13,7 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	buildPVs(0,0); /* enforce initialization of mglue library */
+	buildPVs(0,0,0); /* enforce initialization of mglue library */
 
 	if ( 1 < nlhs ) {
 		MEXERRPRINTF("Need one output arg");

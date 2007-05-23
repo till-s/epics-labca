@@ -1,4 +1,4 @@
-/* $Id: lcaGetControlLimits.c,v 1.7 2004/06/23 01:15:55 till Exp $ */
+/* $Id: lcaGetControlLimits.c,v 1.8 2006/04/12 02:14:18 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetControlLimits */
 
@@ -20,17 +20,20 @@ PVs     pvs = { {0} };
 MultiArgRec args[]={ { sizeof(double), 0, (void**)0 }, { sizeof(double), 0, (void**)0 } };
 void	*pres[NumberOf(args)];
 int     i;
+LcaError theErr;
+
+	lcaErrorInit(&theErr);
 
 	if ( 0==nlhs )
 		nlhs=1;
 
 	if ( NumberOf(args) < nlhs ) {
-		MEXERRPRINTF("Too many output args");
+		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
 		goto cleanup;
 	}
 
 	if ( 1 != nrhs ) {
-		MEXERRPRINTF("Expected one rhs argument");
+		lcaRecordError(EZCA_INVALIDARG, "Expected one rhs argument", &theErr);
 		goto cleanup;
 	}
 
@@ -39,15 +42,15 @@ int     i;
 		plhs[i]=0;
 	}
 
-	if ( buildPVs(prhs[0],&pvs) )
+	if ( buildPVs(prhs[0], &pvs, &theErr) )
 		goto cleanup;
 	
-	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetControlLimits, NumberOf(args), args) )
+	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetControlLimits, NumberOf(args), args, &theErr) )
 		goto cleanup;
 
 	for ( i=0; i<nlhs; i++ ) {
 		if ( !(plhs[i]=mxCreateDoubleMatrix(pvs.m, 1, mxREAL)) ) {
-			MEXERRPRINTF("Not enough memory");
+			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
 			goto cleanup;
 		}
 		memcpy(mxGetPr(plhs[i]), *args[i].pres, pvs.m * args[i].size);
@@ -68,5 +71,5 @@ cleanup:
 	}
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */
-	ERR_CHECK(nlhs, plhs);
+	ERR_CHECK(nlhs, plhs, &theErr);
 }

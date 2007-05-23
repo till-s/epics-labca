@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.12 2004/03/23 23:52:11 till Exp $ */
+/* $Id: mglue.h,v 1.13 2004/06/23 01:15:27 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -9,6 +9,7 @@
 #include <mex.h>
 #include <matrix.h>
 #include <multiEzcaCtrlC.h>
+#include <lcaError.h>
 
 typedef struct PVs_ {
 	CtrlCStateRec	ctrlc;
@@ -25,8 +26,14 @@ extern "C" {
 epicsShareFunc void epicsShareAPI
 releasePVs(PVs *pvs);
 
+epicsShareFunc void epicsShareAPI
+lcaRecordError(int rc, char *msg, LcaError *pe);
+
 epicsShareFunc int epicsShareAPI
-buildPVs(const mxArray *pin, PVs *pvs);
+buildPVs(const mxArray *pin, PVs *pvs, LcaError *pe);
+
+epicsShareFunc const char * epicsShareAPI
+lcaErrorIdGet(int err);
 
 /* We don't want to jump out of context; instead,
  * we check for accumulated errors prior to exiting
@@ -45,7 +52,7 @@ buildPVs(const mxArray *pin, PVs *pvs);
  * or 'C'har for ezcaString
  */
 epicsShareFunc char epicsShareAPI
-marg2ezcaType(const mxArray *typearg);
+marg2ezcaType(const mxArray *typearg, LcaError *pe);
 
 /* use 'nlhs' as an 'error' flag; (jumped out of something and
  * have already assigned 'lhs' args).
@@ -59,12 +66,12 @@ flagError(int nlhs, mxArray *plhs[]);
  * that was compiled with the mex compiler in order to
  * reduce C++ problems (mexErrMsgTxt throws a C++ exception)
  */
-#define ERR_CHECK(nlhs, plhs) \
+#define ERR_CHECK(nlhs, plhs, perr) \
 	do { if (flagError((nlhs),(plhs))) \
-			mexErrMsgTxt("(see above error messages)"); \
+			mexErrMsgIdAndTxt(lcaErrorIdGet((perr)->err), (perr)->msg); \
 	} while (0)
 epicsShareFunc int epicsShareAPI
-theLcaPutMexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], int doWait);
+theLcaPutMexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], int doWait, LcaError *pe);
 
 #ifdef __cplusplus
 };

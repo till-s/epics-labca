@@ -1,4 +1,4 @@
-/* $Id: lcaClear.c,v 1.3 2006/04/12 02:14:18 strauman Exp $ */
+/* $Id: lcaClear.c,v 1.4 2007-05-21 22:01:50 till Exp $ */
 
 /* matlab wrapper for ezcaClearChannel / ezcaPurge */
 
@@ -19,22 +19,25 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 PVs     pvs = { {0} };
 char	**s;
 int		m = -1;
+LcaError theErr;
+
+	lcaErrorInit(&theErr);
 
 	if ( 0 == nlhs )
 		nlhs = 1;
 
 	if ( 1 < nlhs ) {
-		MEXERRPRINTF("Too many lhs args");
+		lcaRecordError(EZCA_INVALIDARG, "Too many lhs args", &theErr);
 		goto cleanup;
 	}
 
 	if ( 1 < nrhs ) {
-		MEXERRPRINTF("Too many rhs args");
+		lcaRecordError(EZCA_INVALIDARG, "Too many rhs args", &theErr);
 		goto cleanup;
 	}
 
 
-	if ( nrhs > 0 && buildPVs(prhs[0],&pvs) )
+	if ( nrhs > 0 && buildPVs(prhs[0],&pvs, &theErr) )
 		goto cleanup;
 
 	if ( (s = pvs.names) )
@@ -48,7 +51,7 @@ int		m = -1;
 	}
 #endif
 
-    if ( multi_ezca_clear_channels( s, m ) )
+    if ( multi_ezca_clear_channels( s, m, &theErr ) )
 		goto cleanup;
 
 	nlhs = 0;
@@ -56,5 +59,5 @@ int		m = -1;
 cleanup:
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */
-	ERR_CHECK(nlhs, plhs);
+	ERR_CHECK(nlhs, plhs, &theErr);
 }

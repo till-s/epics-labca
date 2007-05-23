@@ -1,4 +1,4 @@
-/* $Id: lcaGetStatus.c,v 1.3 2004/06/23 01:15:55 till Exp $ */
+/* $Id: lcaGetStatus.c,v 1.4 2006/04/12 02:14:19 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetStatus */
 
@@ -22,6 +22,9 @@ TS_STAMP	*ts = 0;
 MultiArgRec	args[3];
 mxArray		*res[2] = {0};
 short		*stat = 0, *sevr = 0;
+LcaError	theErr;
+
+	lcaErrorInit(&theErr);
 
 	if ( nlhs == 0 )
 		nlhs = 1;
@@ -30,16 +33,16 @@ short		*stat = 0, *sevr = 0;
 		plhs[i] = 0;
 
 	if ( nlhs > NumberOf(args) ) {
-		MEXERRPRINTF("Too many output args");
+		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
 		goto cleanup;
 	}
 
 	if ( nrhs != 1 ) {
-		MEXERRPRINTF("Expected 1 rhs argument");
+		lcaRecordError(EZCA_INVALIDARG, "Expected 1 rhs argument", &theErr);
 		goto cleanup;
 	}
 
-	if ( buildPVs(prhs[0],&pvs) )
+	if ( buildPVs(prhs[0], &pvs, &theErr) )
 		goto cleanup;
 
 	/* alloc matrices for status/severity; multi_ezca_get_misc can directly
@@ -47,7 +50,7 @@ short		*stat = 0, *sevr = 0;
 	 */
 	if ( !(res[0]=mxCreateNumericMatrix(pvs.m, 1, mxINT16_CLASS, mxREAL)) ||
 		 !(res[1]=mxCreateNumericMatrix(pvs.m, 1, mxINT16_CLASS, mxREAL)) ) {
-		MEXERRPRINTF("Not enough memory");
+		lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
 		goto cleanup;
 	}
 
@@ -55,7 +58,7 @@ short		*stat = 0, *sevr = 0;
 	MSetArg( args[1], sizeof(short),  mxGetData(res[0]), 0);	/* status    */
 	MSetArg( args[2], sizeof(short),  mxGetData(res[1]), 0);	/* severity  */
 
-    if ( !multi_ezca_get_misc( pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args) ) {
+    if ( !multi_ezca_get_misc( pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args, &theErr) ) {
 		goto cleanup;
 	}
 
@@ -71,7 +74,7 @@ short		*stat = 0, *sevr = 0;
 	if ( nlhs > 2 ) {
 		/* give them the time stamps */
 		if ( !(plhs[2] = mxCreateDoubleMatrix(pvs.m,1,mxCOMPLEX)) ) {
-			MEXERRPRINTF("Not enough memory");
+			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
 			goto cleanup;
 		}
 		multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[2]), mxGetPi(plhs[2]) );
@@ -91,5 +94,5 @@ cleanup:
 		mxFree(sevr);
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */
-	ERR_CHECK(nlhs, plhs);
+	ERR_CHECK(nlhs, plhs, &theErr);
 }
