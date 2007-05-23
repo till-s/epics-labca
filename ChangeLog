@@ -1,3 +1,12 @@
+Changes since labca_2
+	2007/5/22 (TS):
+    - labca now 'throws' (ezca) error codes when an error occurs
+      (via mexErrMsgIdAndTxt / Scierror) that can be picked up
+      by the application via catch + lasterror.
+    - lcaNewMonitorValue() now 'throws' errors for all cases that
+      in previous versions returned < 0 flag values. I.e., if
+      lcaNewMonitorValue() completes successfully then it returns either
+      0 or 1.
 Changes since labca_2_1_beta (T.S):
     2007/5/9 (TS):
 	- use c99 types int8_t, int16_t, int32_t rather than char, short, int.
