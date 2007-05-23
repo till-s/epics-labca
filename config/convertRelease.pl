@@ -119,7 +119,9 @@ sub configAppInclude {
 	}
     }
     foreach $app (@includes) {
+print "YYY:",$app,"\n";
         $path = $macros{$app};
+print "YYY:",$path,"\n";
         next unless (-d "$path/include");
 	print OUT "EPICS_INCLUDES += -I\$($app)/include\n";
     }
