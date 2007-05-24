@@ -49,8 +49,18 @@ extern char *strdup(const char *s1);
 #if 1 && BASE_IS_MIN_VERSION(3,14,0) 
 #define EPICS_THREE_FOURTEEN
 #include <epicsMutex.h>
+#include <epicsEvent.h>
 #include <epicsThread.h>
-static epicsMutexId	ezcaMutex = 0;
+static epicsMutexId	ezcaMutex       = 0;
+/* count outstanding CA requests and post 'ezcaDone' when
+ * no more requests are outstanding.
+ * This is more efficient than ca_pend_event() which always
+ * waits for the full timeout to expire. We take advantage
+ * of 3.14 being multithreaded here since another CA worker
+ * thread handles CA activity for us.
+ */
+static volatile int ezcaOutstanding = 0;
+static epicsEventId ezcaDone        = 0;
 
 #define DEBUG_LOCK 0
 
@@ -72,6 +82,12 @@ static epicsMutexId	ezcaMutex = 0;
 	} while (0)
 #define DO_INIT_ONCE() \
 	do { epicsThreadOnce(&Initialized, init, 0); } while (0)
+
+/* remember # of outstanding requests and flush */
+#define MARK_OUTSTANDING(n) do { if ( (ezcaOutstanding = (n)) ) ca_flush_io(); } while (0)
+
+/* decrement # of outstanding requests and post 'ezcaDone' when zero is reached */
+#define POST_DONE() do { if ( --ezcaOutstanding == 0 ) epicsEventSignal(ezcaDone); if ( ezcaOutstanding < 0 ) { fprintf(stderr,"EZCA FATAL ERROR; no outstanding transaction expected\n"); exit(1); }; } while (0)
 #else
 #define EZCA_LOCK() \
 	do { \
@@ -81,6 +97,8 @@ static epicsMutexId	ezcaMutex = 0;
 	} while (0)
 #define DO_INIT_ONCE() \
     do { if (!Initialized) init(0); } while (0)
+#define MARK_OUTSTANDING(n) do { } while (0)
+#define POST_DONE() do { } while (0)
 #endif
 
 
@@ -274,7 +292,7 @@ static char *ErrorMsgs[] =
 
 /*******************/
 /*                 */
-/* Data Sturctures */
+/* Data Structures */
 /*                 */
 /*******************/
 
@@ -445,7 +463,7 @@ static int EzcaArrayPut(struct work *, struct channel *);
 static unsigned EzcaElementCount(struct channel *);
 static void EzcaInitializeChannelAccess(void);
 static int EzcaNativeType(struct channel *);
-static int EzcaPendEvent(struct work *, float);
+static int EzcaPendEvent(struct work *, float, BOOL);
 static int EzcaPendIO(struct work *, float);
 static int EzcaQueueSearchAndConnect(struct work *, struct channel *);
 
@@ -570,12 +588,13 @@ int epicsShareAPI ezcaEndGroupWithReport(int **rcs, int *nrcs)
 {
 
 struct work *wp;
-BOOL needs_work;
+int needs_work;
 int status = 0;
 unsigned attempts;
 unsigned int nelem;
 unsigned int i;
-BOOL all_reported, error, issued_a_search;
+BOOL all_reported, error;
+int issued_a_search;
 unsigned char hi;
 int rc;
 
@@ -596,7 +615,7 @@ int rc;
 	}
 
 	/* searching for all the channels */
-	for (wp = Work_list.head, nelem = 0, issued_a_search = FALSE; 
+	for (wp = Work_list.head, nelem = 0, issued_a_search = 0; 
 	    wp; wp = wp->next)
 	{
 	    nelem ++;
@@ -622,7 +641,7 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 			    if (EzcaQueueSearchAndConnect(wp, wp->cp) 
 				    == ECA_NORMAL)
 			    {
-				issued_a_search = TRUE;
+				issued_a_search++;
 
 				/* adding to Channels */
 				hi = hash((wp->cp)->pvname);
@@ -631,10 +650,22 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 			    }
 			    else
 			    {
+				if ( wp->cp->ever_successfully_searched ) {
+					/* MARK_OUTSTANDING() is only issued
+					 * below when we know the number of
+					 * outstanding search requests. Hence
+					 * we must make sure not to release the
+					 * library mutex before we can MARK
+					 */
+					fprintf(stderr,"EZCA FATAL ERROR: clean_and_push_channel would release library MUTEX here\n");
+					exit (1);
+				}
 				/* something went wrong ... rc and */
 				/* error msg have already been set */
 
+				EZCA_LOCK(); /* make *sure* mutex is not relinquished by adding a nest count */
 				clean_and_push_channel(&wp->cp);
+				EZCA_UNLOCK();
 			    } /* endif */
 			}
 			else
@@ -661,6 +692,8 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 	/* waiting for all searches to connect */
 	if (issued_a_search)
 	{
+		MARK_OUTSTANDING(issued_a_search);
+
 	    for (all_reported = FALSE, attempts = 0; 
 		!all_reported && attempts <= RetryCount; attempts ++)
 	    {
@@ -668,7 +701,7 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 		    printf("ezcaEndGroupWithReport() search attempt %d of %d\n",
 			attempts+1, RetryCount+1);
 
-		EzcaPendEvent((struct work *) NULL, TimeoutSeconds);
+		EzcaPendEvent((struct work *) NULL, TimeoutSeconds, FALSE);
 
 		for (all_reported = TRUE, wp = Work_list.head; 
 		    all_reported && wp; 
@@ -677,11 +710,21 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 		    all_reported = (wp->rc != EZCA_OK 
 			|| (wp->cp ? EzcaConnected(wp->cp) : FALSE));
 	    } /* endfor */
+
+		/* Make sure 'report-required' flag (puser!=0) is
+		 * cleared on all channels
+		 */
+		for ( wp = Work_list.head; wp; wp=wp->next ) {
+			if ( wp->cp && wp->cp->cid ) {
+				ca_set_puser(wp->cp->cid, 0);
+			}
+		}
 	} /* endif */
 
 	/* identifying those that were not able to connect */
 	for (wp = Work_list.head; wp; wp = wp->next)
 	{
+
 	    if (wp->rc == EZCA_OK && wp->cp && !EzcaConnected(wp->cp))
 	    {
 
@@ -817,14 +860,18 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 	} /* endor */
 
 	/* looking for work that is still EZCA_OK and needs_work */
-	for (wp = Work_list.head, needs_work = FALSE; 
-	    wp && !needs_work; wp = wp->next)
-		needs_work = (wp->rc == EZCA_OK && wp->needs_work);
+	for (wp = Work_list.head, needs_work = 0; wp ; wp = wp->next)
+	{
+		if (wp->rc == EZCA_OK && wp->needs_work)
+			needs_work++;
+	}
 
 	if (needs_work)
 	{
 	    if (Trace || Debug)
 		printf("ezcaEndGroupWithReport() found work\n");
+
+		MARK_OUTSTANDING(needs_work);
 
 	    for (all_reported = FALSE, error = FALSE, attempts = 0;
 		!all_reported && !error && attempts <= RetryCount; 
@@ -834,7 +881,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 		    printf("ezcaEndGroupWithReport(): attempt %d of %d\n", 
 			attempts+1, RetryCount+1);
 
-		status = EzcaPendEvent((struct work *) NULL, TimeoutSeconds);
+		status = EzcaPendEvent((struct work *) NULL, TimeoutSeconds, FALSE);
 
 		if (status == ECA_TIMEOUT)
 		{
@@ -1924,7 +1971,7 @@ int rc;
 
 	if (sec > 0)
 	{
-	    status = EzcaPendEvent((struct work *) NULL, sec);
+	    status = EzcaPendEvent((struct work *) NULL, sec, TRUE);
 
 	    if (status == ECA_TIMEOUT)
 		/* normal return code */
@@ -3951,6 +3998,8 @@ int rc;
 
 			if (EzcaArrayPutCallback(wp, cp) == ECA_NORMAL)
 			{
+				MARK_OUTSTANDING(1);
+
 			    for (reported = error = FALSE, attempts = 0;
 				!reported && !error && attempts<=RetryCount;
 				    attempts ++)
@@ -3960,7 +4009,7 @@ int rc;
 				    printf("ezcaPut(): attempt %d of %d\n", 
 					attempts+1, RetryCount+1);
 
-				if (EzcaPendEvent(wp, TimeoutSeconds) 
+				if (EzcaPendEvent(wp, TimeoutSeconds, FALSE) 
 					== ECA_TIMEOUT)
 				    reported = wp->reported;
 				else
@@ -4444,12 +4493,15 @@ printf("get_channel(): could not find_channel(). must ca_search_and_connect() an
 	    {
 		if (((*cpp)->pvname = strdup(wp->pvname)))
 		{
+
 		    if (EzcaQueueSearchAndConnect(wp, *cpp) == ECA_NORMAL)
 		    {
 			/* adding to Channels */
 			hi = hash((*cpp)->pvname);
 			(*cpp)->next = Channels[hi];
 			Channels[hi] = *cpp;
+
+			MARK_OUTSTANDING(1);
 
 			for (done = FALSE, attempts = 0; 
 			    !done && attempts <= RetryCount; attempts ++)
@@ -4458,9 +4510,11 @@ printf("get_channel(): could not find_channel(). must ca_search_and_connect() an
 				printf("get_channel(): attempt %d of %d\n", 
 				    attempts+1, RetryCount+1);
 
-			    if (EzcaPendEvent(wp,TimeoutSeconds) == ECA_TIMEOUT)
+			    if (EzcaPendEvent(wp,TimeoutSeconds,FALSE) == ECA_TIMEOUT)
 				done = EzcaConnected(*cpp);
 			} /* endfor */
+
+			ca_set_puser((*cpp)->cid, 0);
 
 			if ( !done ) {
 		    	clean_and_push_channel( cpp );
@@ -4816,6 +4870,7 @@ int i;
 
 #ifdef EPICS_THREE_FOURTEEN
 	ezcaMutex = epicsMutexMustCreate();
+	ezcaDone  = epicsEventMustCreate(epicsEventEmpty);
 #else
     Initialized = TRUE;
 #endif
@@ -4932,6 +4987,8 @@ unsigned attempts;
 
     if (wp)
     {
+	MARK_OUTSTANDING(1);
+
 	for (reported = FALSE, error = FALSE, attempts = 0;
 	    !reported && !error && attempts <= RetryCount; 
 		attempts ++)
@@ -4940,7 +4997,7 @@ unsigned attempts;
 		printf("issue_wait(): attempt %d of %d\n", 
 		    attempts+1, RetryCount+1);
 
-	    if (EzcaPendEvent(wp, TimeoutSeconds) == ECA_TIMEOUT)
+	    if (EzcaPendEvent(wp, TimeoutSeconds, FALSE) == ECA_TIMEOUT)
 		reported = wp->reported;
 	    else
 	    {
@@ -5042,7 +5099,7 @@ int rc;
 	    /* whole purpose of being InGroup is so that ca_pend_event() */
 	    /* can be done at ezcaEndGroup() */
 
-	    rc = EzcaPendEvent((struct work *) NULL, SHORT_TIME);
+	    rc = EzcaPendEvent((struct work *) NULL, SHORT_TIME, TRUE);
 
 	    if (rc != ECA_TIMEOUT)
 		fprintf(stderr, "%s: %s", PROLOGUE_MSG, ca_message(rc));
@@ -5629,7 +5686,7 @@ int rc;
 *
 ****************************************************************/
 
-static int EzcaPendEvent(struct work *wp, float sec)
+static int EzcaPendEvent(struct work *wp, float sec, BOOL realPend)
 {
 
 int rc;
@@ -5640,11 +5697,27 @@ int rc;
 	if ( pollCb && pollCb() ) {
 		rc = ECA_TIMEOUT;
 	} else {
+		if ( realPend )
+			MARK_OUTSTANDING(0);
+    	if (sec <= 0.)
+			sec = SHORT_TIME;
 EZCA_UNLOCK();
-    if (sec > 0)
-	rc = ca_pend_event(sec);
-    else
-	rc = ca_pend_event(SHORT_TIME);
+#ifdef EPICS_THREE_FOURTEEN
+		if ( realPend )
+			rc = ca_pend_event(sec);
+		else {
+			switch (epicsEventWaitWithTimeout(ezcaDone, sec)) {
+				case epicsEventWaitOK:
+				case epicsEventWaitTimeout:
+					rc = ECA_TIMEOUT;
+				break;
+				default:
+					rc = ECA_INTERNAL;
+			}
+		}
+#else
+		rc =  ca_pend_event(sec);
+#endif
 EZCA_LOCK();
 	}
 
@@ -5738,11 +5811,17 @@ int rc;
     if (Trace || Debug)
 	printf("ca_search_and_connect(>%s<)\n", wp->pvname);
 
+	/* Mark this CHID as 'not-reported' by setting puser
+	 * to non-null (we use 'wp' as a marker)
+	 */
     rc = ca_search_and_connect(wp->pvname, &(cp->cid), 
-	    my_connection_callback, (void *) NULL);
+	    my_connection_callback, (void *) wp);
 
     if (rc == ECA_NORMAL)
+	{
+	/* tell them to report back */
 	cp->ever_successfully_searched = SEARCHED;
+	}
     else
     {
 	wp->rc = EZCA_CAFAILURE;
@@ -5794,6 +5873,21 @@ EZCA_LOCK();
 /* TODO: should we try to recycle trashed work nodes
  *       referring to disconnected channels here?
  */
+if ( Trace || Debug ) {
+	char *msg = "???";
+	switch ( arg.op ) {
+		case CA_OP_CONN_UP:   msg = "UP";   break;
+		case CA_OP_CONN_DOWN: msg = "DOWN"; break;
+		default:
+		break;
+	}
+	printf("my_connection_callback: %s\n", msg);
+}
+	/* should we report ? */
+	if ( ca_puser(arg.chid) && CA_OP_CONN_UP == arg.op  ) {
+		ca_set_puser(arg.chid, 0);
+		POST_DONE();	
+	}
 EZCA_UNLOCK();
 } /* end my_connection_callback() */
 
@@ -6795,6 +6889,7 @@ EZCA_LOCK();
 		printf("my_get_callback() setting reported\n");
 
 	    wp->reported = TRUE;
+		POST_DONE();
 	}
 	else
 	{
@@ -7062,6 +7157,7 @@ EZCA_LOCK();
 	if (usable == wp->trashme)
 	{
 	    wp->reported = TRUE;
+		POST_DONE();
 
 	    if (Trace || Debug)
 	printf("my_put_callback() pvname >%s< ezcatype %d setting reported\n",

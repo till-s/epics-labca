@@ -1,4 +1,15 @@
 Changes since labca_2
+	2007/5/23 (TS):
+	- Changed implementation of EzcaPendEvent(). There is really no need
+	  for ca_pend_event() anymore with multithreaded CA :-). This means
+	  that we can keep a count of outstanding operations and let EzcaPendEvent
+	  simply ca_flush_io() and block on a semaphore (occasional timeout so
+	  that we can poll the X loop and check for Ctrl-C). As requests are
+	  answered a CA background task executes the callbacks which decrement
+	  the 'outstanding' counter and eventually post to 'done' semaphore.
+	  --> lcaXXX calls NO LONGER take multiples of ezcaTimeout to complete :-)
+	  but complete as soon as possible (w/o having to resort to a high CA poll
+	  rate).
 	2007/5/22 (TS):
     - labca now 'throws' (ezca) error codes when an error occurs
       (via mexErrMsgIdAndTxt / Scierror) that can be picked up
