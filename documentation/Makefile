@@ -89,7 +89,7 @@ endif
 
 .SECONDARY:
 
-purge::
+realclean::
 	$(RM) -r help
 	$(RM) -r manual 
 	$(RM) *.aux *.dvi *.log *.pdf *.out *.ps
