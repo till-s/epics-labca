@@ -1,5 +1,7 @@
 Changes since labca_2
 	2007/5/23 (TS):
+	- Added ezcaNewMonitorWait() which blocks until new monitor data
+	  becomes available. This routine is groupable.
 	- Changed implementation of EzcaPendEvent(). There is really no need
 	  for ca_pend_event() anymore with multithreaded CA :-). This means
 	  that we can keep a count of outstanding operations and let EzcaPendEvent

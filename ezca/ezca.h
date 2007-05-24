@@ -29,6 +29,7 @@
 #endif
 
 #include <epicsVersion.h>
+#include <shareLib.h>
 
 #define BASE_IS_MIN_VERSION(a,b,c) \
 	(   EPICS_VERSION > (a)    \
@@ -56,6 +57,8 @@ epicsShareFunc int epicsShareAPI ezcaEndGroupWithReport(int **rcs, int *nrcs);
 epicsShareFunc int epicsShareAPI ezcaGetErrorString(char *prefix, char **buff);
 epicsShareFunc int epicsShareAPI ezcaNewMonitorValue(char *pvname, 
 	char ezcatype); /* returns TRUE/FALSE or < 0 if no monitor or other error */
+/* Block until monitor happens */
+epicsShareFunc int epicsShareAPI ezcaNewMonitorWait(char *pvname, char ezcatype);
 epicsShareFunc void epicsShareAPI ezcaPerror(char *prefix);
 
 /* Non-Groupable Work Functions */

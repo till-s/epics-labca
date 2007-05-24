@@ -153,6 +153,7 @@ static epicsEventId ezcaDone        = 0;
 #define GETTIMEOUT          24
 #define PUTOLDCA            25
 #define CLEARCHANNEL		26
+#define MONBLOCK            27
 
 /********************************/
 /*                              */
@@ -197,6 +198,7 @@ static epicsEventId ezcaDone        = 0;
 #define GETRETRYCOUNT_MSG       "ezcaGetRetryCount()"
 #define GETTIMEOUT_MSG          "ezcaGetTimeout()"
 #define CLEARCHANNEL_MSG		"ezcaClearChannel()"
+#define MONBLOCK_MSG			"ezcaNewMontorWait()"
 /* Error Messages */
 #define INVALID_PVNAME_MSG  "invalid process variable name"
 #define INVALID_TYPE_MSG    "invalid EZCA data type"
@@ -223,6 +225,8 @@ static epicsEventId ezcaDone        = 0;
 #define CAPENDEVENT_MSG        "ca_pend_event()"
 #define CAARRAYPUTCALLBACK_MSG "put_callback()"
 #define CAARRAYGETCALLBACK_MSG "get_callback()"
+/* Additional ezca Messages    */
+#define NO_MONITOR_MSG         "no monitor on PV/type found" 
 
 /************************/
 /*                      */
@@ -256,6 +260,8 @@ static char *ErrorMsgs[] =
     CASEARCHANDCONNECT_MSG,
     CAARRAYPUTCALLBACK_MSG,
     CAARRAYGETCALLBACK_MSG 
+
+	NO_MONITOR_MSG
 };
 
 /* These MUST match the above table */
@@ -283,6 +289,7 @@ static char *ErrorMsgs[] =
 #define CASEARCHANDCONNECT_MSG_IDX 20
 #define CAARRAYPUTCALLBACK_MSG_IDX 21
 #define CAARRAYGETCALLBACK_MSG_IDX 22
+#define NO_MONITOR_MSG_IDX         23
 
 /**********************/
 /*                    */
@@ -296,8 +303,15 @@ static char *ErrorMsgs[] =
 /*                 */
 /*******************/
 
+typedef enum {
+	awaited       = -1,
+	old_data      = 0,
+	needs_reading = 1
+} MON_STATE;
+
 struct monitor
 {
+	struct work    *waiter;	/* work struct waiting for this monitor */
     struct monitor *left;
     struct monitor *right;
     struct channel *cp; /* for debugging printing only */
@@ -849,6 +863,35 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 				print_error(wp);
 			} /* endif */
 			break;
+
+			case MONBLOCK:
+				{ struct monitor *mp;
+
+					wp->reported = FALSE;
+
+					mp = wp->cp->monitor_list;
+
+					while (mp && ( ! (wp->ezcadatatype == mp->ezcadatatype) || !mp->active))
+						mp = mp->right;
+					if ( !mp ) {
+						wp->rc = EZCA_INVALIDARG;
+						wp->error_msg = ErrorMsgs[NO_MONITOR_MSG_IDX];
+						if (AutoErrorMessage)
+							print_error(wp);
+					} else {
+						if ( (wp->needs_work = !mp->needs_reading) ) {
+							wp->pval   = mp;
+							if ( mp->waiter ) {
+								fprintf(stderr,"EZCA FATAL ERROR: mp->waiter is already set\n");
+								exit(1);
+							}
+							mp->waiter = wp;
+						} else {
+							wp->pval = NULL;
+						}
+					}
+				}
+			break;
 		    default:
 			fprintf(stderr,
 "EZCA FATAL ERROR: ezcaEndGroupWithReport() found invalid worktype %d in group list\n",
@@ -910,11 +953,23 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 		{
 		    if (wp->rc == EZCA_OK && wp->needs_work)
 		    {
-			wp->trashme = trashed;
+				if ( MONBLOCK == wp->worktype && wp->pval )
+				{
+				struct monitor *mp = wp->pval;
+				/* no need to trash (no callback has a pointer to this
+				 * work node). Just clear the 'waiter'...
+				 */
+				mp->waiter = (struct work *)NULL;
+				wp->pval = 0;
+				}
+				else
+				{
+				wp->trashme = trashed;
 
-			if (Debug)
-			    printf("trashing wp %p\n", wp);
+				if (Debug)
+					printf("trashing wp %p\n", wp);
 
+				}
 			wp->rc = EZCA_CAFAILURE;
 			wp->error_msg = ErrorMsgs[CAPENDEVENT_MSG_IDX];
 			wp->aux_error_msg = strdup(ca_message(status));
@@ -949,10 +1004,22 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 			    if (AutoErrorMessage)
 				print_error(wp);
 
+				if ( MONBLOCK == wp->worktype && wp->pval )
+				{
+				struct monitor *mp = wp->pval;
+				/* no need to trash (no callback has a pointer to this
+				 * work node). Just clear the 'waiter'...
+				 */
+				mp->waiter = (struct work *)NULL;
+				wp->pval = 0;
+				}
+				else
+				{
 			    wp->trashme = trashed;
 
 			    if (Debug)
 				printf("trashing wp %p\n", wp);
+				}
 			} /* endif */
 		    } /* endif */
 		} /* endfor */
@@ -1080,6 +1147,7 @@ int rc;
 		    case SETTIMEOUT:       wtm = SETTIMEOUT_MSG;       break;
 		    case STARTGROUP:       wtm = STARTGROUP_MSG;       break;
 		    case CLEARCHANNEL:     wtm = CLEARCHANNEL_MSG;     break;
+		    case MONBLOCK:         wtm = MONBLOCK_MSG;         break;
 		    case TRACEOFF:         wtm = TRACEOFF_MSG;         break;
 		    case TRACEON:          wtm = TRACEON_MSG;          break;
 		    case SETRETRYCOUNT:    wtm = SETRETRYCOUNT_MSG;    break;
@@ -1142,6 +1210,7 @@ int rc;
 		    case SETTIMEOUT:       wtm = SETTIMEOUT_MSG;       break;
 		    case STARTGROUP:       wtm = STARTGROUP_MSG;       break;
 		    case CLEARCHANNEL:     wtm = CLEARCHANNEL_MSG;     break;
+		    case MONBLOCK:         wtm = MONBLOCK_MSG;         break;
 		    case TRACEOFF:         wtm = TRACEOFF_MSG;         break;
 		    case TRACEON:          wtm = TRACEON_MSG;          break;
 		    case SETRETRYCOUNT:    wtm = SETRETRYCOUNT_MSG;    break;
@@ -1233,6 +1302,8 @@ int rc;
 				wtm = STARTGROUP_MSG;          break;
 		    	case CLEARCHANNEL:
 			    wtm = CLEARCHANNEL_MSG;        break;
+		    	case MONBLOCK:
+				wtm = MONBLOCK_MSG;            break;
 			    case TRACEOFF:         
 				wtm = TRACEOFF_MSG;            break;
 			    case TRACEON:          
@@ -1347,6 +1418,8 @@ int rc;
 				wtm = STARTGROUP_MSG;          break;
 		    	case CLEARCHANNEL:
 			    wtm = CLEARCHANNEL_MSG;        break;
+		    	case MONBLOCK:
+				wtm = MONBLOCK_MSG;            break;
 			    case TRACEOFF:         
 				wtm = TRACEOFF_MSG;            break;
 			    case TRACEON:          
@@ -1587,6 +1660,7 @@ char *wtm;
 		case SETTIMEOUT:       wtm = SETTIMEOUT_MSG;       break;
 		case STARTGROUP:       wtm = STARTGROUP_MSG;       break;
 		case CLEARCHANNEL:     wtm = CLEARCHANNEL_MSG;     break;
+		case MONBLOCK:         wtm = MONBLOCK_MSG;         break;
 		case TRACEOFF:         wtm = TRACEOFF_MSG;         break;
 		case TRACEON:          wtm = TRACEON_MSG;          break;
 		case SETRETRYCOUNT:    wtm = SETRETRYCOUNT_MSG;    break;
@@ -1637,6 +1711,7 @@ char *wtm;
 		case SETTIMEOUT:       wtm = SETTIMEOUT_MSG;       break;
 		case STARTGROUP:       wtm = STARTGROUP_MSG;       break;
 		case CLEARCHANNEL:     wtm = CLEARCHANNEL_MSG;     break;
+		case MONBLOCK:         wtm = MONBLOCK_MSG;         break;
 		case TRACEOFF:         wtm = TRACEOFF_MSG;         break;
 		case TRACEON:          wtm = TRACEON_MSG;          break;
 		case SETRETRYCOUNT:    wtm = SETRETRYCOUNT_MSG;    break;
@@ -4309,6 +4384,127 @@ int rc;
     return rc;
 
 } /* end ezcaPutOldCa() */
+
+/****************************************************************
+*
+*
+****************************************************************/
+
+
+int epicsShareAPI ezcaNewMonitorWait(char *pvname, char type)
+{
+struct channel *cp;
+struct monitor *mp;
+struct work *wp;
+int rc;
+
+    prologue();
+
+    if ((wp = get_work()))
+    {
+
+	ErrorLocation = (InGroup ? LISTWORK : SINGLEWORK);
+	ListPrint = (InGroup ? LASTONLY : ListPrint);
+
+	/* filling work */
+
+	wp->worktype = MONBLOCK;
+	wp->ezcadatatype = type;
+
+
+	/* checking input args */
+    if (!pvname)
+	{
+		wp->rc = EZCA_INVALIDARG;
+		wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
+	} 
+    else if (!(wp->pvname = strdup(pvname)))
+	{
+		wp->rc = EZCA_FAILEDMALLOC;
+		wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
+	} 
+	else if (!VALID_EZCA_DATA_TYPE(wp->ezcadatatype))
+	{
+	    wp->rc = EZCA_INVALIDARG;
+	    wp->error_msg = ErrorMsgs[INVALID_TYPE_MSG_IDX];
+	} 
+	else
+	{
+	    /* arguments are valid */
+	    wp->rc = EZCA_OK;
+	} /* endif */
+
+	if (InGroup)
+	    append_to_work_list(wp);
+	else if (wp->rc == EZCA_OK)
+	{
+		if ((cp = find_channel(wp->pvname)))
+		{
+			mp = cp->monitor_list;
+			while (mp && ( ! (type == mp->ezcadatatype) || !mp->active))
+					mp = mp->right;
+
+			if (mp)
+			{
+				if ( !mp->needs_reading ) {
+					wp->reported = FALSE;
+	
+					if( mp->waiter ) {
+						fprintf(stderr,"EZCA FATAL ERROR: mp->waiter is already set\n");
+						exit(1);
+					}
+					mp->waiter   = wp;
+					printf("TSILL issueing wait\n");
+					issue_wait(wp);
+					printf("DONE\n");
+					mp->waiter   = (struct work *)NULL;
+				} else {
+				printf("TSILL no need to wait\n");
+				}
+			}
+			else
+			{
+				/* no monitor */
+				wp->rc = EZCA_INVALIDARG;
+				wp->error_msg = ErrorMsgs[NO_MONITOR_MSG_IDX];
+
+				if (Trace || Debug)
+					printf("add_wait() found no monitor name >%s< type %d\n",
+							wp->pvname, type);
+
+			} /* endif */
+			release_channel(&cp);
+		}
+		else
+		{
+			/* no channel */
+			wp->rc = EZCA_INVALIDARG;
+			wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
+
+			if (Trace || Debug)
+				printf("add_wait() found no channel name >%s< type %d\n",
+						pvname, type);
+		} /* endif */
+	} /* endif */
+
+	rc = wp->rc;
+
+	if ( AutoErrorMessage && EZCA_OK != wp->rc )
+		print_error(wp);
+	    
+    }
+    else
+    {
+	rc = EZCA_FAILEDMALLOC;
+
+	if (AutoErrorMessage)
+	    printf("%s\n", FAILED_MALLOC_MSG);
+    } /* endif */
+
+    epilogue();
+    return rc;
+
+} /* end ezcaNewMonitorWait() */
 
 /*******************/
 /*                 */
@@ -6889,6 +7085,7 @@ EZCA_LOCK();
 		printf("my_get_callback() setting reported\n");
 
 	    wp->reported = TRUE;
+		printf("TSILL my_get_callback POST (%i)\n", ezcaOutstanding);
 		POST_DONE();
 	}
 	else
@@ -7076,6 +7273,17 @@ EZCA_LOCK();
 			    nbytes, mp->pval);
 
 		    mp->needs_reading = TRUE;
+			if ( mp->waiter && usable == mp->waiter->trashme ) {
+				if ( mp->waiter->worktype != MONBLOCK ) {
+					fprintf(stderr,"EZCA FATAL ERROR: work type is not MONBLOCK\n");
+					exit(1);
+				}
+				mp->waiter->reported = TRUE;
+				mp->waiter->pval     = NULL;
+				printf("TSILL my_mon_callback POST (%i)\n", ezcaOutstanding);
+				POST_DONE();
+			}
+			mp->waiter = (struct work *)NULL;
 		}
 		else
 		{
@@ -7157,6 +7365,7 @@ EZCA_LOCK();
 	if (usable == wp->trashme)
 	{
 	    wp->reported = TRUE;
+		printf("TSILL my_put_callback POST (%i)\n", ezcaOutstanding);
 		POST_DONE();
 
 	    if (Trace || Debug)
@@ -7423,6 +7632,7 @@ int i;
 
     if (rc)
     {
+	rc->waiter = (struct work*)NULL;
 	rc->left = (struct monitor *) NULL;
 	rc->right = (struct monitor *) NULL;
 	rc->cp = (struct channel *) NULL;
