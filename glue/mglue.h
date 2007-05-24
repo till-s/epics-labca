@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.13 2004/06/23 01:15:27 till Exp $ */
+/* $Id: mglue.h,v 1.14 2007/05/23 02:50:15 strauman Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -67,8 +67,13 @@ flagError(int nlhs, mxArray *plhs[]);
  * reduce C++ problems (mexErrMsgTxt throws a C++ exception)
  */
 #define ERR_CHECK(nlhs, plhs, perr) \
-	do { if (flagError((nlhs),(plhs))) \
+	do { if (flagError((nlhs),(plhs))) { \
+			lcaSaveLastError(perr); \
 			mexErrMsgIdAndTxt(lcaErrorIdGet((perr)->err), (perr)->msg); \
+		 } else { \
+		 	free((perr)->errs); (perr)->errs = 0; \
+			(perr)->nerrs = 0; \
+		 } \
 	} while (0)
 epicsShareFunc int epicsShareAPI
 theLcaPutMexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], int doWait, LcaError *pe);

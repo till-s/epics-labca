@@ -22,7 +22,9 @@ ezca_funs=[...
   'lcaClear';
   'lcaSetMonitor';
   'lcaNewMonitorValue';
+  'lcaNewMonitorWait';
   'lcaDelay';
+  'lcaLastError';
   'lecdrGet';
   ];
 ezca_top=get_absolute_file_path('THEFILE')+'../../';

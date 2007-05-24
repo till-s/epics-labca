@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.29 2007-05-09 19:09:44 till Exp $ */
+/* $Id: multiEzca.c,v 1.30 2007/05/23 02:50:15 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -61,11 +61,11 @@ static char * my_strdup(const char *str);
 
 #if EZCA_BUG_FIXED
 #define EZCA_START_NELEM_GROUP()	ezcaStartGroup()
-#define EZCA_END_NELEM_GROUP()		ezcaEndGroup()
+#define EZCA_END_NELEM_GROUP(m,pe)	do_end_group(0, m, pe)
 #else
 /* EZCA Bug: ezcaGetNelem() doesn't work in grouped mode :-( */
 #define EZCA_START_NELEM_GROUP()	(0)
-#define EZCA_END_NELEM_GROUP()		(0)
+#define EZCA_END_NELEM_GROUP(m,pe)	(0)
 #endif
 
 /* in TESTING mode, we fake a couple of ezca routines for debugging
@@ -200,17 +200,34 @@ unsigned idx,i;
 
 #endif
 
-static int do_end_group(int *dims, int m, int **prcs)
+static int do_end_group(int *dims, int m, LcaError *pe)
 {
 int nrcs,i;
 int rval = EZCA_OK;
-	if ( prcs ) {
-		rval = ezcaEndGroupWithReport(prcs, &nrcs);
+	if ( pe ) {
+		rval = ezcaEndGroupWithReport(&pe->errs, &nrcs);
 		assert(nrcs == m);
 		if ( EZCA_OK != rval && dims ) {
 			for ( i=0; i<nrcs; i++ )
 				dims[i] = 0;
 		}
+
+/* I believe there is no harm in just using free() as opposed
+ * to ezcaFree...
+ */
+#if 0
+		{
+			void *tmp = pe->errs;
+			pe->errs = malloc(sizeof(*pe->errs)*m);
+			memcpy(pe->errs, tmp);
+			ezcaFree(tmp);
+		}
+#endif
+		if ( EZCA_OK == rval ) {
+			free(pe->errs); pe->errs = 0;
+		}
+		if ( pe->errs )
+			pe->nerrs = m;
 	} else {
 		rval = ezcaEndGroup();
 	}
@@ -323,11 +340,7 @@ ezErr(int rc, char *nm, LcaError *pe)
 static void
 ezErr1(int rc, char *msg, LcaError *pe)
 {
-	if ( !pe )
-		return;
-	pe->err = rc;
-	snprintf(pe->msg, sizeof(pe->msg), msg);
-	pe->msg[sizeof(pe->msg)-1] = 0;
+	lcaSetError(pe, rc, msg);
 }
 
 /* determine the size of an ezcaXXX type */
@@ -392,7 +405,7 @@ int i, rc;
 			}
 		}
 
-	if ( ( rc = EZCA_END_NELEM_GROUP()) ) {
+	if ( ( rc = EZCA_END_NELEM_GROUP(m, pe)) ) {
 		ezErr(rc, "multi_ezca_get_nelem - ", pe);
 		return -1;
 	}
@@ -523,7 +536,7 @@ register char *bufp;
 				ezcaPutOldCa(nms[i], types[i], dims[i], bufp);
 		}
 
-	if ( EZCA_OK != (rc = do_end_group(0, m, 0)) ) {
+	if ( EZCA_OK != (rc = do_end_group(0, m, pe)) ) {
 		ezErr(rc, "multi_ezca_put - ", pe);
 	} else {
 		rval = m;
@@ -623,19 +636,13 @@ register char *bufp;
 				goto cleanup;
 			}
 		}
-#ifdef SILENT_AND_PROGRESS
-	{
-	int *rcs = 0;
-	if ( EZCA_OK != (rc = do_end_group(dims, m, &rcs)) )
+
+	if ( EZCA_OK != (rc = do_end_group(dims, m, pe)) ) {
 		ezErr(rc, "multi_ezca_get - ", pe);
-	ezcaFree(rcs);
-	}
-#else
-	if ( EZCA_OK != (rc = do_end_group(dims, m, 0)) ) {
-		ezErr(rc, "multi_ezca_get - ", pe);
+#ifndef SILENT_AND_PROGRESS
 		goto cleanup;
-	}
 #endif
+	}
 
 	for ( i=0; i<m; i++ ) {
 		char *dotp;
@@ -822,7 +829,7 @@ char	*bufp3;
 		assert(!"multi_ezca_get_misc: invalid number of arguments - should never happen");
 	}
 
-	if ( EZCA_OK != (rc = do_end_group(0, m, 0)) ) {
+	if ( EZCA_OK != (rc = do_end_group(0, m, pe)) ) {
 		ezErr(rc, "multi_ezca_get - ", pe);
 		goto cleanup;
 	}
@@ -959,6 +966,40 @@ char errmsg[100];
 	return rval;
 }
 
+int epicsShareAPI
+multi_ezca_wait_mon(char **nms, int m, int type, LcaError *pe)
+{
+char *types   = getTypes(nms, m, type);
+int  i,rc = EZCA_FAILEDMALLOC;
+char errmsg[100];
+
+	if ( types ) {
+
+		ezcaStartGroup();
+
+		for ( i=0; i<m; i++ ) {
+			if (rc = ezcaNewMonitorWait(nms[i], types[i])) {
+				ezErr(rc, "multi_ezca_wait_mon - ", pe);
+				goto cleanup;
+			}
+		}
+
+		if ( EZCA_OK != (rc = do_end_group(0, m, pe)) ) {
+			ezErr(rc, "multi_ezca_wait_mon - ", pe);
+		}
+
+	} else {
+		ezErr1(rc, "multi_ezca_check_mon: no memory", pe);
+		goto cleanup;
+	}
+
+
+cleanup:
+
+	free( types );
+	return (EZCA_OK == rc) ? 0 : -1;
+}
+
 void epicsShareAPI
 ezcaSetSeverityWarnLevel(int level)
 {
@@ -993,3 +1034,47 @@ int rval = EZCA_OK, i, r = EZCA_OK;
 	return rval;
 }
 
+void epicsShareAPI
+lcaErrorInit(LcaError *pe)
+{
+	pe->err    = 0;
+	pe->msg[0] = 0;
+	pe->nerrs  = 0;
+	pe->errs   = 0;
+}
+
+static LcaError theLastError = {0, {0}, 0, 0};
+
+void epicsShareAPI
+lcaSaveLastError(LcaError *pe)
+{
+	free(theLastError.errs);
+	memcpy(&theLastError, pe, sizeof(*pe));
+	/* we took over the (optional) error vector */
+	pe->errs  = 0;
+	pe->nerrs = 0;
+}
+
+LcaError * epicsShareAPI
+lcaGetLastError()
+{
+	return &theLastError;
+}
+
+void epicsShareAPI
+lcaSetError(LcaError *pe, int err, char *fmt, ...)
+{
+va_list ap;
+	if ( !pe )
+		return;
+
+	pe->err = err;
+
+	va_start(ap, fmt);
+
+	vsnprintf(pe->msg, sizeof(pe->msg), fmt, ap);
+
+	va_end(ap);
+
+	pe->msg[sizeof(pe->msg)-1] = 0;
+}

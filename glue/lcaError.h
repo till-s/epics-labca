@@ -1,12 +1,17 @@
 #ifndef LCA_ERROR_H
 #define LCA_ERROR_H
-/* $Id$ */
+/* $Id: lcaError.h,v 1.1 2007/05/23 02:50:15 strauman Exp $ */
 
 /* labca error interface */
+
+#include <stdarg.h>
+#include <shareLib.h>
 
 typedef struct LcaError_ {
 	int  err;
 	char msg[100];
+	int  nerrs;  /* optional error vector */
+	int  *errs;  /* optional error vector; must be FREEd when object goes out of scope */
 } LcaError;
 
 /* Errors returned by ezcaNewMonitorValue */
@@ -18,10 +23,33 @@ typedef struct LcaError_ {
 extern "C" {
 #endif
 
-#define lcaErrorInit(pe)	do { (pe)->err = 0; (pe)->msg[0] = 0; } while (0)
+epicsShareFunc void epicsShareAPI
+lcaErrorInit(LcaError *pe);
+
+/* remember last error that occurred;
+ * this takes over an optional error vector
+ * and NULLs pe->errs
+ */
+epicsShareFunc void epicsShareAPI
+lcaSaveLastError(LcaError *pe);
+
+epicsShareFunc void epicsShareAPI
+lcaSetError(LcaError *pe, int err, char *fmt, ...);
+
+epicsShareFunc LcaError * epicsShareAPI
+lcaGetLastError();
 
 #ifdef SCILAB_APP
-#define LCA_RAISE_ERROR(theError)	do { if ( (theError)->err ) { Scierror((theError)->err + 10000, (theError)->msg); } } while (0)
+#define LCA_RAISE_ERROR(theError)	\
+	do { \
+		if ( (theError)->err ) { \
+			lcaSaveLastError(theError); \
+			Scierror((theError)->err + 10000, (theError)->msg); \
+		} else { \
+		    free((theError)->errs); (theError)->errs = 0; \
+		    (theError)->nerrs = 0; \
+		} \
+	} while (0)
 #endif
 
 #ifdef __cplusplus

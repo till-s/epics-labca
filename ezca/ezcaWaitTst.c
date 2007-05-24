@@ -6,12 +6,12 @@
 
 static int sgrp(int npvs)
 {
-	return npvs > 1 ? ezcaStartGroup() : 0;
+	return npvs > 0 ? ezcaStartGroup() : 0;
 }
 
 static int egrp(int npvs)
 {
-	return npvs > 1 ? ezcaEndGroup() : 0;
+	return npvs > 0 ? ezcaEndGroup() : 0;
 }
 
 #define SGRP() if ( sgrp(npvs) ) return -1;

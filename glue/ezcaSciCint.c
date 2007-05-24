@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.20 2007-05-09 19:19:32 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.21 2007/05/23 02:50:15 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -60,7 +60,7 @@ int i;
 }
 
 static int
-arg2ezcaType(char *pt, int idx)
+arg2ezcaType(char *pt, int idx, LcaError *pe)
 {
 int m,n;
 char **s MAY_ALIAS = 0;
@@ -81,7 +81,7 @@ char **s MAY_ALIAS = 0;
 			case 'N': *pt = ezcaNative; break;
                                                                                             
 			default:
-					Scierror(EZCA_INVALIDARG + 10000, "Invalid type - must be 'byte', 'short', 'long', 'float', 'double' or 'char'");
+					lcaSetError(pe, EZCA_INVALIDARG, "Invalid type - must be 'byte', 'short', 'long', 'float', 'double' or 'char'");
 			return 0;
 	}
 
@@ -104,12 +104,14 @@ LcaError  theErr;
  	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
  	CheckColumn(1,mpvs,ntmp);
 
+	lcaErrorInit(&theErr);
+
 	if ( Rhs > 1 ) {
 		GetRhsVar(2, "i", &mtmp, &ntmp, &itmp);
 		CheckScalar(2, mtmp, ntmp);
 		n = *istk(itmp);
-		if ( Rhs > 2 && !arg2ezcaType(&type,3) )
-			return 0;
+		if ( Rhs > 2 && !arg2ezcaType(&type,3, &theErr) )
+			goto cleanup;
 	}
 
 	ntmp = 1;
@@ -117,12 +119,10 @@ LcaError  theErr;
 
 	/* we can't preallocate the result matrix -- n is unknown at this point */
 
-	lcaErrorInit(&theErr);
 	if ( !multi_ezca_get( pvs, &type, &buf, mpvs, &n, &ts, &theErr ) ) {
-		LCA_RAISE_ERROR(&theErr);
 		for ( itmp = 1; itmp <= Lhs; itmp++ )
 			LhsVar(itmp) = 0; 
-		return 0;
+		goto cleanup;
 	}
 
 	/* NOTE: if CreateVarxxx fails, there is a memory leak
@@ -142,6 +142,8 @@ LcaError  theErr;
 		}
 	}
 
+cleanup:
+
 	if ( buf ) {
 		if ( ezcaString == type ) {
 			FreeRhsSVar(((char**)buf));
@@ -154,6 +156,7 @@ LcaError  theErr;
 		free(ts);
 	}
 
+	LCA_RAISE_ERROR(&theErr);
 	return 0;
 }
 
@@ -179,18 +182,19 @@ LcaError  theErr;
 	buf = stk(i);
 	}
 
+	lcaErrorInit(&theErr);
+
 	if ( Rhs > 2 ) {
 		char t;
-		if ( !arg2ezcaType( &t, 3 ) )
-			return 0;
+		if ( !arg2ezcaType( &t, 3, &theErr ) )
+			goto cleanup;
 		if ( (ezcaString == type) != (ezcaString == t) )  {
-			Scierror(EZCA_INVALIDARG+10000, "string value type conversion not implemented, sorry");
-			return 0;
+			lcaSetError(&theErr, EZCA_INVALIDARG, "string value type conversion not implemented, sorry");
+			goto cleanup;
 		}
 		type = t;
 	}
 
-	lcaErrorInit(&theErr);
 #ifdef LCAPUT_RETURNS_VALUE
 	{ int one=1;
 	CreateVar(4,"r",&one,&one,&i);
@@ -202,6 +206,7 @@ LcaError  theErr;
 #endif
 		multi_ezca_put(pvs, mpvs, type, buf, mval, n, doWait, &theErr);
 
+cleanup:
 	LCA_RAISE_ERROR(&theErr);
 
 	return 0;
@@ -467,12 +472,45 @@ int m,n,i,rc;
 	CheckLhs(1,1);
 	GetRhsVar(1,"r",&m,&n,&i);
 	CheckScalar(1,m,n);
-	if ( (rc = ezcaDelay(*sstk(i))) )
-		Scierror(rc + 10000, "Error encountered (need 1 arg > 0.0)");
+	if ( (rc = ezcaDelay(*sstk(i))) ) {
+		LcaError theErr;
+		lcaErrorInit(&theErr);
+		lcaSetError(&theErr, rc, "Error encountered (need 1 arg > 0.0)");
+		LCA_RAISE_ERROR(&theErr);
+	}
 	LhsVar(1)=0;
 	return 0;
 }
 
+
+static int intsezcaLastError(char *fname)
+{
+int m, ntmp, i, *src;
+LcaError *ple = lcaGetLastError();
+
+	CheckRhs(0,0);
+	CheckLhs(1,1);
+
+	ntmp = 1;
+
+	if ( ! (src = ple->errs) ) {
+		/* single error */
+		m   = 1;
+		src = & ple->err;
+	} else {
+		m   = ple->nerrs;
+	}
+	CreateVar(1,"i",&m,&ntmp,&i);
+
+	if ( sizeof(*istk(i)) != sizeof(*src) ) {
+		fprintf(stderr,"FATAL ERROR -- type size mismatch: %s - %i",__FILE__, __LINE__);
+	}
+	memcpy(istk(i), src, m*sizeof(*istk(i)));
+
+	LhsVar(1) = 1;
+
+	return 0;
+}
 
 static int intsezcaDebugOn(char *fname)
 {
@@ -546,18 +584,20 @@ LcaError  theErr;
  	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
  	CheckColumn(1,mpvs,ntmp);
 
+	lcaErrorInit(&theErr);
+
 	if ( Rhs > 1 ) {
 		GetRhsVar(2, "i", &mtmp, &ntmp, &itmp);
 		CheckScalar(2, mtmp, ntmp);
 		n = *istk(itmp);
-		if ( Rhs > 2 && !arg2ezcaType(&type,3) )
-			return 0;
+		if ( Rhs > 2 && !arg2ezcaType(&type,3, &theErr) )
+			goto cleanup;
 	}
 
-	lcaErrorInit(&theErr);
-	if ( multi_ezca_set_mon(pvs, mpvs, type, n, &theErr) ) {
-		LCA_RAISE_ERROR(&theErr);
-	}
+	(void) multi_ezca_set_mon(pvs, mpvs, type, n, &theErr);
+
+cleanup:
+	LCA_RAISE_ERROR(&theErr);
 
 	return 0;
 }
@@ -575,22 +615,49 @@ LcaError  theErr;
  	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
  	CheckColumn(1,mpvs,ntmp);
 
-	if ( Rhs > 1 && !arg2ezcaType(&type,2) )
-		return 0;
+	lcaErrorInit(&theErr);
+
+	if ( Rhs > 1 && !arg2ezcaType(&type,2,&theErr) )
+		goto cleanup;
 
 	ntmp = 1;
 	CreateVar(Rhs+1,"i",&mpvs,&ntmp,&i);
  		
-	lcaErrorInit(&theErr);
-	if ( multi_ezca_check_mon(pvs, mpvs, type, istk(i), &theErr) ) {
-		LCA_RAISE_ERROR(&theErr);
-	}
+	(void) multi_ezca_check_mon(pvs, mpvs, type, istk(i), &theErr);
 
 	LhsVar(1) = Rhs+1;
+
+cleanup:
+	LCA_RAISE_ERROR(&theErr);
 
 	return 0;
 }
 
+static int intsezcaNewMonitorWait(char *fname)
+{
+int mpvs, ntmp;
+char     **pvs MAY_ALIAS;
+char      type  = ezcaNative;
+LcaError  theErr;
+
+	CheckRhs(1,2);
+	CheckLhs(1,1);
+
+ 	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
+ 	CheckColumn(1,mpvs,ntmp);
+
+	lcaErrorInit(&theErr);
+
+	if ( Rhs > 1 && !arg2ezcaType(&type,2,&theErr) )
+		goto cleanup;
+
+	(void) multi_ezca_wait_mon(pvs, mpvs, type, &theErr);
+
+cleanup:
+	LCA_RAISE_ERROR(&theErr);
+
+	return 0;
+}
 
 #ifdef WITH_ECDRGET
 #include <ecget.h>
@@ -641,7 +708,9 @@ static GenericTable Tab[]={
   {(Myinterfun)sci_gateway, intsezcaClearChannels,			"lcaClear"},
   {(Myinterfun)sci_gateway, intsezcaSetMonitor,			    "lcaSetMonitor"},
   {(Myinterfun)sci_gateway, intsezcaNewMonitorValue,	    "lcaNewMonitorValue"},
+  {(Myinterfun)sci_gateway, intsezcaNewMonitorWait,		    "lcaNewMonitorWait"},
   {(Myinterfun)sci_gateway, intsezcaDelay,	    			"lcaDelay"},
+  {(Myinterfun)sci_gateway, intsezcaLastError,    			"lcaLastError"},
 #ifdef WITH_ECDRGET
   {(Myinterfun)sci_gateway, intsecdrGet,					"lecdrGet"},
 #endif

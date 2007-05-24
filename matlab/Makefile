@@ -38,7 +38,9 @@ MEXF += lcaSetSeverityWarnLevel
 MEXF += lcaClear
 MEXF += lcaSetMonitor
 MEXF += lcaNewMonitorValue
+MEXF += lcaNewMonitorWait
 MEXF += lcaDelay
+MEXF += lcaLastError
 ifeq ($(CONFIG_ECDRGET),YES)
 MEXF += ecget
 endif
