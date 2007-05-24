@@ -6,6 +6,10 @@ Changes since labca_2
 	  fails on a subset of PVs this routine can report the error status
 	  for individual PVs (to be used like and possibly in addition to
 	  'lasterror' in scilab/matlab).
+	- Added multi-ezca interface to lcaLastError and wrappers
+	  for scilab and matlab.
+	- Added multi-ezca interface to ezcaNewMonitorWait and wrappers
+	  for scilab and matlab.
 	- Added ezcaNewMonitorWait() which blocks until new monitor data
 	  becomes available. This routine is groupable.
 	- Changed implementation of EzcaPendEvent(). There is really no need
