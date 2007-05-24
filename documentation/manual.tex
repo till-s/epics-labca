@@ -53,11 +53,11 @@ of \mhack{} strings.
 
 \title{\sca{} --- An EPICS Channel Access Interface for \scilab{} and \matlab{}}
 \author{Till Straumann $<$straumanATslac.stanford.edu$>$, 2003}
-\date{April 13, 2006}
+\date{May 23, 2007}
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.29 2006/04/14 23:52:50 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.31 2006/04/17 01:11:32 strauman Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -75,6 +75,16 @@ command line.
 which transparently manages and caches channel access 
 connections. A modified version of \ezca{} comes with
 \sca, adding thread-safety and hence EPICS 3.14 fitness.
+
+As of \sca{} version 3 further improvements to \ezca{}
+have been made that exploit features of the multi-threaded
+CA library (EPICS 3.14 only) in order to speed up response time.
+Earlier versions always handed control to \ezca{} in multiples of the
+\sca{} \ita{timeout}, i.e., even if data from a channel
+was available quicker the library would wait until the
+next timeout quantum expired. Since version 3 a \sca{}
+call returns immediately after the underlying request
+completes.
 
 A very convenient feature of \sca{} is the ability
 to execute \ezca{} calls on groups of PVs, simply by
@@ -492,9 +502,16 @@ lcaSetTimeout(newTimeout)
 \end{verbatim}
 \subsubsection{Description}
 Retrieve / set the \ezca{} library timeout parameter (consult the \ezca{}
-documentation for more information). Note that the timeout parameter is
-actually the {\em minimum} timeout the library pends for activity. The
-{\em maximal} time spent waiting for connections and/or data equals the
+documentation for more information). Note that the semantics of the
+timeout parameter has changed with \sca{} version 3. The library no longer
+pends for CA activity in multiples of this timeout value but returns
+control to \scilab{} as soon as the underlying CA request completes.
+
+However, \sca{} checks for ``Ctrl-C'' key events every time
+(and only when) the timeout expires. Hence, it is convenient to
+choose a value $<1$s.
+
+The {\em maximal} time spent waiting for connections and/or data equals the
 timeout multiplied by the
 \hyperref[ref]{retry count}{retry count (see }{ )}{retrycnt}.
 
@@ -572,7 +589,9 @@ e.g., to \comref{lcaDelay}{lcadelay}, in order to allow \sca{} to handle
 monitors.
 
 Use the \comref{lcaNewMonitorValue}{lcanewmonitorvalue} call to check
-monitor status (local flag). If new data are available, they are retrieved using
+monitor status (local flag) or \comref{lcaNewMonitorWait}{lcanewmonitorwait}
+to wait for new data to become available (since last \com{lcaGet} or \com{lcaSetMonitor}).
+If new data are available, they are retrieved using
 the ordinary \comref{lcaGet}{lcaget} call.
 
 Note the difference between polling and monitoring a PV in combination with
@@ -641,24 +660,50 @@ satisfies this condition.
 Column vector of flag values. A value of zero indicates that no new data are available --
 the monitored PV has not changed since it was last read (i.e., the data {\em not the flag}).
 A value of one indicates that new data are available for reading (\com{lcaGet}). A negative
-The flag value can be negative, indicating a problem e.g.,
-\begin{description}
-\item[-1:]
-  no monitor established (\comref{lcaSetMonitor}{lcasetmonitor} never
-  called for this PV/data type),
-\item[-2:]
-  non-existing PV (no successful CA search so far),
-\item[-3:]
-  invalid type argument,
-\item[-4:]
-  invalid PV argument,
-\item[-10:]
-  currently no connection.
-\end{description}
+
+NOTE: As of \sca{} version 3 the \com{flags} no longer report error conditions.
+Errors are now reported in the standard way, i.e., by aborting the \sca{} call.
+Errors can be caught by the standard \scilab{} \com{try}-\com{catch}-\com{end}
+construct.
+
+FIXME: hyperref to error descriptions. lcaLastError description
 \end{description}
 \subsubsection{Examples}
 \begin{verbatim}
 lcaNewMonitorValue('PV')
+\end{verbatim}
+
+\pbrk
+\subsection{lcaNewMonitorWait}
+\label{lcanewmonitorwait}
+\subsubsection{Calling Syntax}
+\begin{verbatim}
+lcaNewMonitorValue(pvs, type)
+\end{verbatim}
+\subsubsection{Description}
+Similar to \comref{lcaNewMonitorValue}{lcanewmonitorvalue} but instead of
+returning the status of monitored PVs this routine blocks until all PVs
+have fresh data available (e.g., due to initial connection or changes in
+value and/or severity status).
+Reading the actual data must be done using \comref{lcaGet}{lcaget}.
+\subsubsection{Parameters}
+\begin{description}
+\PVITEM
+\item[type]
+(\ita{optional argument}) A string specifying the
+data type to be used for the channel access data transfer. The
+native type is used by default.
+See \hyperref[ref]{here}{(}{)}{typearg} for more information.
+
+Note that monitors are specific to a particular data type and therefore
+\com{lcaNewMonitorWait} will only report the status for a monitor that had been established
+(by \com{lcaSetMonitor}) with a matching type.
+Using the ``native'' type, which is the default, for both calls
+satisfies this condition.
+\end{description}
+\subsubsection{Examples}
+\begin{verbatim}
+lcaNewMonitorWait('PV')
 \end{verbatim}
 
 \pbrk

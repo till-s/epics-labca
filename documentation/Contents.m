@@ -18,3 +18,4 @@
 %   lcaClear                 - clear (destroy/cleanup) channels and associated monitors
 %   lcaSetMonitor            - monitor a channel
 %   lcaNewMonitorValue       - check if a monitored channel has new data
+%   lcaNewMonitorWait        - block/wait until a monitored channel has new data
