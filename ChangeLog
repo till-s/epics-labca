@@ -1,5 +1,11 @@
 Changes since labca_2
 	2007/5/23 (TS):
+	- Added lcaLastError() to retrieve the last error that was recorded.
+	  The usual scilab/matlab error reporting scheme is not good enough
+	  because I cannot report a vector of errors. If a lcaXXX operation
+	  fails on a subset of PVs this routine can report the error status
+	  for individual PVs (to be used like and possibly in addition to
+	  'lasterror' in scilab/matlab).
 	- Added ezcaNewMonitorWait() which blocks until new monitor data
 	  becomes available. This routine is groupable.
 	- Changed implementation of EzcaPendEvent(). There is really no need
