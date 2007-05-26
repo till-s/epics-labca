@@ -1,3 +1,5 @@
+#ifndef EZCA_H_INCLUDED
+#define EZCA_H_INCLUDED
 /*************************************************************************\
 * Copyright (c) 2002 The University of Chicago, as Operator of Argonne
 * National Laboratory.
@@ -131,4 +133,6 @@ epicsShareFunc int epicsShareAPI ezcaPutOldCa(char *pvname, char ezcatype,
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
