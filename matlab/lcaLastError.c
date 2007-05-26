@@ -1,6 +1,6 @@
-/* $Id: lcaNewMonitorValue.c,v 1.5 2007/05/23 02:50:22 strauman Exp $ */
+/* $Id: lcaLastError.c,v 1.1 2007/05/24 19:35:24 till Exp $ */
 
-/* matlab wrapper for lcaLastError */
+/* matlab wrapper for lcaGetLastError */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2007 */
 
@@ -21,13 +21,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 int      i;
 int      *src;
 int32_t  *dst;
-LcaError *ptheErr = lcaLastError();
+LcaError *ptheErr = lcaGetLastError();
+LcaError theErr;
 
 	if ( nlhs == 0 )
 		nlhs = 1;
 
 	for ( i=0; i<nlhs; i++ )
 		plhs[i] = 0;
+
+	lcaErrorInit(&theErr);
 
 	if ( nlhs > 1 ) {
 		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
@@ -39,7 +42,7 @@ LcaError *ptheErr = lcaLastError();
 		goto cleanup;
 	}
 
-	if ( (i=ptheErr->nerrs) {
+	if ( (i=ptheErr->nerrs) ) {
 		src = ptheErr->errs;
 	} else {
 		i   = 1;
@@ -50,6 +53,8 @@ LcaError *ptheErr = lcaLastError();
 		lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
 		goto cleanup;
 	}
+
+	dst = mxGetData(plhs[0]);
 
 	while ( i-- ) {
 		*dst++ = *src++;
