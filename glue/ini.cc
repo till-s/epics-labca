@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.24 2007/04/11 00:32:24 till Exp $ */
+/* $Id: ini.cc,v 1.25 2007/05/23 02:50:15 strauman Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -100,7 +100,7 @@ CtrlCStateRec saved;
 	mxArray *lhs = NULL;
 
 	if ( 0 == mexCallMATLAB(1, &lhs, 0, NULL, "ismcc") &&
-		 *(int*)mxGetData(lhs) ) {
+		 mxGetScalar(lhs) != 0. ) {
 		mexPrintf("no initialization of multiEzcaInitializer in ini.cc during mcc compilation\n");
 		return;
 	}
