@@ -1,6 +1,6 @@
 #ifndef LCA_ERROR_H
 #define LCA_ERROR_H
-/* $Id: lcaError.h,v 1.1 2007/05/23 02:50:15 strauman Exp $ */
+/* $Id: lcaError.h,v 1.2 2007/05/24 19:35:21 till Exp $ */
 
 /* labca error interface */
 
@@ -46,7 +46,7 @@ lcaGetLastError();
 			lcaSaveLastError(theError); \
 			Scierror((theError)->err + 10000, (theError)->msg); \
 		} else { \
-		    free((theError)->errs); (theError)->errs = 0; \
+		    ezcaFree((theError)->errs); (theError)->errs = 0; \
 		    (theError)->nerrs = 0; \
 		} \
 	} while (0)

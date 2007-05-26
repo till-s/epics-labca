@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.30 2007/05/23 02:50:15 strauman Exp $ */
+/* $Id: multiEzca.c,v 1.31 2007/05/24 19:35:21 till Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -224,7 +224,7 @@ int rval = EZCA_OK;
 		}
 #endif
 		if ( EZCA_OK == rval ) {
-			free(pe->errs); pe->errs = 0;
+			ezcaFree(pe->errs); pe->errs = 0;
 		}
 		if ( pe->errs )
 			pe->nerrs = m;
@@ -971,14 +971,13 @@ multi_ezca_wait_mon(char **nms, int m, int type, LcaError *pe)
 {
 char *types   = getTypes(nms, m, type);
 int  i,rc = EZCA_FAILEDMALLOC;
-char errmsg[100];
 
 	if ( types ) {
 
 		ezcaStartGroup();
 
 		for ( i=0; i<m; i++ ) {
-			if (rc = ezcaNewMonitorWait(nms[i], types[i])) {
+			if ( (rc = ezcaNewMonitorWait(nms[i], types[i])) ) {
 				ezErr(rc, "multi_ezca_wait_mon - ", pe);
 				goto cleanup;
 			}
@@ -1048,7 +1047,7 @@ static LcaError theLastError = {0, {0}, 0, 0};
 void epicsShareAPI
 lcaSaveLastError(LcaError *pe)
 {
-	free(theLastError.errs);
+	ezcaFree(theLastError.errs);
 	memcpy(&theLastError, pe, sizeof(*pe));
 	/* we took over the (optional) error vector */
 	pe->errs  = 0;

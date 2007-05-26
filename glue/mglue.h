@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.14 2007/05/23 02:50:15 strauman Exp $ */
+/* $Id: mglue.h,v 1.15 2007/05/24 19:35:21 till Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -10,6 +10,8 @@
 #include <matrix.h>
 #include <multiEzcaCtrlC.h>
 #include <lcaError.h>
+#include <cadef.h>
+#include <ezca.h>
 
 typedef struct PVs_ {
 	CtrlCStateRec	ctrlc;
@@ -71,7 +73,7 @@ flagError(int nlhs, mxArray *plhs[]);
 			lcaSaveLastError(perr); \
 			mexErrMsgIdAndTxt(lcaErrorIdGet((perr)->err), (perr)->msg); \
 		 } else { \
-		 	free((perr)->errs); (perr)->errs = 0; \
+		 	ezcaFree((perr)->errs); (perr)->errs = 0; \
 			(perr)->nerrs = 0; \
 		 } \
 	} while (0)
