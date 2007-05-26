@@ -27,7 +27,7 @@ TARGET_LDFLAGS += $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)/libut.lib
 TARGET_LDFLAGS += $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)/libmx.lib
 TARGET_LDFLAGS += $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)/libmex.lib
 else
-LIB_LIBS += mx mex
+LIB_LIBS += mx mex ut
 #CC         = $(MATLABDIR)/bin/mex -cxx
 #CFLAGS=$(CPPFLAGS) $(INCLUDES) $(CTRLC_CFLAGS_$(CONFIG_USE_CTRLC))
 endif
