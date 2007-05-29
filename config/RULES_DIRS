@@ -1,4 +1,0 @@
-#RULES_DIRS
-ACTIONS+=purge
-include $(EPICS_BASE)/config/RULES_DIRS
-purge:: clean

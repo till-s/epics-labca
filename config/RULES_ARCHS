@@ -1,3 +1,0 @@
-#RULES_ARCHS
-include $(EPICS_BASE)/config/RULES_ARCHS
-purge:: clean
