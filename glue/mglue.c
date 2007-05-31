@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.18 2004/06/23 01:15:27 till Exp $ */
+/* $Id: mglue.c,v 1.19 2007/05/23 02:50:15 strauman Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -46,14 +46,14 @@ int	rval = -1;
 		return -1;
 
 	if ( mxIsCell(pin) &&  1 != mxGetN(pin) ) {
-			lcaRecordError(EZCA_INVALIDARG, "Need a column vector of PV names\n", pe);
+			lcaSetError(pe, EZCA_INVALIDARG, "Need a column vector of PV names\n");
 			goto cleanup;
 	}
 
 	m = mxIsCell(pin) ? mxGetM(pin) : 1;
 
 	if ( (! mxIsCell(pin) && ! mxIsChar(pin)) || m < 1 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Need a cell array argument with PV names", pe);
+		lcaSetError(pe, EZCA_INVALIDARG, "Need a (column) cell array argument with PV names");
 		/* GENERAL CLEANUP NOTE: as far as I understand, this is not necessary:
 		 *                       in mex files, garbage is automatically collected;
 		 *                       explicit cleanup works in standalong apps also, however.
@@ -62,7 +62,7 @@ int	rval = -1;
 	}
 
 	if ( ! (mem = mxCalloc(m, sizeof(*mem))) ) {
-		lcaRecordError(EZCA_FAILEDMALLOC, "No Memory\n", pe);
+		lcaSetError(pe, EZCA_FAILEDMALLOC, "No Memory\n");
 		goto cleanup;
 	}
 
@@ -70,16 +70,16 @@ int	rval = -1;
 	for ( i=buflen=0; i<m; i++ ) {
 		tmp = mxIsCell(pin) ? mxGetCell(pin, i) : pin;		
 		if ( !tmp || !mxIsChar(tmp) || 1 != mxGetM(tmp) ) {
-			lcaRecordError(EZCA_INVALIDARG, "Not an vector of strings??", pe);
+			lcaSetError(pe, EZCA_INVALIDARG, "Not an vector of strings??");
 			goto cleanup;
 		}
 		buflen = mxGetN(tmp) * sizeof(mxChar) + 1;
 		if ( !(mem[i] = mxMalloc(buflen)) ) {
-			lcaRecordError(EZCA_FAILEDMALLOC, "No Memory\n", pe);
+			lcaSetError(pe, EZCA_FAILEDMALLOC, "No Memory\n");
 			goto cleanup;
 		}
 		if ( mxGetString(tmp, mem[i], buflen) ) {
-			lcaRecordError(EZCA_INVALIDARG, "not a PV name?", pe);
+			lcaSetError(pe, EZCA_INVALIDARG, "not a PV name?");
 			goto cleanup;
 		}
 	}
@@ -95,16 +95,6 @@ int	rval = -1;
 cleanup:
 	releasePVs(pvs);
 	return rval;	
-}
-
-void epicsShareAPI
-lcaRecordError(int rc, char * msg, LcaError *pe)
-{
-	if ( pe ) {
-		pe->err = rc;
-		strncpy(pe->msg, msg, sizeof(pe->msg));
-		pe->msg[sizeof(pe->msg)-1] = 0;
-	}
 }
 
 const char * epicsShareAPI
@@ -135,7 +125,7 @@ marg2ezcaType(const mxArray *typearg, LcaError *pe)
 char typestr[2] = { 0 };
 
 	if ( ! mxIsChar(typearg) ) {
-		lcaRecordError(EZCA_INVALIDARG, "(optional) type argument must be a string", pe);
+		lcaSetError(pe, EZCA_INVALIDARG, "(optional) type argument must be a string");
 	} else {
 		mxGetString( typearg, typestr, sizeof(typestr) );
 		switch ( toupper(typestr[0]) ) {
@@ -152,7 +142,7 @@ char typestr[2] = { 0 };
 			case 'C':	return ezcaString;
 		}
 	}
-	lcaRecordError(EZCA_INVALIDARG, "argument specifies an invalid data type", pe);
+	lcaSetError(pe, EZCA_INVALIDARG, "argument specifies an invalid data type");
 	return ezcaInvalid;
 }
 
@@ -187,19 +177,19 @@ mxArray *dummy = 0;
 		nlhs = 1;
 
 	if ( nlhs > 1 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many output args", pe);
+		lcaSetError(pe, EZCA_INVALIDARG, "Too many output args");
 		goto cleanup;
 	}
 #else
 	if ( nlhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many output args", pe);
+		lcaSetError(pe, EZCA_INVALIDARG, "Too many output args");
 		goto cleanup;
 	}
 	nlhs = -1;
 #endif
 
 	if ( nrhs < 2 || nrhs > 3 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Expected 2..3 rhs argument", pe);
+		lcaSetError(pe, EZCA_INVALIDARG, "Expected 2..3 rhs argument");
 		goto cleanup;
 	}
 
@@ -210,7 +200,7 @@ mxArray *dummy = 0;
 		/* a single string; create a dummy cell matrix */
 		m = n = 1;
 		if ( !(dummy = mxCreateCellMatrix( m, n )) ) {
-			lcaRecordError(EZCA_FAILEDMALLOC, "Not Enough Memory", pe);
+			lcaSetError(pe, EZCA_FAILEDMALLOC, "Not Enough Memory");
 			goto cleanup;
 		}
 		mxSetCell(dummy, 0, (mxArray*)mxDuplicateArray((mxArray*)tmp));
@@ -219,28 +209,28 @@ mxArray *dummy = 0;
 
 	if ( mxIsCell( tmp ) ) {
 		if ( !(pstr = mxCalloc( m * n, sizeof(*pstr) )) ) {
-			lcaRecordError(EZCA_FAILEDMALLOC, "Not Enough Memory", pe);
+			lcaSetError(pe, EZCA_FAILEDMALLOC, "Not Enough Memory");
 			goto cleanup;
 		}
 		for ( i = 0; i < m * n; i++ ) {
 			int len;
 			if ( !mxIsChar( (strval = mxGetCell(tmp, i)) ) || 1 != mxGetM( strval ) ) {
-				lcaRecordError(EZCA_INVALIDARG, "Value argument must be a cell matrix of strings", pe);
+				lcaSetError(pe, EZCA_INVALIDARG, "Value argument must be a cell matrix of strings");
 				goto cleanup;
 			}
 			len = mxGetN(strval) * sizeof(mxChar) + 1;
 			if ( !(pstr[i] = mxMalloc(len)) ) {
-				lcaRecordError(EZCA_FAILEDMALLOC, "Not Enough Memory", pe);
+				lcaSetError(pe, EZCA_FAILEDMALLOC, "Not Enough Memory");
 				goto cleanup;
 			}
 			if ( mxGetString(strval, pstr[i], len) ) {
-				lcaRecordError(EZCA_INVALIDARG, "Value still not a string (after all those checks) ???", pe);
+				lcaSetError(pe, EZCA_INVALIDARG, "Value still not a string (after all those checks) ???");
 				goto cleanup;
 			}
 		}
 		type = ezcaString;
 	} else if ( ! mxIsDouble(tmp) ) {
-			lcaRecordError(EZCA_INVALIDARG, "2nd argument must be a double matrix", pe);
+			lcaSetError(pe, EZCA_INVALIDARG, "2nd argument must be a double matrix");
 			goto cleanup;
 	} else {
 		/* is a DOUBLE matrix */
@@ -252,7 +242,7 @@ mxArray *dummy = 0;
 			goto cleanup;
 		}
 		if ( (ezcaString == type) != (ezcaString == tmptype) ) {
-			lcaRecordError(EZCA_UDFREQ, "string value type conversion not implemented, sorry", pe);
+			lcaSetError(pe, EZCA_UDFREQ, "string value type conversion not implemented, sorry");
 			goto cleanup;
 		}
 		type = tmptype;
@@ -268,7 +258,7 @@ mxArray *dummy = 0;
 	if ( rval > 0 ) {
 #ifdef LCAPUT_RETURNS_VALUE
 		if ( !(plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL)) ) {
-			lcaRecordError(EZCA_FAILEDMALLOC, "No Memory\n", pe);
+			lcaSetError(pe, EZCA_FAILEDMALLOC, "No Memory\n");
 			goto cleanup;
 		}
 		*mxGetPr(plhs[0]) = (double)rval;

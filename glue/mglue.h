@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.15 2007/05/24 19:35:21 till Exp $ */
+/* $Id: mglue.h,v 1.16 2007/05/26 02:17:35 guest Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -28,20 +28,11 @@ extern "C" {
 epicsShareFunc void epicsShareAPI
 releasePVs(PVs *pvs);
 
-epicsShareFunc void epicsShareAPI
-lcaRecordError(int rc, char *msg, LcaError *pe);
-
 epicsShareFunc int epicsShareAPI
 buildPVs(const mxArray *pin, PVs *pvs, LcaError *pe);
 
 epicsShareFunc const char * epicsShareAPI
 lcaErrorIdGet(int err);
-
-/* We don't want to jump out of context; instead,
- * we check for accumulated errors prior to exiting
- * the mexfiles.
- */
-#define MEXERRPRINTF(arg) mexPrintf("Error: %s\n",(arg))
 
 /* check for 'typearg' being a string and use the
  * first character to determine the desired ezca type
@@ -63,6 +54,17 @@ marg2ezcaType(const mxArray *typearg, LcaError *pe);
  */
 epicsShareFunc int epicsShareAPI
 flagError(int nlhs, mxArray *plhs[]);
+
+/* assert that 'nlhs' >= 1 and clear *plhs */
+#define LHSCHECK(nlhs, plhs) \
+	do { \
+		int xxx; \
+		if ( nlhs < 1 ) \
+			mexErrMsgTxt("LABCA INTERNAL ERROR (nlhs < 1 ???)\n");	\
+		for ( xxx = 0; xxx < nlhs; xxx++ ) { \
+			plhs[xxx] = 0; \
+		} \
+	} while (0)
 
 /* mexErrMsgTxt() should be called only from a routine
  * that was compiled with the mex compiler in order to
