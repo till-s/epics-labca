@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.3 2003/12/23 23:06:55 strauman Exp $ */
+/* $Id: ecget.c,v 1.4 2004/02/11 23:06:58 till Exp $ */
 
 /* matlab wrapper for ecget */
 
@@ -15,26 +15,29 @@ int      namelen,i;
 char     name[100];
 long    *buf=0;
 int      nelems=0;
-mxArray  *mxa;
+mxArray  *mxa = 0;
 double   *dptr;
-    
-    *plhs=0;
+LcaError theErr;
 
+	lcaErrorInit(&theErr);
+
+	LHSCHECK(nlhs, plhs);
+    
 	/* check for one argument of type string */
 	if ( nrhs != 1 ) {
-		MEXERRPRINTF( "usage:  data = ecget( PVName );\n" );
-		return;
+		lcaSetError(&theErr, EZCA_INVALIDARG, "usage:  data = ecget( PVName );\n" );
+		goto cleanup;
 	}
 	if ( mxIsChar( prhs[0] ) != 1 ) {
-		MEXERRPRINTF( "usage:  data = ecget( PVName );\n" );
-		return;
+		lcaSetError(&theErr, EZCA_INVALIDARG, "usage:  data = ecget( PVName );\n" );
+		goto cleanup;
 	}
 
     namelen = (mxGetM(prhs[0]) * mxGetN(prhs[0]) * sizeof(mxChar)) + 1;
     
     if (namelen>=sizeof(name)) {
-        MEXERRPRINTF("PV name too long\n");
-        return;
+        lcaSetError(&theErr, EZCA_INVALIDARG, "PV name too long\n");
+        goto cleanup;
     }
     
     mxGetString(prhs[0], name, namelen);
@@ -42,12 +45,12 @@ double   *dptr;
     ecdrget(name,&namelen,&buf,&nelems);
 
     if (!buf) {
-        return;
+        goto cleanup;
     }
     
     if (!(mxa = mxCreateDoubleMatrix(1,nelems,mxREAL))){
         mxFree(buf); buf=0;
-        MEXERRPRINTF("ecdrget: no memory");
+        lcaSetError(&theErr, EZCA_FAILEDMALLOC, "ecdrget: no memory");
         goto cleanup;
     }
     
@@ -55,11 +58,13 @@ double   *dptr;
         *dptr = (double)buf[i];
     
     plhs[0] = mxa; mxa=0;
-    
+   
+	nlhs = 0;
 
 cleanup:
     if (buf) mxFree(buf);
 	if (mxa) {
 		mxDestroyArray(mxa);
 	}
+	ERR_CHECK(nlhs, plhs, &theErr);
 }

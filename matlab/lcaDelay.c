@@ -1,4 +1,4 @@
-/* $Id: lcaDelay.c,v 1.4 2007/05/23 02:50:21 strauman Exp $ */
+/* $Id: lcaDelay.c,v 1.5 2007-05-24 19:35:24 till Exp $ */
 
 /* matlab wrapper for ezcaDelay */
 
@@ -17,30 +17,30 @@ LcaError theErr;
 
 	lcaErrorInit(&theErr);
 
-	buildPVs(0,0,&theErr); /* enforce initialization of mglue library */
+	LHSCHECK(nlhs, plhs);
 
 	if ( 1 < nlhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Need one output arg", &theErr);
-		return;
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Need one output arg");
+		goto cleanup;
 	}
-	nlhs = 1;
 
 	if ( 1 != nrhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Expected one rhs argument", &theErr);
-		return;
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected one rhs argument");
+		goto cleanup;
 	}
 
 	if ( !mxIsDouble(prhs[0]) || 1 != mxGetM(prhs[0]) || 1 != mxGetN(prhs[0]) ) {
-		lcaRecordError(EZCA_INVALIDARG, "Need a single numeric argument", &theErr);
-		return;
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Need a single numeric argument");
+		goto cleanup;
 	}
 
 	if ( !ezcaDelay((float)*mxGetPr(prhs[0])) ) {
 		nlhs = 0;
 	} else {
-		lcaRecordError(EZCA_INVALIDARG, "Need a timeout argument > 0.0\n", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Need a timeout argument > 0.0\n");
 	}
 
+cleanup:
 	/* do this LAST (in case mexErrMsgTxt is called) */
 	ERR_CHECK(nlhs, plhs, &theErr);
 }

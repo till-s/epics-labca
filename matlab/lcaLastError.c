@@ -1,4 +1,4 @@
-/* $Id: lcaLastError.c,v 1.1 2007/05/24 19:35:24 till Exp $ */
+/* $Id: lcaLastError.c,v 1.2 2007/05/26 02:14:21 guest Exp $ */
 
 /* matlab wrapper for lcaGetLastError */
 
@@ -24,21 +24,17 @@ int32_t  *dst;
 LcaError *ptheErr = lcaGetLastError();
 LcaError theErr;
 
-	if ( nlhs == 0 )
-		nlhs = 1;
-
-	for ( i=0; i<nlhs; i++ )
-		plhs[i] = 0;
-
 	lcaErrorInit(&theErr);
 
+	LHSCHECK(nlhs, plhs);
+
 	if ( nlhs > 1 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Too many output args");
 		goto cleanup;
 	}
 
 	if ( nrhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Expected no rhs argument", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected no rhs argument");
 		goto cleanup;
 	}
 
@@ -50,7 +46,7 @@ LcaError theErr;
 	}
 
 	if ( ! (plhs[0] = mxCreateNumericMatrix( i, 1, mxINT32_CLASS, mxREAL )) ) {
-		lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+		lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 		goto cleanup;
 	}
 

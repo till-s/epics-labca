@@ -1,4 +1,4 @@
-/* $Id: lcaGetTimeout.c,v 1.3 2004/02/12 00:24:50 till Exp $ */
+/* $Id: lcaGetTimeout.c,v 1.4 2007/05/23 02:50:22 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetTimeout */
 
@@ -13,23 +13,32 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	buildPVs(0,0,0); /* enforce initialization of mglue library */
+LcaError theErr;
+
+	lcaInitError(&theErr);
+
+	LHSCHECK(nlhs, plhs);
 
 	if ( 1 < nlhs ) {
-		MEXERRPRINTF("Need one output arg");
-		return;
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Need one output arg");
+		goto cleanup;
 	}
 
 	if ( 0 != nrhs ) {
-		MEXERRPRINTF("Expected no rhs argument");
-		return;
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected no rhs argument");
+		goto cleanup;
 	}
 
 
 	if ( ! (plhs[0] = mxCreateDoubleMatrix( 1, 1, mxREAL )) ) {
-		MEXERRPRINTF("Not enough memory");
-		return;
+		lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
+		goto cleanup;
 	}
 
 	*mxGetPr(plhs[0]) = ezcaGetTimeout();
+
+	nlhs = 0;
+
+cleanup:
+	ERR_CHECK(nlhs, plhs, &theErr);
 }

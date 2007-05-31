@@ -1,4 +1,4 @@
-/* $Id: lcaGet.c,v 1.9 2006/04/12 02:14:18 strauman Exp $ */
+/* $Id: lcaGet.c,v 1.10 2007/05/23 02:50:21 strauman Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -27,26 +27,22 @@ LcaError theErr;
 
 	lcaErrorInit(&theErr);
 
-	if ( nlhs == 0 )
-		nlhs = 1;
-
-	for ( i=0; i<nlhs; i++ )
-		plhs[i] = 0;
+	LHSCHECK(nlhs, plhs);
 
 	if ( nlhs > 2 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Too many output args");
 		goto cleanup;
 	}
 
 	if ( nrhs < 1 || nrhs > 3 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Expected 1..3 rhs argument", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected 1..3 rhs argument");
 		goto cleanup;
 	}
 
 	/* check for an optional 'column dimension' argument */
 	if ( nrhs > 1 ) {
 		if ( ! mxIsNumeric(tmp = prhs[1]) || 1 != mxGetM(tmp) || 1 != mxGetN(tmp) ) {
-			lcaRecordError(EZCA_INVALIDARG, "2nd argument must be a numeric scalar", &theErr);
+			lcaSetError(&theErr, EZCA_INVALIDARG, "2nd argument must be a numeric scalar");
 			goto cleanup;
 		}
 		n = (int)mxGetScalar( tmp );
@@ -71,12 +67,12 @@ LcaError theErr;
 	if ( ezcaString == type ) {
 		/* convert string array to a matlab cell array of matlab strings */
 		if ( !(clean0 = plhs[0] = mxCreateCellMatrix(pvs.m, n)) ) {
-			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+			lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 			goto cleanup;
 		}
 		for ( i = 0; i < pvs.m * n; i++ ) {
 			if ( !(tmp = mxCreateString(((const char**)pres)[i])) ) {
-				lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+				lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 				goto cleanup;
 			}
 			mxSetCell(plhs[0], i, (mxArray*)tmp);
@@ -88,7 +84,7 @@ LcaError theErr;
 		 */
 
 		if ( !(clean0 = plhs[0] = mxCreateDoubleMatrix(pvs.m,n,mxREAL)) ) {
-			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+			lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 			goto cleanup;
 		}
 		memcpy(mxGetPr(plhs[0]), pres, sizeof(double) * pvs.m * n);
@@ -98,7 +94,7 @@ LcaError theErr;
 	if ( nlhs > 1 ) {
 		/* give them the time stamps */
 		if ( !(clean1 = plhs[1] = mxCreateDoubleMatrix(pvs.m,1,mxCOMPLEX)) ) {
-			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+			lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 			goto cleanup;
 		}
 		multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[1]), mxGetPi(plhs[1]) );

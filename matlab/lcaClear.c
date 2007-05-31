@@ -1,4 +1,4 @@
-/* $Id: lcaClear.c,v 1.4 2007-05-21 22:01:50 till Exp $ */
+/* $Id: lcaClear.c,v 1.5 2007/05/23 02:50:21 strauman Exp $ */
 
 /* matlab wrapper for ezcaClearChannel / ezcaPurge */
 
@@ -23,19 +23,17 @@ LcaError theErr;
 
 	lcaErrorInit(&theErr);
 
-	if ( 0 == nlhs )
-		nlhs = 1;
+	LHSCHECK(nlhs, plhs);
 
 	if ( 1 < nlhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many lhs args", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Too many lhs args");
 		goto cleanup;
 	}
 
 	if ( 1 < nrhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many rhs args", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Too many rhs args");
 		goto cleanup;
 	}
-
 
 	if ( nrhs > 0 && buildPVs(prhs[0],&pvs, &theErr) )
 		goto cleanup;

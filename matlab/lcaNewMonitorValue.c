@@ -1,4 +1,4 @@
-/* $Id: lcaNewMonitorValue.c,v 1.4 2007-05-21 22:01:54 till Exp $ */
+/* $Id: lcaNewMonitorValue.c,v 1.5 2007/05/23 02:50:22 strauman Exp $ */
 
 /* matlab wrapper for ezcaNewMonitorValue */
 
@@ -23,19 +23,15 @@ LcaError theErr;
 
 	lcaErrorInit(&theErr);
 
-	if ( nlhs == 0 )
-		nlhs = 1;
-
-	for ( i=0; i<nlhs; i++ )
-		plhs[i] = 0;
+	LHSCHECK(nlhs, plhs);
 
 	if ( nlhs > 1 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Too many output args");
 		goto cleanup;
 	}
 
 	if ( nrhs < 1 || nrhs > 2 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Expected 1..2 rhs argument", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected 1..2 rhs argument");
 		goto cleanup;
 	}
 
@@ -50,7 +46,7 @@ LcaError theErr;
 		goto cleanup;
 
 	if ( ! (plhs[0] = mxCreateNumericMatrix( pvs.m, 1, mxINT32_CLASS, mxREAL )) ) {
-		lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+		lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 		goto cleanup;
 	}
 

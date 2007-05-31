@@ -1,4 +1,4 @@
-/* $Id: lcaSetMonitor.c,v 1.4 2007-05-21 22:02:01 till Exp $ */
+/* $Id: lcaSetMonitor.c,v 1.5 2007/05/23 02:50:22 strauman Exp $ */
 
 /* matlab wrapper for ezcaSetMonitor */
 
@@ -24,26 +24,22 @@ LcaError theErr;
 
 	lcaErrorInit(&theErr);
 
-	if ( nlhs == 0 )
-		nlhs = 1;
-
-	for ( i=0; i<nlhs; i++ )
-		plhs[i] = 0;
+	LHSCHECK(nlhs, plhs);
 
 	if ( nlhs > 1 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Too many output args");
 		goto cleanup;
 	}
 
 	if ( nrhs < 1 || nrhs > 3 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Expected 1..3 rhs argument", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected 1..3 rhs argument");
 		goto cleanup;
 	}
 
 	/* check for an optional 'column dimension' argument */
 	if ( nrhs > 1 ) {
 		if ( ! mxIsNumeric(tmp = prhs[1]) || 1 != mxGetM(tmp) || 1 != mxGetN(tmp) ) {
-			lcaRecordError(EZCA_INVALIDARG, "2nd argument must be a numeric scalar", &theErr);
+			lcaSetError(&theErr, EZCA_INVALIDARG, "2nd argument must be a numeric scalar");
 			goto cleanup;
 		}
 		n = (int)mxGetScalar( tmp );

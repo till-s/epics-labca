@@ -1,4 +1,4 @@
-/* $Id: lcaGetControlLimits.c,v 1.8 2006/04/12 02:14:18 strauman Exp $ */
+/* $Id: lcaGetControlLimits.c,v 1.9 2007/05/23 02:50:21 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetControlLimits */
 
@@ -24,16 +24,15 @@ LcaError theErr;
 
 	lcaErrorInit(&theErr);
 
-	if ( 0==nlhs )
-		nlhs=1;
+	LHSCHECK(nlhs, plhs);
 
 	if ( NumberOf(args) < nlhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Too many output args");
 		goto cleanup;
 	}
 
 	if ( 1 != nrhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Expected one rhs argument", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected one rhs argument");
 		goto cleanup;
 	}
 
@@ -50,7 +49,7 @@ LcaError theErr;
 
 	for ( i=0; i<nlhs; i++ ) {
 		if ( !(plhs[i]=mxCreateDoubleMatrix(pvs.m, 1, mxREAL)) ) {
-			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+			lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 			goto cleanup;
 		}
 		memcpy(mxGetPr(plhs[i]), *args[i].pres, pvs.m * args[i].size);

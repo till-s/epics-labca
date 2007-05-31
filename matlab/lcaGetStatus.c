@@ -1,4 +1,4 @@
-/* $Id: lcaGetStatus.c,v 1.4 2006/04/12 02:14:19 strauman Exp $ */
+/* $Id: lcaGetStatus.c,v 1.5 2007/05/23 02:50:21 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetStatus */
 
@@ -26,19 +26,15 @@ LcaError	theErr;
 
 	lcaErrorInit(&theErr);
 
-	if ( nlhs == 0 )
-		nlhs = 1;
-
-	for ( i=0; i<nlhs; i++ )
-		plhs[i] = 0;
+	LHSCHECK(nlhs, plhs);
 
 	if ( nlhs > NumberOf(args) ) {
-		lcaRecordError(EZCA_INVALIDARG, "Too many output args", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Too many output args");
 		goto cleanup;
 	}
 
 	if ( nrhs != 1 ) {
-		lcaRecordError(EZCA_INVALIDARG, "Expected 1 rhs argument", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected 1 rhs argument");
 		goto cleanup;
 	}
 
@@ -50,7 +46,7 @@ LcaError	theErr;
 	 */
 	if ( !(res[0]=mxCreateNumericMatrix(pvs.m, 1, mxINT16_CLASS, mxREAL)) ||
 		 !(res[1]=mxCreateNumericMatrix(pvs.m, 1, mxINT16_CLASS, mxREAL)) ) {
-		lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+		lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 		goto cleanup;
 	}
 
@@ -74,7 +70,7 @@ LcaError	theErr;
 	if ( nlhs > 2 ) {
 		/* give them the time stamps */
 		if ( !(plhs[2] = mxCreateDoubleMatrix(pvs.m,1,mxCOMPLEX)) ) {
-			lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+			lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 			goto cleanup;
 		}
 		multi_ezca_ts_cvt( pvs.m, ts, mxGetPr(plhs[2]), mxGetPi(plhs[2]) );

@@ -1,4 +1,4 @@
-/* $Id: lcaGetNelem.c,v 1.5 2006/04/12 02:14:19 strauman Exp $ */
+/* $Id: lcaGetNelem.c,v 1.6 2007/05/23 02:50:21 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetNelem */
 
@@ -21,25 +21,23 @@ LcaError theErr;
 
 	lcaErrorInit(&theErr);
 
-	if ( 0 == nlhs )
-		nlhs = 1;
+	LHSCHECK(nlhs, plhs);
 
 	if ( 1 < nlhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Need one output arg", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Need one output arg");
 		goto cleanup;
 	}
 
 	if ( 1 != nrhs ) {
-		lcaRecordError(EZCA_INVALIDARG, "Expected one rhs argument", &theErr);
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected one rhs argument");
 		goto cleanup;
 	}
-
 
 	if ( buildPVs(prhs[0],&pvs, &theErr) )
 		goto cleanup;
 
 	if ( ! (plhs[0] = mxCreateNumericMatrix( pvs.m, 1, mxINT32_CLASS, mxREAL )) ) {
-		lcaRecordError(EZCA_FAILEDMALLOC, "Not enough memory", &theErr);
+		lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 		goto cleanup;
 	}
 

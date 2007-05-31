@@ -1,4 +1,4 @@
-/* $Id: lcaSetSeverityWarnLevel.c,v 1.3 2004/02/12 00:24:51 till Exp $ */
+/* $Id: lcaSetSeverityWarnLevel.c,v 1.4 2007/05/23 02:50:22 strauman Exp $ */
 
 /* matlab wrapper for ezcaSetSeverityWarnLevel */
 
@@ -14,21 +14,30 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	buildPVs(0,0,0); /* enforce initialization of mglue library */
+LcaError theErr;
+	
+	lcaErrorInit(&theErr);
+
+	LHSCHECK(nlhs, plhs);
 
 	if ( 1 < nlhs ) {
-		MEXERRPRINTF("Need one output arg");
-		return;
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Need one output arg");
+		goto cleanup;
 	}
 
 	if ( 1 != nrhs ) {
-		MEXERRPRINTF("Expected one rhs argument");
-		return;
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Expected one rhs argument");
+		goto cleanup;
 	}
 
 	if ( !mxIsNumeric(prhs[0]) || 1 != mxGetM(prhs[0]) || 1 != mxGetN(prhs[0]) ) {
-		MEXERRPRINTF("Need a single numeric argument");
-		return;
+		lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Need a single numeric argument");
+		goto cleanup;
 	}
 	ezcaSetSeverityWarnLevel((int)mxGetScalar(prhs[0]));
+
+	nlhs = 0;
+
+cleanup:
+	ERR_CHECK(nlhs, plhs, &theErr);
 }

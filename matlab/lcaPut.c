@@ -1,4 +1,4 @@
-/* $Id: lcaPut.c,v 1.7 2004/06/23 01:15:55 till Exp $ */
+/* $Id: lcaPut.c,v 1.8 2007/05/23 02:50:22 strauman Exp $ */
 
 /* matlab wrapper for ezcaPut */
 
@@ -13,6 +13,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 LcaError theErr;
 
 	lcaErrorInit(&theErr);
+
+	LHSCHECK(nlhs, plhs);
 
 	nlhs = theLcaPutMexFunction(nlhs,plhs,nrhs,prhs,1,&theErr);
 	ERR_CHECK(nlhs, plhs, &theErr);
