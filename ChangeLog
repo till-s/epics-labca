@@ -1,13 +1,18 @@
 Changes since labca_2_1_beta (T.S):
+        2007/6/1 (TS):
+        - Some changes to CONFIG/RELEASE/RULES for automatically finding the
+          correct mex-file extension. Also, EPICS_HOST_ARCH-specific settings
+          for the EPICS_BASE, MATLABDIR + SCILABDIR variables were implemented.
+          (Backport from head revision).
 	2007/6/1 (TS):
 	- braindamaged win$$ doesn't implement c99 types -- use epicsTypes.h
 	  instead.
-    2007/5/9 (TS):
+	2007/5/9 (TS):
 	- use c99 types int8_t, int16_t, int32_t rather than char, short, int.
 	  (multiEzca.c; see also change made 2006/9/1).
 	2007/5/8 (TS):
 	- lcaPutNoWait() would not flush out commands (thanks to Greg Portman
-      for reporting).
+	  for reporting).
 	2007/4/11 (TS):
 	- scilab got stuck when initializing labca in non-windowing mode (-nw).
 	  This was because we still checked the X loop in ctrlC-polled.c.
@@ -20,7 +25,7 @@ Changes since labca_2_1_beta (T.S):
 	  and which skips labca initialization if this is the case.
 	2006/12/19 (TS):
 	- mexLock() glue and CA libraries so that EPICS is not shut down
-      as a result of matlab 'clear' operations [epics shutdown -> exit()].
+	  as a result of matlab 'clear' operations [epics shutdown -> exit()].
 	2006/9/1 (TS):
 	- ezcaLong is really 32bit, i.e., I fixed multiEzca.c to use 'int'
 	  instead of 'long' which is correct on 32bit and 64bit platforms.
