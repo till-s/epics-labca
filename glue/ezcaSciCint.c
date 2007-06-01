@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.21 2007/05/23 02:50:15 strauman Exp $ */
+/* $Id: ezcaSciCint.c,v 1.22 2007-05-24 19:35:21 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -430,13 +430,24 @@ int m=1,i;
 static int intsezcaSetRetryCount(char *fname)
 {
 int m,n,i;
+LcaError theErr;
+
+	lcaErrorInit(&theErr);
 
 	CheckRhs(1,1);
 	CheckLhs(1,1);
 	GetRhsVar(1,"i",&m,&n,&i);
 	CheckScalar(1,m,n);
+
+	if ( (int)*istk(i) < 1 ) {
+		lcaSetError(&theErr, EZCA_INVALIDARG, "lcaSetRetryCount(): arg >= 1 expected");
+		goto cleanup;
+	}
 	ezcaSetRetryCount(*istk(i));
+
+cleanup:
 	LhsVar(1)=0;
+	LCA_RAISE_ERROR(&theErr);
 	return 0;
 }
 
@@ -452,15 +463,27 @@ int m=1,i;
 	return 0;
 }
 
-
 static int intsezcaSetTimeout(char *fname)
 {
 int m,n,i;
+LcaError theErr;
+float timeout;
+
+	lcaErrorInit(&theErr);
 	CheckRhs(1,1);
 	CheckLhs(1,1);
 	GetRhsVar(1,"r",&m,&n,&i);
 	CheckScalar(1,m,n);
-	ezcaSetTimeout(*sstk(i));
+	timeout = *sstk(i);
+
+	if ( timeout < 0.001 ) {
+		lcaSetError(&theErr, EZCA_INVALIDARG, "Timeout arg must be >= 0.001");
+		goto cleanup;
+	}
+	ezcaSetTimeout(timeout);
+
+cleanup:
+	LCA_RAISE_ERROR(&theErr);
 	LhsVar(1)=0;
 	return 0;
 }
@@ -503,7 +526,7 @@ LcaError *ple = lcaGetLastError();
 	CreateVar(1,"i",&m,&ntmp,&i);
 
 	if ( sizeof(*istk(i)) != sizeof(*src) ) {
-		fprintf(stderr,"FATAL ERROR -- type size mismatch: %s - %i",__FILE__, __LINE__);
+		mexPrintf("FATAL ERROR -- type size mismatch: %s - %i",__FILE__, __LINE__);
 	}
 	memcpy(istk(i), src, m*sizeof(*istk(i)));
 
