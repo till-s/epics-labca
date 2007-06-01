@@ -1,5 +1,9 @@
 Changes since labca_2
 	2007/6/1  (TS):
+	- Some changes to CONFIG/RELEASE/RULES for automatically finding the
+	  correct mex-file extension. Also, EPICS_HOST_ARCH-specific settings
+	  for the EPICS_BASE, MATLABDIR + SCILABDIR variables were implemented.
+	2007/6/1  (TS):
 	- stupid win32 doesn't implement c99 types :-o
 	  Resort to   'epicsTypes.h'...
 	2007/5/23 (TS):
