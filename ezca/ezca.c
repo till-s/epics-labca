@@ -5094,8 +5094,8 @@ int i;
     /* Default Values for User Configurable Global Parameters */
     AutoErrorMessage = TRUE;
     InGroup = FALSE;
-    TimeoutSeconds = (float)0.05;
-    SavedRetryCount = RetryCount = 599;
+    TimeoutSeconds = (float)0.2;
+    SavedRetryCount = RetryCount = 75;
 
     Debug = FALSE;
     Trace = FALSE;
