@@ -57,23 +57,30 @@ PROD_SRCS += ecget.c
 USR_CPPFLAGS += -DWITH_ECDRGET
 endif
 
+# for win32 they don't define LOADABLE_SHRLIBNAME :-(
+ifeq ($(OS_CLASS),WIN32)
+LOADABLE_PREFIX=
+else
+LOADABLE_PREFIX=LOADABLE_
+endif
+
 # on generic system
 ifeq ($(MAKEFOR),MATLAB)
 USR_CPPFLAGS += -DMATLAB_APP
 USR_INCLUDES += -I$(MATLABDIR)/extern/include
 LIB_SRCS += mglue.c
-LOADABLE_LIBRARY_HOST := mezcaglue
+$(LOADABLE_PREFIX)LIBRARY_HOST := mezcaglue
 #SCRIPTS+=mkmezca.m
 else
 USR_CPPFLAGS+=-DSCILAB_APP
 USR_INCLUDES += -I$(SCILABDIR)/routines
 LIB_SRCS+= ezcaSciCint.c
-LOADABLE_LIBRARY_HOST := sezcaglue
+$(LOADABLE_PREFIX)LIBRARY_HOST := sezcaglue
 SCRIPTS+=labca.sce
 endif
 
 gnelm_SRCS = gnelm.c
-gnelm_LIBS = $(LOADABLE_LIBRARY_HOST)
+gnelm_LIBS = $($(LOADABLE_PREFIX)LIBRARY_HOST)
 gnelm_LIBS += $(LIB_LIBS)
 gnelm_LIBS += ca Com
 
@@ -134,14 +141,16 @@ endif
 
 include $(TOP)/configure/RULES
 
-$(SHRLIBNAME): ../$(LOADABLE_LIBRARY_HOST).def
+LOADABLE_SHRLIB_VERSION=0
+
+$($(LOADABLE_PREFIX)SHRLIBNAME): ../$($(LOADABLE_PREFIX)LIBRARY_HOST).def
 
 mkmezca.m: ../mkmezca.m.tmpl
 	sed -e 's/%%TARCH%%/$(T_A)/g' -e 's/%%ARCH%%/$(OS_CLASS)/g' -e 's$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g' < $^ >$@
 
 %.sce: ../%.sce.in
 	$(RM) $@
-	sed -e 's%THELIB%$(LIBSUB)/$(T_A)/$(SHRLIBNAME)%g' -e 's/THEFILE/$@/g' <$^ >$@
+	sed -e 's%THELIB%$(LIBSUB)/$(T_A)/$($(LOADABLE_PREFIX)SHRLIBNAME)%g' -e 's/THEFILE/$@/g' <$^ >$@
 
 ../%.def: ../%.def.in
 	$(CPP) $(CPPFLAGS) -I$(SCILABDIR)/routines $< | sed -n -e '/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p' > $@
@@ -151,3 +160,5 @@ PRODNAME_LINKER=$(MATLABDIR)/bin/$(MEX) -f $(MATLABDIR)/bin/engopts.sh $(TARGET_
 endif
 
 #	EOF Makefile.Host
+check_name:
+	echo $($(LOADABLE_PREFIX)SHRLIBNAME)
