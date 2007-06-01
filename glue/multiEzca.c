@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.31 2007/05/24 19:35:21 till Exp $ */
+/* $Id: multiEzca.c,v 1.32 2007/05/26 02:17:35 guest Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -13,10 +13,18 @@
 #include <assert.h>
 #include <math.h>
 #include <time.h>
+#ifdef TESTING
 #include <inttypes.h>
+#else
+/* Stupid m$$ has no stdint.h/inttypes.h C99 headers */
+#include <epicsTypes.h>
+#endif
 
 #if defined(WIN32) || defined(_WIN32)
 #include <float.h>
+#include <epicsStdio.h>
+#define snprintf  epicsSnprintf
+#define vsnprintf epicsVsnprintf
 #define isnan _isnan
 #else
 #include <unistd.h> /* _POSIX_TIMERS */
@@ -184,9 +192,9 @@ unsigned idx,i;
 	}
 	for (i=0; i<nelms; i++)
 	switch (type) {
-		case ezcaByte:   ( (int8_t*)bufp)[i] = tstSht[3*idx+i]; break;
-		case ezcaShort:  ((int16_t*)bufp)[i] = tstSht[3*idx+i]; break;
-		case ezcaLong:   ((int32_t*)bufp)[i] = tstLng[3*idx+i]; break;
+		case ezcaByte:   ( (epicsInt8*)bufp)[i] = tstSht[3*idx+i]; break;
+		case ezcaShort:  ((epicsInt16*)bufp)[i] = tstSht[3*idx+i]; break;
+		case ezcaLong:   ((epicsInt32*)bufp)[i] = tstLng[3*idx+i]; break;
 		case ezcaFloat:  (  (float*)bufp)[i] = tstFlt[3*idx+i]; break;
 		case ezcaDouble: ( (double*)bufp)[i] = tstDbl[3*idx+i]; break;
 		case ezcaString: strcpy(&((dbr_string_t*)bufp)[i][0], tstChr[3*idx+i] ? tstChr[3*idx+i]:""); break;
@@ -347,9 +355,9 @@ ezErr1(int rc, char *msg, LcaError *pe)
 static int typesize(char type)
 {
 	switch (type) {
-		case ezcaByte:		return sizeof(int8_t);
-		case ezcaShort:		return sizeof(int16_t);
-		case ezcaLong:		return sizeof(int32_t);
+		case ezcaByte:		return sizeof(epicsInt8);
+		case ezcaShort:		return sizeof(epicsInt16);
+		case ezcaLong:		return sizeof(epicsInt32);
 		case ezcaFloat:		return sizeof(float);
 		case ezcaDouble:	return sizeof(double);
 		case ezcaString:	return sizeof(dbr_string_t);
@@ -508,9 +516,9 @@ register char *bufp;
 	for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) {
 	int j = 0;
 	switch ( types[i] ) {
-		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), int8_t, *cpt=(int8_t)*fpt ); break;
-		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), int16_t, *cpt=(int16_t)*fpt ); break;
-		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), int32_t, *cpt=(int32_t)*fpt ); break;
+		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), epicsInt8, *cpt=(epicsInt8)*fpt ); break;
+		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), epicsInt16, *cpt=(epicsInt16)*fpt ); break;
+		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), epicsInt32, *cpt=(epicsInt32)*fpt ); break;
 		case ezcaFloat:   CVTVEC( double, isnan(*(double*)fpt), float,  *cpt=(float)*fpt ); break;
 		case ezcaDouble:  CVTVEC( double, isnan(*(double*)fpt), double, *cpt=*fpt ); break;
 		case ezcaString:  CVTVEC( char*,
@@ -674,21 +682,21 @@ register char *bufp;
 	switch ( types[i] ) {
 			case ezcaByte:   CVTVEC( double,
 										(0),
-										int8_t,
+										epicsInt8,
 										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
 							  break;
 
 			case ezcaShort:   CVTVEC( double,
 										(0),
-										int16_t,
+										epicsInt16,
 										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
 							  break;
 
 			case ezcaLong :   CVTVEC( double,
 										(0),
-										int32_t,
+										epicsInt32,
 										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
 							  break;
