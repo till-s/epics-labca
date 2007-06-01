@@ -15,9 +15,6 @@ CMPLR = STRICT
 # install header file
 #INC = ezca.h
 
-# build share library
-SHARED_LIBRARIES = YES
-
 #
 #	Contents of library: generic, special and for all systems
 #
