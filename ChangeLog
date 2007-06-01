@@ -1,4 +1,7 @@
 Changes since labca_2_1_beta (T.S):
+	2007/6/1 (TS):
+	- braindamaged win$$ doesn't implement c99 types -- use epicsTypes.h
+	  instead.
     2007/5/9 (TS):
 	- use c99 types int8_t, int16_t, int32_t rather than char, short, int.
 	  (multiEzca.c; see also change made 2006/9/1).
