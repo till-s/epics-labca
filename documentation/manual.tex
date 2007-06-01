@@ -57,7 +57,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.34 2007/06/01 04:46:40 guest Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.35 2007/06/01 04:56:09 guest Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -952,13 +952,15 @@ by hitting ``Ctrl-C''.
 Note that \sca{} polls for an ``abort condition'' with a granularity of the
 \hyperref[ref]{\ezca{} timeout parameter}{timeout parameter (see }{ )}{timeout}.
 Unfortunately, neither \matlab{} nor \scilab{} feature a documented API for handling
-Ctrl-C events and therefore Ctrl-C support -- the implementation using undocumented
-features of \sca{} and \matlab -- must be considered ``experimental''
+Ctrl-C events and therefore Ctrl-C support --- the implementation using undocumented
+features of \scilab{} and \matlab{} --- must be considered ``experimental''
 i.e., it might cause problems on certain operating system and/or \scilab/\matlab{}
 versions.
 
 \item[\tt INSTALL\_LOCATION:] Set this variable to install in a location
-different from the \sca{} top directory. {\em NOTE: This method has been
+different from the \sca{} top directory.
+
+{\em NOTE: This method has been
 deprecated. Use \com{INSTALL\_LOCATION\_APP} in the \com{RELEASE} file
 instead.}
 \end{description}
@@ -985,6 +987,8 @@ directory where the `\com{routines}' subdirectory can be found (e.g.
 \item[\tt MATLIB\_SUBDIR=<pathelem>] \com{<pathelem>} chosing the subdirectory
 corresponding to the C-compiler that is used for the build. (e.g. 
 \com{win32/microsoft/msvc60} for the microsoft visual c++ 6.0 compiler).
+The \com{libmex.lib} and \com{libmx.lib} files for the applicable compiler
+are found there.
 \end{description}
 \end{description}
 Any irrelevant variables (such as \com{MATLABDIR} if \com{MAKEFOR=SCILAB})
@@ -999,7 +1003,7 @@ names, however.
 
 \subsubsection{Building \sca}
 After setting the
-`\com{EPICS\_HOST\_ARCH}' environment variable, \ita{GNU} make is invoked in the \sca{} top 
+`\com{EPICS\_HOST\_ARCH}' environment variable, \ita{GNU} make is invoked from the \sca{} top 
 directory. Note that the compiler toolchain must be found in the system
 \com{PATH}\footnote{
 Under \windoze, the \ita{msvc} compiler features a \com{.BAT} file for
