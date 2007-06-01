@@ -62,18 +62,18 @@ ifeq ($(MAKEFOR),MATLAB)
 USR_CPPFLAGS += -DMATLAB_APP
 USR_INCLUDES += -I$(MATLABDIR)/extern/include
 LIB_SRCS += mglue.c
-LIBRARY_HOST := mezcaglue
+LOADABLE_LIBRARY_HOST := mezcaglue
 #SCRIPTS+=mkmezca.m
 else
 USR_CPPFLAGS+=-DSCILAB_APP
 USR_INCLUDES += -I$(SCILABDIR)/routines
 LIB_SRCS+= ezcaSciCint.c
-LIBRARY_HOST := sezcaglue
+LOADABLE_LIBRARY_HOST := sezcaglue
 SCRIPTS+=labca.sce
 endif
 
 gnelm_SRCS = gnelm.c
-gnelm_LIBS = $(LIBRARY_HOST)
+gnelm_LIBS = $(LOADABLE_LIBRARY_HOST)
 gnelm_LIBS += $(LIB_LIBS)
 gnelm_LIBS += ca Com
 
@@ -134,7 +134,7 @@ endif
 
 include $(TOP)/configure/RULES
 
-$(SHRLIBNAME): ../$(LIBRARY_HOST).def
+$(SHRLIBNAME): ../$(LOADABLE_LIBRARY_HOST).def
 
 mkmezca.m: ../mkmezca.m.tmpl
 	sed -e 's/%%TARCH%%/$(T_A)/g' -e 's/%%ARCH%%/$(OS_CLASS)/g' -e 's$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g' < $^ >$@
