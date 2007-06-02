@@ -159,6 +159,20 @@ ifneq ($(OS_CLASS),WIN32)
 PRODNAME_LINKER=$(MATLABDIR)/bin/$(MEX) -f $(MATLABDIR)/bin/engopts.sh $(TARGET_LDFLAGS) $(USR_LDFLAGS) $(OP_SYS_LDFLAGS) -output $@
 endif
 
+ifeq ($(MAKEFOR),MATLAB)
+buildInstall:lcaTest.m
+endif
+
+#convert scilab test script to matlab
+lcaTest.m:	lcaTest.sce
+	@if ! sed -e 's$$^//$$%$$' -e 's/\<sleep\>/pause/g' $< > $@ ;  then \
+		echo "*** WARNING: Unable to create test script for MATLAB" ;  \
+		echo "%*** WARNING: Unable to create test script for MATLAB" > $@ ;  \
+	fi
+
+realclean::
+	$(RM) lcaTest.m
+
 #	EOF Makefile.Host
 check_name:
 	echo $($(LOADABLE_PREFIX)SHRLIBNAME)
