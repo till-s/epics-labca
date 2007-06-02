@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.33 2007/06/01 21:36:51 guest Exp $ */
+/* $Id: multiEzca.c,v 1.34 2007/06/02 18:15:14 guest Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -516,9 +516,9 @@ register char *bufp;
 	for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) {
 	int j = 0;
 	switch ( types[i] ) {
-		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), epicsInt8,  *cpt=(epicsInt32)*fpt ); mexPrintf("%lg, 0x%02x\n", *(double*)fbuf, *(int8_t*)bufp); break;
-		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), epicsInt16, *cpt=(epicsInt32)*fpt ); mexPrintf("%lg, 0x%04x\n", *(double*)fbuf, *(int16_t*)bufp); break;
-		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), epicsInt32, *cpt=(epicsInt32)*fpt ); mexPrintf("%lg, 0x%08x\n", *(double*)fbuf, *(int32_t*)bufp); break;
+		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), epicsInt8,  *cpt=(epicsInt32)*fpt );  break;
+		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), epicsInt16, *cpt=(epicsInt32)*fpt );  break;
+		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), epicsInt32, *cpt=(epicsInt32)*fpt );  break;
 		case ezcaFloat:   CVTVEC( double, isnan(*(double*)fpt), float,  *cpt=*fpt ); break;
 		case ezcaDouble:  CVTVEC( double, isnan(*(double*)fpt), double, *cpt=*fpt ); break;
 		case ezcaString:  CVTVEC( char*,
@@ -706,6 +706,7 @@ register char *bufp;
 										float,
 										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
+							  mexPrintf("0x%08x\n",*(epicsInt32*)bufp);
 							  break;
 
 			case ezcaDouble:  CVTVEC( double,
