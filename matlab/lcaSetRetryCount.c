@@ -1,4 +1,4 @@
-/* $Id: lcaSetRetryCount.c,v 1.5 2007-05-31 21:16:45 till Exp $ */
+/* $Id: lcaSetRetryCount.c,v 1.6 2007/06/01 23:52:48 till Exp $ */
 
 /* matlab wrapper for ezcaSetRetryCount */
 
@@ -42,7 +42,7 @@ int      count;
 		goto cleanup;
 	}
 
-	ezcaSetRetryCount((int));
+	ezcaSetRetryCount(count);
 
 	nlhs = 0;
 
