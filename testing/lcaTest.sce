@@ -82,7 +82,7 @@ lcaPut( 'lca:scl0', 432 )
 sleep(1000*3)
 lcaPut( 'lca:scl0', 234 )
 [got, ts1] = lcaGet( 'lca:scl0' );
-got = real(ts1-ts);
+got = real(ts1-ts)
 if got < 2.5 | got > 3.5
 	error('TIMESTAMP TEST FAILED')
 end
@@ -169,7 +169,8 @@ disp('CHECKING TYPE CONVERSIONS FOR lcaGet')
 
 // Verify that we can read typed values
 lcaPut('lca:scl0', 2^32+1234)
-// ??? conversion happens on IOC; seems we get -2^31
+// ??? conversion happens on IOC and is compiler-dependent :-(;
+// seems we get -2^31
 if ( lcaGet('lca:scl0',0,'l') ~= -2^31 )
 	error('type LONG read overflow check failed')
 end
@@ -178,17 +179,22 @@ lcaPut('lca:scl0',2^16+1234)
 if ( lcaGet('lca:scl0',0,'l') ~= 2^16+1234 )
 	error('type LONG read check failed')
 end
-// ??? conversion happens on IOC; seems we get -2^15
-if ( lcaGet('lca:scl0',0,'s') ~= -2^15 )
+// ??? conversion happens on IOC and is compiler-dependent :-(;
+// some (same EPICS versions) seem to saturate, others
+// truncate the bits...
+longscl = lcaGet('lca:scl0',0,'s'); 
+if (  longscl ~= -2^15 & longscl ~= 1234 )
 	error('type SHORT read overflow check failed')
 end
 lcaPut('lca:scl0',1234)
 if ( lcaGet('lca:scl0',0,'s') ~= 1234 )
 	error('type SHORT read check failed')
 end
-// ??? conversion happens on IOC; bytes don't seem to
-// saturate ???
-if ( lcaGet('lca:scl0',0,'b') ~= -46 )
+// ??? conversion happens on IOC and is compiler-dependent :-(;
+// some (same EPICS versions) seem to saturate, others
+// truncate the bits...
+longscl = lcaGet('lca:scl0',0,'b'); 
+if ( longscl ~= -46 )
 	error('type BYTE read overflow check failed')
 end
 lcaPut('lca:scl0',123)
