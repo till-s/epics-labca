@@ -4454,12 +4454,18 @@ int rc;
 						exit(1);
 					}
 					mp->waiter   = wp;
+#ifdef DEBUG
 					printf("TSILL issueing wait\n");
+#endif
 					issue_wait(wp);
+#ifdef DEBUG
 					printf("DONE\n");
+#endif
 					mp->waiter   = (struct work *)NULL;
 				} else {
+#ifdef DEBUG
 				printf("TSILL no need to wait\n");
+#endif
 				}
 			}
 			else
@@ -7085,7 +7091,9 @@ EZCA_LOCK();
 		printf("my_get_callback() setting reported\n");
 
 	    wp->reported = TRUE;
+#ifdef DEBUG
 		printf("TSILL my_get_callback POST (%i)\n", ezcaOutstanding);
+#endif
 		POST_DONE();
 	}
 	else
@@ -7280,7 +7288,9 @@ EZCA_LOCK();
 				}
 				mp->waiter->reported = TRUE;
 				mp->waiter->pval     = NULL;
+#ifdef DEBUG
 				printf("TSILL my_mon_callback POST (%i)\n", ezcaOutstanding);
+#endif
 				POST_DONE();
 			}
 			mp->waiter = (struct work *)NULL;
@@ -7365,7 +7375,9 @@ EZCA_LOCK();
 	if (usable == wp->trashme)
 	{
 	    wp->reported = TRUE;
+#ifdef DEBUG
 		printf("TSILL my_put_callback POST (%i)\n", ezcaOutstanding);
+#endif
 		POST_DONE();
 
 	    if (Trace || Debug)
