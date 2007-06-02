@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.34 2007/06/02 18:15:14 guest Exp $ */
+/* $Id: multiEzca.c,v 1.35 2007/06/02 20:02:49 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -685,6 +685,7 @@ register char *bufp;
 										epicsInt8,
 										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
+mexPrintf("0x%x\n",*(epicsInt8*)cbuf);
 							  break;
 
 			case ezcaShort:   CVTVEC( double,
@@ -692,6 +693,7 @@ register char *bufp;
 										epicsInt16,
 										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
+mexPrintf("0x%x\n",*(epicsInt16*)cbuf);
 							  break;
 
 			case ezcaLong :   CVTVEC( double,
@@ -699,6 +701,7 @@ register char *bufp;
 										epicsInt32,
 										*fpt= j>=dims[i] ? NAN : *cpt
 							  );
+mexPrintf("0x%x\n",*(epicsInt32*)cbuf);
 							  break;
 
 			case ezcaFloat:   CVTVEC( double,

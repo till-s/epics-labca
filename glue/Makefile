@@ -160,11 +160,11 @@ PRODNAME_LINKER=$(MATLABDIR)/bin/$(MEX) -f $(MATLABDIR)/bin/engopts.sh $(TARGET_
 endif
 
 ifeq ($(MAKEFOR),MATLAB)
-buildInstall:lcaTest.m
+buildInstall:../lcaTest.m
 endif
 
 #convert scilab test script to matlab
-lcaTest.m:	lcaTest.sce
+../lcaTest.m:	../lcaTest.sce
 	@if ! sed -e 's$$^//$$%$$' -e 's/\<sleep(1000[*]/pause(/g' $< > $@ ;  then \
 		echo "*** WARNING: Unable to create test script for MATLAB" ;  \
 		echo "%*** WARNING: Unable to create test script for MATLAB" > $@ ;  \
