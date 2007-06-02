@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.19 2007/05/23 02:50:15 strauman Exp $ */
+/* $Id: mglue.c,v 1.20 2007-05-31 21:12:27 till Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -173,7 +173,7 @@ char	type = ezcaNative;
 mxArray *dummy = 0;
 	
 #ifdef LCAPUT_RETURNS_VALUE
-	if ( nlhs == 0 )
+	if ( nlhs <= 0 )
 		nlhs = 1;
 
 	if ( nlhs > 1 ) {
@@ -181,11 +181,10 @@ mxArray *dummy = 0;
 		goto cleanup;
 	}
 #else
-	if ( nlhs ) {
+	if ( nlhs > 0 ) {
 		lcaSetError(pe, EZCA_INVALIDARG, "Too many output args");
 		goto cleanup;
 	}
-	nlhs = -1;
 #endif
 
 	if ( nrhs < 2 || nrhs > 3 ) {

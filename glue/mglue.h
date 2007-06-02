@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.17 2007-05-31 21:12:27 till Exp $ */
+/* $Id: mglue.h,v 1.18 2007-06-01 06:56:42 strauman Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -60,7 +60,7 @@ flagError(int nlhs, mxArray *plhs[]);
 	do { \
 		int xxx; \
 		if ( nlhs < 1 ) { \
-			mexErrMsgTxt("LABCA INTERNAL ERROR (nlhs < 1)\n"); \
+			nlhs = -1; \
 		} \
 		for ( xxx = 0; xxx < nlhs; xxx++ ) { \
 			plhs[xxx] = 0; \
