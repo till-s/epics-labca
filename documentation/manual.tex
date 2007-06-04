@@ -57,7 +57,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.35 2007/06/01 04:56:09 guest Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.36 2007-06-01 19:33:44 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -505,6 +505,12 @@ simply reestablishes a connection (but no monitors).
 (\ita{optional argument}) Maximum number of elements
 (per PV) to monitor/retrieve. If set to 0 (default), all elements are fetched.
 See \hyperref[ref]{here}{(}{)}{nmaxarg} for more information.
+
+Note that a subsequent \comref{lcaGet}{lcaget} must specify a \com{nmax}
+argument equal or less than the number given to \com{lcaSetMonitor} ---
+otherwise the \com{lcaGet} operation results in fetching a new
+set of data from the server because the \com{lcaGet} request cannot
+be satisfied using the copy locally cached by the monitor-thread.
 \item[type]
 (\ita{optional argument}) A string specifying the
 data type to be used for the channel access data transfer. The
