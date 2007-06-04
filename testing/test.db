@@ -25,3 +25,5 @@ record(ai,      "lca:scl6") { }
 record(ai,      "lca:scl7") { }
 record(ai,      "lca:scl8") { }
 record(ai,      "lca:scl9") { }
+
+record(ao,      "lca:out")  { }
