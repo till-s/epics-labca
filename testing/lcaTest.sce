@@ -1,6 +1,20 @@
+// Reset severity warn level
+lcaSetSeverityWarnLevel(3)
+lcaSetSeverityWarnLevel(13)
+
+// Test basic error handling
+disp('TESTING basic error throwing')
+try
+	lcaSetTimeout()
+	error('basic error throwing test FAILED')
+catch
+// just continue
+end
+disp('<<<OK')
+
 // Test timeout and retry count
 
-if ( 0 )
+if (0)
 try
 
 // argument check
@@ -26,13 +40,13 @@ end
 lcaSetTimeout(0.5)
 
 if ( lcaGetTimeout() ~= 0.5 )
-	error('Readback of timeout failed')
+	error('Readback of timeout FAILED')
 end
 
 lcaSetRetryCount(4)
 
 if ( lcaGetRetryCount() ~= 4 )
-	error('Readback of retry count failed')
+	error('Readback of retry count FAILED')
 end
 
 // estimate timeout
@@ -76,6 +90,7 @@ wavs = {...
 
 try
 
+if (0)
 disp('CHECKING TIMESTAMPS')
 lcaPut( 'lca:scl0', 432 )
 [got, ts]  = lcaGet( 'lca:scl0' );
@@ -91,7 +106,7 @@ disp('<<<OK')
 lcaPut( wavs, nums );
 
 [got, ts] = lcaGet(wavs);
-if ( norm(got - nums) ~= 0 )
+if ( find(got ~= nums) )
 	error('lcaGet(wavs) ~= nums')
 end
 
@@ -107,12 +122,13 @@ sleep(1000*3)
 [got, ts1] = lcaGet(wavs(1),1);
 
 if ( prod(size(got)) ~= 1 )
-	error('Asking for 1 waveform element failed')
+	error('Asking for 1 waveform element FAILED')
 end
 if ( real(ts1-ts(1)) > 1 ) 
 	error('lcaPutNoWait() flush check FAILED')
 end
 disp('<<<OK')
+end
 
 disp('CHECKING TYPE CONVERSIONS FOR lcaPut')
 
@@ -122,14 +138,14 @@ lcaPutNoWait(wavs,nums)
 // Verify that we can read a subarray
 got = lcaGet(wavs,4);
 
-if ( norm(got - nums(:,1:4)) ~= 0 )
-	error('Reading subarray failed')
+if ( find(got ~= nums(:,1:4)) )
+	error('Reading subarray FAILED')
 end
 
 // Verify that we can write typed values
 lcaPut('lca:scl0',2^32+1234,'d')
 if ( lcaGet('lca:scl0') ~= 2^32+1234 )
-	error('type DOUBLE readback check failed')
+	error('type DOUBLE readback check FAILED')
 end
 
 lcaPut('lca:scl0',2^32+1234,'l')
@@ -137,30 +153,30 @@ longscl = lcaGet('lca:scl0');
 // FIXME: unclear how double is converted -> long
 // some compilers produce 2^31-1 others -2^31...
 if ( longscl ~= 2^31-1 & longscl ~= -2^31 )
-	error('type LONG readback overflow check failed')
+	error('type LONG readback overflow check FAILED')
 end
 lcaPut('lca:scl0',2^16+1234,'l')
 if ( lcaGet('lca:scl0') ~= 2^16+1234 )
-	error('type LONG readback check failed')
+	error('type LONG readback check FAILED')
 end
 lcaPut('lca:scl0',2^16+1234,'s')
 if ( lcaGet('lca:scl0') ~= 1234 )
-	error('type SHORT readback overflow check failed')
+	error('type SHORT readback overflow check FAILED')
 end
 lcaPut('lca:scl0',1234,'s')
 if ( lcaGet('lca:scl0') ~= 1234 )
-	error('type SHORT readback check failed')
+	error('type SHORT readback check FAILED')
 end
 lcaPut('lca:scl0',1234,'b')
 // IOC puts CHAR as UCHAR !!!
 // (see) dbPutNotifyMapType() hence 
 // well get 210 back instead of -46
 if ( lcaGet('lca:scl0') ~= 1234-1024 )
-	error('type BYTE readback overflow check failed')
+	error('type BYTE readback overflow check FAILED')
 end
 lcaPut('lca:scl0',123,'b')
 if ( lcaGet('lca:scl0') ~= 123 )
-	error('type BYTE readback check failed')
+	error('type BYTE readback check FAILED')
 end
 
 disp('<<<OK')
@@ -172,34 +188,53 @@ lcaPut('lca:scl0', 2^32+1234)
 // ??? conversion happens on IOC and is compiler-dependent :-(;
 // seems we get -2^31
 if ( lcaGet('lca:scl0',0,'l') ~= -2^31 )
-	error('type LONG read overflow check failed')
+	error('type LONG read overflow check FAILED')
 end
 
 lcaPut('lca:scl0',2^16+1234)
 if ( lcaGet('lca:scl0',0,'l') ~= 2^16+1234 )
-	error('type LONG read check failed')
+	error('type LONG read check FAILED')
 end
 // ??? conversion happens on IOC and is compiler-dependent :-(;
 // some (same EPICS versions) seem to saturate, others
 // truncate the bits...
 longscl = lcaGet('lca:scl0',0,'s'); 
 if (  longscl ~= -2^15 & longscl ~= 1234 )
-	error('type SHORT read overflow check failed')
+	error('type SHORT read overflow check FAILED')
 end
 lcaPut('lca:scl0',1234)
 if ( lcaGet('lca:scl0',0,'s') ~= 1234 )
-	error('type SHORT read check failed')
+	error('type SHORT read check FAILED')
 end
 // ??? conversion happens on IOC and is compiler-dependent :-(;
 // some (same EPICS versions) seem to saturate, others
 // truncate the bits...
 longscl = lcaGet('lca:scl0',0,'b'); 
 if ( longscl ~= -46 )
-	error('type BYTE read overflow check failed')
+	error('type BYTE read overflow check FAILED')
 end
 lcaPut('lca:scl0',123)
 if ( lcaGet('lca:scl0',0,'b') ~= 123 )
-	error('type BYTE read check failed')
+	error('type BYTE read check FAILED')
+end
+
+// Check string/menu conversion
+if ( ~mtlb_strcmp(lcaGet('lca:scl0',0,'c'),'123') )
+	error('type STRING -> number read check FAILED')
+end
+if ( ~mtlb_strcmp(lcaGet('lca:count.SCAN'),'1 second') )
+	error('type STRING read check FAILED')
+end
+if ( lcaGet('lca:count.SCAN',0,'l') ~= 6 )
+	error('type STRING -> number (menu) read check FAILED')
+end
+lcaPut('lca:count.SCAN','Passive')
+if ( lcaGet('lca:count.SCAN',0,'l') ~= 0 )
+	error('type STRING -> number (menu) write check FAILED')
+end
+lcaPut('lca:count.SCAN',6)
+if ( ~ mtlb_strcmp(lcaGet('lca:count.SCAN'), '1 second') )
+	error('type STRING -> number (menu) write check FAILED')
 end
 
 catch
@@ -211,10 +246,184 @@ end
 disp('<<<OK')
 
 disp('CHECKING lcaGetNelem')
-if ( prod( lcaGetNelem(wavs) == 100*ones(10,1) ) ~= 1 )
+if ( find( lcaGetNelem(wavs) ~= 100*ones(10,1) ) )
 	error('lcaGetNelem FAILED')
 end
 disp('<<<OK')
 
+disp('CHECKING lcaGetControlLimits / lcaGetGraphicLimits / lcaGetPrecision')
 
+hopr =   500;
+lopr = -1500;
+drvh = 13000;
+drvl = -4321;
+
+lcaPut({'lca:out.HOPR';'lca:out.LOPR'},[hopr ; lopr])
+lcaPut({'lca:out.DRVH';'lca:out.DRVL'},[drvh ; drvl])
+lcaPut('lca:out.PREC',5)
+lcaPut('lca:out',0.12345)
+
+[ lo, hi ] = lcaGetControlLimits('lca:out');
+
+if ( lo ~= drvl | hi ~= drvh )
+	error('lcaGetControlLimits test FAILED')
+end
+
+[ lo, hi ] = lcaGetGraphicLimits('lca:out');
+
+if ( lo ~= lopr | hi ~= hopr )
+	error('lcaGetGraphicLimits test FAILED')
+end
+
+if ( lcaGetPrecision('lca:out') ~= 5 )
+	error('lcaGetPrecision test FAILED')
+end
+
+if ( ~mtlb_strcmp(lcaGet('lca:out',0,'c'),'0.12345') )
+	error('lcaGetPrecision test (string 1) FAILED')
+end
+
+lcaPut('lca:out.PREC',2)
+
+if ( ~mtlb_strcmp(lcaGet('lca:out',0,'c'),'0.12') )
+	error('lcaGetPrecision test (string 2) FAILED')
+end
+
+disp('<<<OK')
+
+disp('CHECKING lcaGetStatus and severity rejection')
+
+// argument check
+try
+  lcaGetStatus('lca:scl0');
+  sevr = lcaGetStatus('lca:scl0');
+  [ sevr, stat ]  = lcaGetStatus('lca:scl0');
+  [ sevr, stat, ts ]  = lcaGetStatus('lca:scl0');
+catch
+	error('lcaGetStatus FAILED: cannot handle all possible output args');
+end
+
+// try invalid args
+try
+	lcaGetStatus();
+	error('lcaGetStatus FAILED to reject no arg');
+catch
+// just continue
+end
+try
+	[sevr, stat, ts, got] = lcaGetStatus('lca:scl0');
+	error('lcaGetStatus FAILED to reject to many output args');
+catch
+// just continue
+end
+
+
+// scl5 is always UDF
+if ( 3 ~= lcaGetStatus('lca:scl5') )
+	error('lcaGetStatus(): expected INVALID severity')
+end
+
+[ sevr, stat ] = lcaGetStatus('lca:scl5');
+if ( sevr ~= 3 | stat ~= 17 )
+	error('lcaGetStatus(): expected INVALID severity, UDF status')
+end
+
+// suppress warnings
+lcaSetSeverityWarnLevel(4);
+// reject MINOR
+lcaSetSeverityWarnLevel(11);
+if ( ~isnan(lcaGet('lca:scl5')) )
+	error('lcaGet should return NAN for PV with INVALID severity')
+end
+
+// now check the different levels
+lcaPut('lca:scl1.LSV', 'MINOR');   lcaPut('lca:scl1.LOW',-1000);
+lcaPut('lca:scl1.HSV', 'MAJOR');   lcaPut('lca:scl1.HIGH',1000);
+lcaPut('lca:scl1.HHSV','INVALID'); lcaPut('lca:scl1.HIHI',2000);
+lcaPut('lca:scl2.LSV', 'MINOR');   lcaPut('lca:scl2.LOW',+1000);
+lcaPut('lca:scl2.HSV', 'MAJOR');   lcaPut('lca:scl2.HIGH',2000);
+lcaPut('lca:scl2.HHSV','INVALID'); lcaPut('lca:scl2.HIHI',3000);
+scls = {'lca:scl1';'lca:scl2'};
+lcaPut(scls, {0;0});
+[sevr, stat, ts ] = lcaGetStatus(scls);
+// MINOR
+if ( find( sevr ~= [ 0; 1] ) | find ( stat ~= [ 0; 6 ] ) )
+	error('lcaGetStatus: (testing MINOR) unexpected STAT / SEVR')
+end
+[got, ts1] = lcaGet(scls);
+if ( find( ts ~= ts1 ) )
+	error('lcaGetStatus: timestamp inconsistency')
+end
+if ( find( isnan(got) ~= isnan([ 0; %nan]) ) )
+	error('lcaGet rejection for MINOR FAILED')
+end
+lcaSetSeverityWarnLevel(12);
+if ( find( isnan(lcaGet(scls)) ~= isnan([0;0])) )
+	error('lcaGet rejection for MINOR FAILED to accept')
+end
+
+// MAJOR
+lcaPut(scls,{1500;1500});
+
+[sevr, stat] = lcaGetStatus(scls);
+if ( find( sevr ~= [ 2; 0] ) | find ( stat ~= [ 4; 0 ] ) )
+	error('lcaGetStatus: (testing MAJOR) unexpected STAT / SEVR')
+end
+if ( find( isnan(lcaGet(scls)) ~= isnan( [ %nan; 0] )) )
+	error('lcaGet rejection for MAJOR FAILED')
+end
+lcaSetSeverityWarnLevel(13);
+if ( find( isnan(lcaGet(scls)) ~= isnan([0;0])) )
+	error('lcaGet rejection for MAJOR FAILED to accept')
+end
+
+// INVALID
+lcaPut(scls,{2500;2500});
+[sevr, stat] = lcaGetStatus(scls);
+if ( find( sevr ~= [ 3; 2] ) | find ( stat ~= [ 3; 4 ] ) )
+	error('lcaGetStatus: (testing INVALID) unexpected STAT / SEVR')
+end
+if ( find( isnan(lcaGet(scls)) ~= isnan( [ %nan; 0] )) )
+	error('lcaGet rejection for INVALID FAILED')
+end
+lcaSetSeverityWarnLevel(14);
+if ( find( isnan(lcaGet(scls)) ~= isnan([0;0])) )
+	error('lcaGet rejection for INVALID FAILED to accept')
+end
+// check call with 0 and 1 output arg
+sevr = lcaGetStatus(scls);
+lcaGetStatus(scls);
+if ( find( ans ~= sevr ) )
+	error('lcaGetStatus call with 0 and 1 output arg FAILED')
+end
+
+disp('<<<OK')
+
+disp('CHECKING lcaGetUnits')
+lcaPut('lca:scl0.EGU','ABER');
+if ( ~mtlb_strcmp(lcaGetUnits('lca:scl0'),'ABER') )
+	error('lcaGetUnits test FAILED');
+end
+disp('<<<OK')
+
+disp('CHECKING lcaSetMonitor/lcaNewMonitorWait/lcaNewMonitorValue')
+lcaSetMonitor('lca:count')
+lcaNewMonitorWait('lca:count')
+[got,ts]=lcaGet('lca:count');
+if ( lcaNewMonitorValue('lca:count') )
+	error('lcaNewMonitorValue should be 0; FAILED')
+end
+lcaNewMonitorWait('lca:count')
+if ( ~lcaNewMonitorValue('lca:count') )
+	error('lcaNewMonitorValue should be 1; FAILED')
+end
+[got1,ts1]=lcaGet('lca:count');
+if ( lcaNewMonitorValue('lca:count') )
+	error('lcaNewMonitorValue should be 0; FAILED')
+end
+if ( got1~=got+1 | abs(real(ts1-ts)-1)>0.2 )
+	error('MONITOR DIFFERENCE FAILURE')
+end
+
+disp('<<<OK')
 disp('<< ALL DONE')

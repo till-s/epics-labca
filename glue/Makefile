@@ -165,7 +165,7 @@ endif
 
 #convert scilab test script to matlab
 ../lcaTest.m:	../lcaTest.sce
-	@if ! sed -e 's$$^//$$%$$' -e 's/\<sleep(1000[*]/pause(/g' $< > $@ ;  then \
+	@if ! sed -e 's$$^//$$%$$' -e 's/\<sleep(1000[*]/pause(/g' -e's/mtlb_//g' -e"s/%nan/nan('double')/g" $< > $@ ;  then \
 		echo "*** WARNING: Unable to create test script for MATLAB" ;  \
 		echo "%*** WARNING: Unable to create test script for MATLAB" > $@ ;  \
 	fi
