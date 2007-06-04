@@ -1,3 +1,6 @@
+// Test script for labCA; load 'test.db' into a soft-IOC example app
+// and run this script from scilab/matlab...
+//
 // Reset severity warn level
 lcaSetSeverityWarnLevel(3)
 lcaSetSeverityWarnLevel(13)
@@ -14,7 +17,6 @@ disp('<<<OK')
 
 // Test timeout and retry count
 
-if (0)
 try
 
 // argument check
@@ -78,7 +80,6 @@ disp('')
 disp('')
 disp('Testing lcaGet/lcaPut/lcaPutNoWait')
 
-end
 // Test Put and Get
 // Fill a matrix with numbers 1..10000
 
@@ -90,7 +91,6 @@ wavs = {...
 
 try
 
-if (0)
 disp('CHECKING TIMESTAMPS')
 lcaPut( 'lca:scl0', 432 )
 [got, ts]  = lcaGet( 'lca:scl0' );
@@ -128,7 +128,6 @@ if ( real(ts1-ts(1)) > 1 )
 	error('lcaPutNoWait() flush check FAILED')
 end
 disp('<<<OK')
-end
 
 disp('CHECKING TYPE CONVERSIONS FOR lcaPut')
 
@@ -344,7 +343,7 @@ lcaPut('lca:scl2.LSV', 'MINOR');   lcaPut('lca:scl2.LOW',+1000);
 lcaPut('lca:scl2.HSV', 'MAJOR');   lcaPut('lca:scl2.HIGH',2000);
 lcaPut('lca:scl2.HHSV','INVALID'); lcaPut('lca:scl2.HIHI',3000);
 scls = {'lca:scl1';'lca:scl2'};
-lcaPut(scls, {0;0});
+lcaPut(scls, [0;0]);
 [sevr, stat, ts ] = lcaGetStatus(scls);
 // MINOR
 if ( find( sevr ~= [ 0; 1] ) | find ( stat ~= [ 0; 6 ] ) )
@@ -363,7 +362,7 @@ if ( find( isnan(lcaGet(scls)) ~= isnan([0;0])) )
 end
 
 // MAJOR
-lcaPut(scls,{1500;1500});
+lcaPut(scls,[1500;1500]);
 
 [sevr, stat] = lcaGetStatus(scls);
 if ( find( sevr ~= [ 2; 0] ) | find ( stat ~= [ 4; 0 ] ) )
@@ -378,7 +377,7 @@ if ( find( isnan(lcaGet(scls)) ~= isnan([0;0])) )
 end
 
 // INVALID
-lcaPut(scls,{2500;2500});
+lcaPut(scls,[2500;2500]);
 [sevr, stat] = lcaGetStatus(scls);
 if ( find( sevr ~= [ 3; 2] ) | find ( stat ~= [ 3; 4 ] ) )
 	error('lcaGetStatus: (testing INVALID) unexpected STAT / SEVR')
@@ -400,8 +399,8 @@ end
 disp('<<<OK')
 
 disp('CHECKING lcaGetUnits')
-lcaPut('lca:scl0.EGU','ABER');
-if ( ~mtlb_strcmp(lcaGetUnits('lca:scl0'),'ABER') )
+lcaPut({'lca:scl0.EGU';'lca:scl1.EGU'},{'ABER';'XX'});
+if ( find(~mtlb_strcmp(lcaGetUnits({'lca:scl0';'lca:scl1'}),{'ABER';'XX'})) )
 	error('lcaGetUnits test FAILED');
 end
 disp('<<<OK')
@@ -421,9 +420,11 @@ end
 if ( lcaNewMonitorValue('lca:count') )
 	error('lcaNewMonitorValue should be 0; FAILED')
 end
-if ( got1~=got+1 | abs(real(ts1-ts)-1)>0.2 )
+if ( got1~=got+1 )
 	error('MONITOR DIFFERENCE FAILURE')
 end
-
+if ( abs(real(ts1-ts)-1)>0.2 )
+	error('MONITOR TIMESTAMP DIFFERENCE FAILURE')
+end
 disp('<<<OK')
 disp('<< ALL DONE')
