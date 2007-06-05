@@ -1,6 +1,91 @@
-################################
-#  labca_2_1 (T.S, 2006/4/13): #
-################################
+#####################################
+#  labca_2_1 (T.S, 2007/6/1):       #
+#####################################
+
+This is a bugfix release (consult the ChangeLog file for a list
+of fixed issues).
+
+BUILD SYSTEM CHANGES:
+ - mex file name extension is now determined automatically
+   (matlab versions that have the 'mexext' script).
+ - can specify EPICS_HOST_ARCH-specific locations for MATLABDIR/SCILABDIR
+   (see configure/RELEASE for details)
+
+SOLARIS/MATLAB NOTE:
+ Solaris ships with two different C++ std libraries; 'Cstd' (older) and
+ 'stlport4' (newer, more features) which are incompatible.
+ It is essential that all combined binaries (all libraries and final executable)
+ are built against the same flavor of this run-time library.
+ Apparently, newer MATLAB versions use stlport4 whereas older ones used
+ Cstd. OTOH, the EPICS build system doesn't allow the user to pick the
+ flavor of library but the makefiles imply the use of 'Cstd' which then
+ makes the CA library incompatible with MATLAB.
+ The EPICS BASE distribution that comes with labca was patched so that
+ the user can define USE_STLPORT (to YES or NO) e.g., from
+
+   'base/configure/os/CONFIG_SITE.Common.solaris-sparc'
+
+ To find out whether your particular version of MATLAB uses Cstd or stlport4
+ the 'ldd' utility is your friend. Call (<arch> is the applicable architecture,
+ either 'sol2' or 'sol64'):
+
+   ldd <matlab_dir>/bin/<arch>/MATLAB
+
+ and scan the output for libCstd or libstlport4, respectively.
+
+ More information about this issue can be found here:
+ 
+ http://developers.sun.com/sunstudio/articles/cmp_stlport_libCstd.html
+
+VERSION INFORMATION:
+
+ The binaries in the distribution were built against the following
+ versions of EPICS BASE and matlab / scilab:
+
+ EPICS_BASE: 3.14.9
+    vanilla 3.14.9 with some modifications in the build
+    system (to remove 'rpath' linker options and make the choice of
+    solaris C++ std runtime lib configurable. Also, unused subdirs
+    in base were commented from the base/src/Makefile.)
+
+ MATLAB RELEASE
+    solaris-sparc:
+    * SunOS flora04 5.9 Generic_118558-38 sun4u sparc SUNW,Sun-Fire-V240
+    * scilab-3.1.1
+    * MATLAB; built against: Version 7.3.0.298 (R2006b)
+      tested also with:
+      BINARY INCOMPATIBLE (but should be able to rebuild)
+         - Version 7.2.0.283 (R2006a)
+
+    solaris-sparc64:
+    * SunOS flora04 5.9 Generic_118558-38 sun4u sparc SUNW,Sun-Fire-V240
+    * MATLAB; built against: Version 7.3.0.298 (R2006b)
+      tested also with:
+      BINARY INCOMPATIBLE (but should be able to rebuild)
+         - Version 7.2.0.283 (R2006a)
+
+    linux-x86:
+    * Linux lcls-prod02 2.6.9-42.0.10.ELsmp #1 SMP Fri Feb 16 17:17:21 EST 2007 i686 i686 i386 GNU/Linux
+    * scilab-4.0-b4-20060515
+	* scilab-4.1
+    * MATLAB; built against: Version 7.3.0.298 (R2006b)
+      tested also with:
+         - Version 7.4.0.336 (R2007a)
+      BINARY INCOMPATIBLE (but should be able to rebuild)
+         - Version 7.2.0.283 (R2006a)
+
+    linux-x86_64:
+    * Linux tillpc.slac.stanford.edu 2.6.9-42.0.3.ELsmp #1 SMP Mon Sep 25 17:24:31 EDT 2006 x86_64 x86_64 x86_64 GNU/Linux
+    * scilab-4.0-b4-20060515
+    * MATLAB; built against: Version 7.4.0.287 (R2007a)
+
+    win32-x86:
+    * scilab-4.0
+
+
+#####################################
+#  labca_2_1_beta (T.S, 2006/4/13): #
+#####################################
 
 INSTALL LOCATION CHANGES:
 
