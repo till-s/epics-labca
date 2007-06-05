@@ -15,7 +15,7 @@ CMPLR = STRICT
 USR_INCLUDES += -I../../ezca
 
 ifeq ($(MAKEFOR),MATLAB)
-PROD_HOST += gnelm
+#PROD_HOST += gnelm
 ifeq ($(OS_CLASS),WIN32)
 #LIB_LIBS += libut libmx libmex
 # $(addprefix) et al. can't deal with paths containing white space
@@ -91,6 +91,7 @@ Com_DIR = $(EPICS_BASE_LIB)
 # need additional libs
 LIB_LIBS  +=ezcamt
 SHRLIB_VERSION:=0
+LOADABLE_SHRLIB_VERSION:=0
 
 # USR_LIBS_xxx doesn't work under EPICS 3.14.2 :-(
 # USR_LIBS_WIN32 += libmx libmex
@@ -137,8 +138,6 @@ LIBSUB=lib
 endif
 
 include $(TOP)/configure/RULES
-
-LOADABLE_SHRLIB_VERSION=0
 
 $($(LOADABLE_PREFIX)SHRLIBNAME): ../$($(LOADABLE_PREFIX)LIBRARY_HOST).def
 
