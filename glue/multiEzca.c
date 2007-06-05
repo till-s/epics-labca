@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.29 2007-05-09 19:09:44 till Exp $ */
+/* $Id: multiEzca.c,v 1.29.2.1 2007/06/01 21:37:09 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -456,8 +456,8 @@ register char *bufp;
 	for ( i=0, bufp = cbuf; i<m; i++, bufp+=rowsize) {
 	int j = 0;
 	switch ( types[i] ) {
-		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), epicsInt8, *cpt=(epicsInt8)*fpt ); break;
-		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), epicsInt16, *cpt=(epicsInt16)*fpt ); break;
+		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), epicsInt8, *cpt=(epicsInt32)*fpt ); break;
+		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), epicsInt16, *cpt=(epicsInt32)*fpt ); break;
 		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), epicsInt32, *cpt=(epicsInt32)*fpt ); break;
 		case ezcaFloat:   CVTVEC( double, isnan(*(double*)fpt), float,  *cpt=(float)*fpt ); break;
 		case ezcaDouble:  CVTVEC( double, isnan(*(double*)fpt), double, *cpt=*fpt ); break;
