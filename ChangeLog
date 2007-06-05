@@ -1,4 +1,7 @@
 Changes since labca_2
+	2007/6/4  (TS):
+	- ezcaDelay() now polls the Ctrl-C flag like the other calls.
+	- added EZCA_ABORTED return code to flag user abort (CTRL-C) condition.
 	2007/6/1  (TS):
 	- Some changes to CONFIG/RELEASE/RULES for automatically finding the
 	  correct mex-file extension. Also, EPICS_HOST_ARCH-specific settings
