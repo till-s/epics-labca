@@ -5,6 +5,12 @@
 lcaSetSeverityWarnLevel(3)
 lcaSetSeverityWarnLevel(13)
 
+// Make sure any previous monitors and channels are removed
+disp('CLEARING ALL')
+lcaClear()
+disp('<<<OK')
+
+
 // Test basic error handling
 disp('TESTING basic error throwing')
 try
@@ -39,15 +45,23 @@ if ( labcaversion > 2 )
 	end
 end
 
-lcaSetTimeout(0.5)
+if ( labcaversion > 2 )
+lcaTmeout   = 0.5
+lcaRetryCnt = 4
+else
+lcaTmeout   = 0.05
+lcaRetryCnt = 40
+end
 
-if ( lcaGetTimeout() ~= 0.5 )
+lcaSetTimeout(lcaTmeout)
+
+if ( abs(lcaGetTimeout() - lcaTmeout) > 1E-4 )
 	error('Readback of timeout FAILED')
 end
 
-lcaSetRetryCount(4)
+lcaSetRetryCount(lcaRetryCnt)
 
-if ( lcaGetRetryCount() ~= 4 )
+if ( lcaGetRetryCount() ~= lcaRetryCnt )
 	error('Readback of retry count FAILED')
 end
 
@@ -58,10 +72,12 @@ tic()
     disp('An error >could not find process variable : xxxx5789z< is normal here')
 	lcaGet('xxxx5789z')
 	catch
+		if ( labcaversion > 2 )
 		if ( lcaLastError() ~= 6 ) 
 			disp('lcaGet from unkown PV timeout expected but got other error')
 			errxxx=lasterror()
 			error(errxxx)
+		end
 		end
 	end
 tme = toc();
@@ -274,6 +290,7 @@ if ( lo ~= lopr | hi ~= hopr )
 	error('lcaGetGraphicLimits test FAILED')
 end
 
+if ( labcaversion > 2 )
 if ( lcaGetPrecision('lca:out') ~= 5 )
 	error('lcaGetPrecision test FAILED')
 end
@@ -286,6 +303,7 @@ lcaPut('lca:out.PREC',2)
 
 if ( ~mtlb_strcmp(lcaGet('lca:out',0,'c'),'0.12') )
 	error('lcaGetPrecision test (string 2) FAILED')
+end
 end
 
 disp('<<<OK')
@@ -398,12 +416,14 @@ end
 
 disp('<<<OK')
 
+if ( labcaversion > 2 )
 disp('CHECKING lcaGetUnits')
 lcaPut({'lca:scl0.EGU';'lca:scl1.EGU'},{'ABER';'XX'});
 if ( find(~mtlb_strcmp(lcaGetUnits({'lca:scl0';'lca:scl1'}),{'ABER';'XX'})) )
 	error('lcaGetUnits test FAILED');
 end
 disp('<<<OK')
+end
 
 disp('CHECKING lcaSetMonitor/lcaNewMonitorWait/lcaNewMonitorValue')
 lcaSetMonitor('lca:count')
@@ -426,5 +446,56 @@ end
 if ( abs(real(ts1-ts)-1)>0.2 )
 	error('MONITOR TIMESTAMP DIFFERENCE FAILURE')
 end
+// Now monitor a second PV; verify that we can set monitor twice...
+lcaSetMonitor({'lca:scl1';'lca:count'})
+// Verify that blocking on just one monitor works
+lcaNewMonitorWait({'lca:scl1';'lca:count'})
+lcaGet('lca:count');
+// scl1 is still pending
+try
+	lcaNewMonitorWait({'lca:scl1';'lca:count'})
+catch
+	error('blocking on 1 monitor (1 more already pending): FAILED')
+end
+lcaGet({'lca:scl1';'lca:count'});
+// now remove 'scl1' monitor again
+lcaClear('lca:scl1')
+// Verify that we get an error if we try to monitor a
+// variable w/o monitor
+if ( labcaversion > 2 )
+try
+	lcaNewMonitorValue({'lca:scl1';'lca:count'});
+	error('lcaNewMonitorValue on un-monitored PV should throw error: FAILED')
+catch
+	if ( lcaLastError() ~= 20 )
+		error('lcaNewMonitorValue un-monitored PV error catch check: FAILED')
+	end
+end
+else
+	if ( find( lcaNewMonitorValue({'lca:scl1';'lca:count'}) ~= [-1;0] ) )
+		error('lcaNewMonitorValue on un-monitored PV check FAILED')
+	end
+end
+
 disp('<<<OK')
+
+if ( labcaversion > 2 )
+// NOTE NOTE This MUST be the last test until I know how to catch
+// a Ctrl-C event under matlab
+disp('CHECKING CTRL-C HANDLING: press Ctrl-C and verify that the command')
+disp('                          aborts prior to expiration of a 10s timeout')
+//MATLABWARN('WARNING: Cannot catch CTRL-C under MATLAB from .m file -- ignore error message')
+try
+lcaDelay(10)
+error('No Ctrl-C detected')
+catch
+// MATLAB NOTE: CTRL-C aborts entire .m file -- we never get here...
+	if ( lcaLastError() ~= 9 )
+		error('CTRL-C test FAILED (unknown cause)')
+	end
+end
+disp('<<<OK')
+else
+disp('test CTRL-C handling manually under labCA version 2')
+end
 disp('<< ALL DONE')
