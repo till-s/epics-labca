@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.20 2007/05/31 21:12:27 till Exp $ */
+/* $Id: mglue.c,v 1.22 2007/06/04 18:59:17 guest Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -115,6 +115,7 @@ lcaErrorIdGet(int err)
 
 		case EZCA_NOMONITOR:        return "labca:noMonitor";
 		case EZCA_NOCHANNEL:        return "labca:noChannel";
+		case EZCA_ABORTED:          return "labca:usrAbort";
 	}
 	return "labca:unkownError";
 }

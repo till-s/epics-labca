@@ -1,4 +1,4 @@
-/* $Id: lcaDelay.c,v 1.5 2007-05-24 19:35:24 till Exp $ */
+/* $Id: lcaDelay.c,v 1.6 2007-05-31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaDelay */
 
@@ -13,6 +13,7 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
+int      rc;
 LcaError theErr;
 
 	lcaErrorInit(&theErr);
@@ -34,10 +35,21 @@ LcaError theErr;
 		goto cleanup;
 	}
 
-	if ( !ezcaDelay((float)*mxGetPr(prhs[0])) ) {
+	rc = ezcaDelay((float)*mxGetPr(prhs[0]));
+
+	if ( !rc ) {
 		nlhs = 0;
 	} else {
-		lcaSetError(&theErr, EZCA_INVALIDARG, "Need a timeout argument > 0.0\n");
+		char *msg = "lcaDelay";
+		switch ( rc ) {
+			case EZCA_INVALIDARG: msg = "lcaDelay: need 1 timeout arg > 0";
+			break;
+			case EZCA_ABORTED:    msg = "lcaDelay: usr abort";
+			break;
+			default:
+			break;
+		}
+		lcaSetError(&theErr, rc, msg);
 	}
 
 cleanup:

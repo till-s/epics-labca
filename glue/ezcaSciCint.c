@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.22 2007-05-24 19:35:21 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.23 2007/06/01 23:52:46 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -496,9 +496,18 @@ int m,n,i,rc;
 	GetRhsVar(1,"r",&m,&n,&i);
 	CheckScalar(1,m,n);
 	if ( (rc = ezcaDelay(*sstk(i))) ) {
+		char *msg="lcaDelay";
 		LcaError theErr;
 		lcaErrorInit(&theErr);
-		lcaSetError(&theErr, rc, "Error encountered (need 1 arg > 0.0)");
+		switch ( rc ) {
+			case EZCA_INVALIDARG: msg = "lcaDelay: need 1 timeout arg > 0";
+			break;
+			case EZCA_ABORTED:    msg = "lcaDelay: usr abort";
+			break;
+			default:
+			break;
+		}
+		lcaSetError(&theErr, rc, msg);
 		LCA_RAISE_ERROR(&theErr);
 	}
 	LhsVar(1)=0;

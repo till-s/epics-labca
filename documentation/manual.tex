@@ -57,7 +57,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.36 2007-06-01 19:33:44 till Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.37 2007/06/04 17:28:28 strauman Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -224,6 +224,7 @@ The error codes are shown in
     6                    & \com{labca:timedOut}         & No response in time \\
     7                    & \com{labca:inGroup}          & Currently in a EZCA group\\
     8                    & \com{labca:notInGroup}       & Currently not in a EZCA group\\
+    9                    & \com{labca:usrAbort}         & EZCA call aborted by user (Ctrl-C) \\
     20                   & \com{labca:noMonitor}        & No monitor for PV/type found\\
     21                   & \com{labca:noChannel}        & No channel for PV name found\\
 \end{tabular}

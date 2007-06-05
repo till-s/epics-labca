@@ -227,6 +227,7 @@ static epicsEventId ezcaDone        = 0;
 #define CAARRAYGETCALLBACK_MSG "get_callback()"
 /* Additional ezca Messages    */
 #define NO_MONITOR_MSG         "no monitor on PV/type found" 
+#define ABORTED_MSG            "EZCA call aborted by user"
 
 /************************/
 /*                      */
@@ -261,7 +262,8 @@ static char *ErrorMsgs[] =
     CAARRAYPUTCALLBACK_MSG,
     CAARRAYGETCALLBACK_MSG,
 
-	NO_MONITOR_MSG
+	NO_MONITOR_MSG,
+	ABORTED_MSG
 };
 
 /* These MUST match the above table */
@@ -290,6 +292,7 @@ static char *ErrorMsgs[] =
 #define CAARRAYPUTCALLBACK_MSG_IDX 21
 #define CAARRAYGETCALLBACK_MSG_IDX 22
 #define NO_MONITOR_MSG_IDX         23
+#define ABORTED_MSG_IDX            24
 
 /**********************/
 /*                    */
@@ -752,8 +755,16 @@ printf("ezcaEndGroupWithReport() could not find_channel() >%s< must ca_search_an
 	            /* remove */
 	            clean_and_push_channel( &wp->cp );
 
-	            wp->rc = EZCA_NOTIMELYRESPONSE;
-	            wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
+				if ( RetryCount )
+				{
+	            	wp->rc = EZCA_NOTIMELYRESPONSE;
+	            	wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
+				}
+				else
+				{
+	            	wp->rc = EZCA_ABORTED;
+	            	wp->error_msg = ErrorMsgs[ABORTED_MSG_IDX];
+				}
 	        }
 
 		    wp->aux_error_msg = strdup(wp->pvname);
@@ -996,10 +1007,17 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 			    /* need to trash this wp so it's */
 			    /* never used again in case the  */
 			    /* callback fires off later      */
-
-			    wp->rc = EZCA_NOTIMELYRESPONSE;
-			    wp->error_msg = 
-				ErrorMsgs[NO_RESPONSE_IN_TIME_MSG_IDX];
+				if ( RetryCount )
+				{
+			    	wp->rc = EZCA_NOTIMELYRESPONSE;
+			    	wp->error_msg = 
+					ErrorMsgs[NO_RESPONSE_IN_TIME_MSG_IDX];
+				}
+				else
+				{
+	            	wp->rc = EZCA_ABORTED;
+	            	wp->error_msg = ErrorMsgs[ABORTED_MSG_IDX];
+				}
 
 			    if (AutoErrorMessage)
 				print_error(wp);
@@ -2034,6 +2052,7 @@ int epicsShareAPI ezcaDelay(float sec)
 struct work *wp;
 int status;
 int rc;
+int   attempt;
 
     prologue();
 
@@ -2046,11 +2065,25 @@ int rc;
 
 	if (sec > 0)
 	{
-	    status = EzcaPendEvent((struct work *) NULL, sec, TRUE);
+		RetryCount = sec/TimeoutSeconds;
+		if ( RetryCount * TimeoutSeconds < sec )
+			RetryCount++;
+		for ( attempt=0, status = ECA_TIMEOUT;
+		     ECA_TIMEOUT == status && attempt<RetryCount && sec > 0;
+		     attempt++, sec-=TimeoutSeconds ) {
+	    	status = EzcaPendEvent((struct work *) NULL, sec > TimeoutSeconds ? TimeoutSeconds : sec, TRUE);
+			if ( ECA_TIMEOUT != status )
+				break;
+		}
 
 	    if (status == ECA_TIMEOUT)
-		/* normal return code */
-		wp->rc = EZCA_OK; 
+		{
+			/* normal return code */
+			if ( (wp->rc = RetryCount ? EZCA_OK : EZCA_ABORTED) )
+			{
+				wp->error_msg = ErrorMsgs[ABORTED_MSG_IDX];
+			}
+		}
 	    else
 	    {
 		wp->rc = EZCA_CAFAILURE;
@@ -4121,9 +4154,17 @@ int rc;
 				    /* never used again in case the  */
 				    /* callback fires off later      */
 
-				    wp->rc = EZCA_NOTIMELYRESPONSE;
-				    wp->error_msg =
-					ErrorMsgs[NO_RESPONSE_IN_TIME_MSG_IDX];
+					if ( RetryCount )
+					{
+				    	wp->rc = EZCA_NOTIMELYRESPONSE;
+				    	wp->error_msg =
+						ErrorMsgs[NO_RESPONSE_IN_TIME_MSG_IDX];
+					}
+					else
+					{
+	            		wp->rc = EZCA_ABORTED;
+	            		wp->error_msg = ErrorMsgs[ABORTED_MSG_IDX];
+					}
 
 				    if (AutoErrorMessage)
 					print_error(wp);
@@ -4721,8 +4762,16 @@ printf("get_channel(): could not find_channel(). must ca_search_and_connect() an
 			if ( !done ) {
 		    	clean_and_push_channel( cpp );
 		
-				wp->rc = EZCA_NOTIMELYRESPONSE;
-				wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
+				if ( RetryCount )
+				{
+					wp->rc = EZCA_NOTIMELYRESPONSE;
+					wp->error_msg = ErrorMsgs[NO_PVAR_FOUND_MSG_IDX];
+				}
+				else
+				{
+	           		wp->rc = EZCA_ABORTED;
+	           		wp->error_msg = ErrorMsgs[ABORTED_MSG_IDX];
+				}
 				wp->aux_error_msg = strdup(wp->pvname);
 	
 				if (AutoErrorMessage)
@@ -5228,8 +5277,16 @@ unsigned attempts;
 	    /* never used again in case the  */
 	    /* callback fires off later      */
 
-	    wp->rc = EZCA_NOTIMELYRESPONSE;
-	    wp->error_msg = ErrorMsgs[NO_RESPONSE_IN_TIME_MSG_IDX];
+		if ( RetryCount )
+		{
+	    	wp->rc = EZCA_NOTIMELYRESPONSE;
+	    	wp->error_msg = ErrorMsgs[NO_RESPONSE_IN_TIME_MSG_IDX];
+		}
+		else
+		{
+			wp->rc = EZCA_ABORTED;
+			wp->error_msg = ErrorMsgs[ABORTED_MSG_IDX];
+		}
 
 	    if (AutoErrorMessage)
 		print_error(wp);
