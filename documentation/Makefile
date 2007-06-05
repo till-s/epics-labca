@@ -31,6 +31,7 @@ HELPS+=help/lcaSetMonitor.html
 HELPS+=help/lcaNewMonitorValue.html
 HELPS+=help/lcaNewMonitorWait.html
 HELPS+=help/lcaDelay.html
+HELPS+=help/lcaLastError.html
 
 MHELPS=$(HELPS:%.html=%.m)
 

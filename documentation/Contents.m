@@ -19,3 +19,4 @@
 %   lcaSetMonitor            - monitor a channel
 %   lcaNewMonitorValue       - check if a monitored channel has new data
 %   lcaNewMonitorWait        - block/wait until a monitored channel has new data
+%   lcaLastError             - return error code(s) reported by last faulting lcaXXX operation
