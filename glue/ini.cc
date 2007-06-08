@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.24 2007-04-11 00:32:24 till Exp $ */
+/* $Id: ini.cc,v 1.24.2.1 2007/06/05 03:39:09 guest Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -42,6 +42,13 @@ extern "C" int _getpid();
 #endif
 
 static	pid_t thepid;
+
+// Apparently, we can't mexPrintf from the finalizer under win32+wscilex
+// (crashes)
+#if (defined(WIN32) || defined(_WIN32)) && !defined(MATLAB_APP)
+#undef DEBUG
+#endif
+
 
 static void
 multiEzcaFinalizer()
@@ -117,7 +124,7 @@ CtrlCStateRec saved;
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
-mexPrintf((char*)"Initializing labCA Release '$Name: labca_2_branch $'...\n");
+mexPrintf((char*)"Initializing labCA Release '$Name:  $'...\n");
 mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 
 #ifdef MATLAB_APP
