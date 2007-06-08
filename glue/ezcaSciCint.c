@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.23 2007/06/01 23:52:46 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.24 2007/06/05 05:01:06 guest Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -94,7 +94,7 @@ int mpvs, mtmp, ntmp, itmp, jtmp;
 char     **pvs MAY_ALIAS;
 void *buf MAY_ALIAS = 0;
 TS_STAMP  *ts       = 0;
-int	n               = 0;
+int	      n         = 0;
 char      type      = ezcaNative;
 LcaError  theErr;
 
@@ -146,10 +146,10 @@ cleanup:
 
 	if ( buf ) {
 		if ( ezcaString == type ) {
-			FreeRhsSVar(((char**)buf));
-		} else {
-			free(buf);
+			for ( itmp = 0; itmp < mpvs * n; itmp++ )
+				free( ((char**)buf)[itmp] );
 		}
+		free(buf);
  	}
 
 	if ( ts ) {
