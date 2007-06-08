@@ -21,6 +21,16 @@ catch
 end
 disp('<<<OK')
 
+// Test for features
+disp('CHECKING FEATURES/VERSION')
+try
+	lcaLastError();
+	labcaversion=3
+catch
+	labcaversion=2
+end
+disp('<<<OK')
+
 // Test timeout and retry count
 
 try
