@@ -20,7 +20,7 @@ SOLARIS/MATLAB NOTE:
  Cstd. OTOH, the EPICS build system doesn't allow the user to pick the
  flavor of library but the makefiles imply the use of 'Cstd' which then
  makes the CA library incompatible with MATLAB.
- The EPICS BASE distribution that comes with labca was patched so that
+ The EPICS BASE version that comes with labca was patched so that
  the user can define USE_STLPORT (to YES or NO) e.g., from
 
    'base/configure/os/CONFIG_SITE.Common.solaris-sparc'
@@ -32,6 +32,14 @@ SOLARIS/MATLAB NOTE:
    ldd <matlab_dir>/bin/<arch>/MATLAB
 
  and scan the output for libCstd or libstlport4, respectively.
+
+ Note that the stlport library might not be installed on your solaris system
+ - a version does come with matlab 2007a (or the sunwspro studio), though.
+ If you intend to use any executable (other than matlab --- e.g., the
+ caRepeater) built against epics base with the USE_STLPORT=YES option then
+ you must make sure the system can locate the stlport library e.g., by
+ pointing LD_LIBRARY_PATH to the subdirectory of the matlab installation
+ where a version of stlport resides.
 
  More information about this issue can be found here:
  
@@ -48,8 +56,9 @@ VERSION INFORMATION:
     solaris C++ std runtime lib configurable. Also, unused subdirs
     in base were commented from the base/src/Makefile.)
 
- MATLAB RELEASE
+ Platform Details:
     solaris-sparc:
+    * cc: SUNWspro studio 11
     * SunOS flora04 5.9 Generic_118558-38 sun4u sparc SUNW,Sun-Fire-V240
     * scilab-3.1.1
     * MATLAB; built against: Version 7.3.0.298 (R2006b)
@@ -58,6 +67,7 @@ VERSION INFORMATION:
          - Version 7.2.0.283 (R2006a)
 
     solaris-sparc64:
+    * cc: SUNWspro studio 11
     * SunOS flora04 5.9 Generic_118558-38 sun4u sparc SUNW,Sun-Fire-V240
     * MATLAB; built against: Version 7.3.0.298 (R2006b)
       tested also with:
@@ -65,9 +75,11 @@ VERSION INFORMATION:
          - Version 7.2.0.283 (R2006a)
 
     linux-x86:
+    * gcc (GCC) 3.4.6 20060404 (Red Hat 3.4.6-8)
     * Linux lcls-prod02 2.6.9-42.0.10.ELsmp #1 SMP Fri Feb 16 17:17:21 EST 2007 i686 i686 i386 GNU/Linux
     * scilab-4.0-b4-20060515
-	* scilab-4.1
+      tested also with:
+	     - scilab-4.1
     * MATLAB; built against: Version 7.3.0.298 (R2006b)
       tested also with:
          - Version 7.4.0.336 (R2007a)
@@ -75,12 +87,18 @@ VERSION INFORMATION:
          - Version 7.2.0.283 (R2006a)
 
     linux-x86_64:
+	* gcc (GCC) 3.4.6 20060404 (Red Hat 3.4.6-3)
     * Linux tillpc.slac.stanford.edu 2.6.9-42.0.3.ELsmp #1 SMP Mon Sep 25 17:24:31 EDT 2006 x86_64 x86_64 x86_64 GNU/Linux
     * scilab-4.0-b4-20060515
     * MATLAB; built against: Version 7.4.0.287 (R2007a)
 
     win32-x86:
+	* MS Windows XP Professional 2002, SP2
+    * cl version: Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 13.10.3077 for 80x86
     * scilab-4.0
+    * MATLAB; built against: Version 7.3.0.267 (R2006b)
+      tested also with:
+         - Version 7.4.0.287 (R2007a)
 
 
 #####################################
