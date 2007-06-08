@@ -1,12 +1,12 @@
 Changes since labca_2_1_beta (T.S):
-        2007/6/1 (TS):
-        - Some changes to CONFIG/RELEASE/RULES for automatically finding the
-          correct mex-file extension. Also, EPICS_HOST_ARCH-specific settings
-          for the EPICS_BASE, MATLABDIR + SCILABDIR variables were implemented.
-          (Backport from head revision).
+	2007/6/1 (TS):
+	- Some changes to CONFIG/RELEASE/RULES for automatically finding the
+	  correct mex-file extension. Also, EPICS_HOST_ARCH-specific settings
+	  for the EPICS_BASE, MATLABDIR + SCILABDIR variables were implemented.
+	  (Backport from head revision).
 	2007/6/1 (TS):
 	- braindamaged win$$ doesn't implement c99 types -- use epicsTypes.h
-	  instead.
+	  instead (backport from 3.x).
 	2007/5/9 (TS):
 	- use c99 types int8_t, int16_t, int32_t rather than char, short, int.
 	  (multiEzca.c; see also change made 2006/9/1).
