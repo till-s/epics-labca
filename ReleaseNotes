@@ -52,9 +52,9 @@ VERSION INFORMATION:
 
  EPICS_BASE: 3.14.9
     vanilla 3.14.9 with some modifications in the build
-    system (to remove 'rpath' linker options and make the choice of
-    solaris C++ std runtime lib configurable. Also, unused subdirs
-    in base were commented from the base/src/Makefile.)
+    system to make the choice of solaris C++ std runtime lib
+    configurable. Also, unused subdirs in base were commented
+    from the base/src/Makefile.)
 
  Platform Details:
     solaris-sparc:
