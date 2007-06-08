@@ -11,6 +11,10 @@ BUILD SYSTEM CHANGES:
  - can specify EPICS_HOST_ARCH-specific locations for MATLABDIR/SCILABDIR
    (see configure/RELEASE for details)
 
+SHARED LIBRARY NOTE:
+ - all rpath/runpaths have been removed from solaris/linux shared
+   libraries in the distribution (using the chrpath utility).
+
 SOLARIS/MATLAB NOTE:
  Solaris ships with two different C++ std libraries; 'Cstd' (older) and
  'stlport4' (newer, more features) which are incompatible.
