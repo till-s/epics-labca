@@ -1,4 +1,8 @@
 Changes since labca_2
+	2007/6/7  (TS):
+	- completely reworked the finalizer. Good shutdown now seems to work
+	  w/o hangs or crashes for scilab and matlab on linux/solaris + win
+	  in gui and nogui mode.
 	2007/6/4  (TS):
 	- ezcaDelay() now polls the Ctrl-C flag like the other calls.
 	- added EZCA_ABORTED return code to flag user abort (CTRL-C) condition.
