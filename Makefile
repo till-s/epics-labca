@@ -5,6 +5,7 @@ DIRS += configure
 DIRS += ezca
 DIRS += glue
 DIRS += documentation
+DIRS += testing
 ifeq ($(MAKEFOR),MATLAB)
 DIRS += matlab
 endif
