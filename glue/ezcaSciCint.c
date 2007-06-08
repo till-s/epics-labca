@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.19 2004/06/20 04:32:31 strauman Exp $ */
+/* $Id: ezcaSciCint.c,v 1.20 2007-05-09 19:19:32 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -141,10 +141,10 @@ char      type      = ezcaNative;
 
 	if ( buf ) {
 		if ( ezcaString == type ) {
-			FreeRhsSVar(((char**)buf));
-		} else {
-			free(buf);
+			for ( itmp = 0; itmp < mpvs * n; itmp++ )
+				free(((char**)buf)[itmp]);
 		}
+		free(buf);
  	}
 
 	if ( ts ) {
