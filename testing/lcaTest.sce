@@ -166,8 +166,8 @@ end
 lcaPut('lca:scl0',2^32+1234,'l')
 longscl = lcaGet('lca:scl0');
 // FIXME: unclear how double is converted -> long
-// some compilers produce 2^31-1 others -2^31...
-if ( longscl ~= 2^31-1 & longscl ~= -2^31 )
+// some compilers produce 2^31-1 others -2^31 and yet others 1234...
+if ( longscl ~= 2^31-1 & longscl ~= -2^31 & longscl ~= 1234 )
 	error('type LONG readback overflow check FAILED')
 end
 lcaPut('lca:scl0',2^16+1234,'l')
