@@ -18,7 +18,7 @@ USR_INCLUDES += -I../../ezca
 SHARED_LIBRARIES = YES
 
 ifeq ($(MAKEFOR),MATLAB)
-PROD_HOST += gnelm
+#PROD_HOST += gnelm
 ifeq ($(OS_CLASS),WIN32)
 #LIB_LIBS += libut libmx libmex
 # $(addprefix) et al. can't deal with paths containing white space
