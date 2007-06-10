@@ -1,4 +1,9 @@
 Changes since labca_2
+	2007/6/10 (TS):
+	- call _exit() from the finalizer if called from the caRepeater fork
+	must not do any other cleanup since the forked process has no thread.
+	This fixes the 'starved caRepeater fork' problem (hanging process would
+	never die).
 	2007/6/7  (TS):
 	- completely reworked the finalizer. Good shutdown now seems to work
 	  w/o hangs or crashes for scilab and matlab on linux/solaris + win

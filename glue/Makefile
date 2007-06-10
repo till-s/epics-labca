@@ -79,6 +79,11 @@ $(LOADABLE_PREFIX)LIBRARY_HOST := sezcaglue
 SCRIPTS+=labca.sce
 endif
 
+PROD_HOST+=bill
+
+bill_SRCS = bill.c
+bill_LIBS = ca Com
+
 gnelm_SRCS = gnelm.c
 gnelm_LIBS = $($(LOADABLE_PREFIX)LIBRARY_HOST)
 gnelm_LIBS += $(LIB_LIBS)

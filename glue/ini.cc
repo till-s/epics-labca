@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.27 2007/06/01 23:52:46 till Exp $ */
+/* $Id: ini.cc,v 1.28 2007/06/08 00:28:17 guest Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -152,7 +152,8 @@ multiEzcaFinalizer()
 #if DEBUG_FINA > 0
 		mexPrintf("labca finalizer: PID mismatch\n");
 #endif
-		return;
+		_exit(-1);
+		return; //never get here
 	}
 
 	// FIXME: proper ezca shutdown; move all of this to ezca...
@@ -238,7 +239,7 @@ CtrlCStateRec saved;
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
-mexPrintf((char*)"Initializing labCA Release '$Name:YYY  $'...\n");
+mexPrintf((char*)"Initializing labCA Release '$Name:  $'...\n");
 mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 
 #ifdef MATLAB_APP
