@@ -1,3 +1,9 @@
+Changes since labca_3_0_beta:
+	2007/6/19 (Jim Sebek)
+	- extended fix that was introduced (4/07) to work around problems with
+	mcc compilation due to .m files residing in the same directory as .mex
+	files. Now both, the labca initializer and finalizer are skipped when
+	invoked during mcc compilation. Apparently this solves the problem.
 Changes since labca_2
 	2007/6/10 (TS):
 	- call _exit() from the finalizer if called from the caRepeater fork

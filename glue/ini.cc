@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.28 2007/06/08 00:28:17 guest Exp $ */
+/* $Id: ini.cc,v 1.29 2007/06/10 20:14:33 strauman Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -65,10 +65,37 @@ extern "C" void C2F(xscion)(int*);
 /* Our PID -- distinguish ourself from a forked caRepeater */
 static	pid_t thepid;
 
+#ifdef MATLAB_APP
+static int isMcc(int ini)
+{
+	/* Check if this is executed from an mcc run
+	 *
+	 * (Thanks to Jim Sebek who suggested this fix
+	 * on 4/10/07).
+	 */
+	mxArray *lhs = NULL;
+
+	if ( 0 == mexCallMATLAB(1, &lhs, 0, NULL, "ismcc") &&
+		 mxGetScalar(lhs) != 0. ) {
+		mexPrintf("skip execution of multiEzca%s in ini.cc during mcc compilation\n", ini ? "Initializer" : "Finalizer");
+		return -1;
+	}
+	return 0;
+}
+#endif
+
 // Getting this to work on all platforms was hard work...
 static void
 multiEzcaFinalizer()
 {
+#ifdef MATLAB_APP
+	/* Skip execution of finalizer if this is a mcc compilation run
+	 * (J. Sebek, 6/2007)
+	 */
+	if ( isMcc(0) )
+		return;
+#endif
+
 #if (defined(WIN32) || defined(_WIN32)) && !defined(MATLAB_APP)
 	{
 	// Scilab seems to kill threads cold when exiting (but not
@@ -213,20 +240,11 @@ multiEzcaInitializer()
 CtrlCStateRec saved;
 
 #ifdef MATLAB_APP
-	{
-	/* Check if this is executed from an mcc run
-	 *
-	 * (Thanks to Jim Sebek who suggested this fix
-	 * on 4/10/07).
+	/* Skip execution of initializer if this is a mcc compilation run
+	 * (J. Sebek, 4/2007)
 	 */
-	mxArray *lhs = NULL;
-
-	if ( 0 == mexCallMATLAB(1, &lhs, 0, NULL, "ismcc") &&
-		 mxGetScalar(lhs) != 0. ) {
-		mexPrintf("no initialization of multiEzcaInitializer in ini.cc during mcc compilation\n");
+	if ( isMcc(1) )
 		return;
-	}
-	}
 #endif
 
 #ifdef SCILAB_APP
