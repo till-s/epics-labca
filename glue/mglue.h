@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.19 2007/06/02 18:15:14 guest Exp $ */
+/* $Id: mglue.h,v 1.20 2007/06/04 18:58:42 guest Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -74,6 +74,8 @@ flagError(int nlhs, mxArray *plhs[]);
 #define ERR_CHECK(nlhs, plhs, perr) \
 	do { if (flagError((nlhs),(plhs))) { \
 			lcaSaveLastError(perr); \
+			if ( (perr)->errs ) \
+				ezcaFree( (perr)->errs ); \
 			mexErrMsgIdAndTxt(lcaErrorIdGet((perr)->err), (perr)->msg); \
 		 } else { \
 		 	ezcaFree((perr)->errs); (perr)->errs = 0; \

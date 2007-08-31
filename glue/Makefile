@@ -73,8 +73,9 @@ $(LOADABLE_PREFIX)LIBRARY_HOST := mezcaglue
 #SCRIPTS+=mkmezca.m
 else
 USR_CPPFLAGS+=-DSCILAB_APP
-USR_INCLUDES += -I$(SCILABDIR)/routines
+USR_INCLUDES += -I$(SCILABDIR)/routines -I../sciclean
 LIB_SRCS+= ezcaSciCint.c
+LIB_SRCS+= sciclean.c
 $(LOADABLE_PREFIX)LIBRARY_HOST := sezcaglue
 SCRIPTS+=labca.sce
 endif
@@ -162,3 +163,6 @@ endif
 #	EOF Makefile.Host
 check_name:
 	echo $($(LOADABLE_PREFIX)SHRLIBNAME)
+
+sciclean.c: sciclean/sciclean.c
+	ln -s $^ $@

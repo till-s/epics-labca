@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.36 2007/06/02 20:34:51 strauman Exp $ */
+/* $Id: multiEzca.c,v 1.37 2007/06/04 18:59:39 guest Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -298,7 +298,7 @@ struct timespec ts;
 static void
 ezErr(int rc, char *nm, LcaError *pe)
 {
-	char *msg,*b,ch,*ok, *nl;
+	char *msg,*b,*ok, *nl;
 	int	 l;
 
 	if ( pe )
@@ -306,16 +306,19 @@ ezErr(int rc, char *nm, LcaError *pe)
 
 	ezcaGetErrorString(nm,&msg);
 	if (msg) {
+
+#if 0   /* message is already reported in *pe; don't print twice */
 		/* long strings passed to sciprint crash
 		 * scilab :-(, so we break them up...
 		 */
 		for ( b=msg, l=strlen(msg); l > CHUNK; b+=CHUNK, l-=CHUNK ) {
-			ch = b[CHUNK];
+			char ch = b[CHUNK];
 			b[CHUNK]=0;
 			mexPrintf(b);
 			b[CHUNK]=ch;
 		}
 		mexPrintf(b);
+#endif
 
 		if ( pe ) {
 			/* Look for first error */

@@ -1,4 +1,12 @@
 Changes since labca_3_0_beta:
+	2007/8/29 (TS):
+	- fixed (some) memory leaks (scilab only). Scilab macros (stack-c.h)
+	would jump out of our routines w/o giving a chance to clean things up.
+	Use the new 'sciclean' facility to register cleanups as necessary.
+	Also, C-string matrices (GetRhsVar(...,"S",...)) were never free()ed!
+	- removed redunant printing of error/warning messages. This should
+	fix a complaint that errors were still reported even from a 
+	try-catch-end block.
 	2007/6/19 (Jim Sebek)
 	- extended fix that was introduced (4/07) to work around problems with
 	mcc compilation due to .m files residing in the same directory as .mex
