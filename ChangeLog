@@ -1,4 +1,8 @@
 Changes since labca_3_0_beta:
+	2007/9/5 (TS):
+	- fixed memory leak (lcaPutNoWait) in ezca (copy of data made by
+	ezcaPutOldCa() was never free()ed when ezcaPutOldCa() calls were
+	grouped). Thanks to Greg Portmann for helping hunting this down.
 	2007/8/29 (TS):
 	- fixed (some) memory leaks (scilab only). Scilab macros (stack-c.h)
 	would jump out of our routines w/o giving a chance to clean things up.

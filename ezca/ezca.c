@@ -1065,7 +1065,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 		(*rcs)[i] = wp->rc;
 
 	    /* clearing all the malloc'd memory in PUT works */
-	    if (wp->worktype == PUT && wp->pval)
+	    if ( (wp->worktype == PUT || wp->worktype == PUTOLDCA) && wp->pval)
 	    {
 		free((char *) wp->pval);
 		wp->pval = (void *) NULL;
