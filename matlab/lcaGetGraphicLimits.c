@@ -1,4 +1,4 @@
-/* $Id: lcaGetGraphicLimits.c,v 1.8 2007/05/23 02:50:21 strauman Exp $ */
+/* $Id: lcaGetGraphicLimits.c,v 1.9 2007-05-31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaGetGraphicLimits */
 
@@ -66,7 +66,7 @@ cleanup:
 	}
 	for ( i=0; i<NumberOf(args); i++ ) {
 		if ( args[i].pres )
-			mxFree(*args[i].pres);
+			lcaFree(*args[i].pres);
 	}
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */

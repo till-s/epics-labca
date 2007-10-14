@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.25 2007/06/08 00:26:41 guest Exp $ */
+/* $Id: ezcaSciCint.c,v 1.26 2007/08/31 05:51:30 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -31,6 +31,25 @@ epicsShareFunc int epicsShareAPI C2F(ezca)();
  * We employ the 'sciclean' facility to work around
  * this problem.
  */
+
+/* Define a macro to cleanup memory obtained
+ * via 'lcaMalloc' & friends.
+ */
+
+#define LCACLEAN(var) sciclean_push(sciclean, (var), lcaFree)
+static void
+lca_free_strings(void *x)
+{
+char **strs = x;
+	if ( strs ) {
+		while ( *strs ) {
+			lcaFree(*strs);
+			strs++;
+		}
+		lcaFree(x);
+	}
+}
+#define LCACLEAN_SVAR(var) sciclean_push(sciclean, (var), lca_free_strings)
 
 /* We get a lot of 'type-punned' pointer warnings, mostly
  * because the scilab header doesn't properly declare things
@@ -108,12 +127,12 @@ static void errRaiseClean(void *obj)
 {
 LcaError *theErr = obj;
 	LCA_RAISE_ERROR(theErr);
-	free( theErr );
+	lcaFree( theErr );
 }
 
 static LcaError *errCreate(Sciclean sciclean)
 {
-LcaError *theErr = malloc(sizeof(*theErr));
+LcaError *theErr = lcaMalloc(sizeof(*theErr));
 	lcaErrorInit(theErr);
 	sciclean_push(sciclean, theErr, errRaiseClean);
 	return theErr;
@@ -151,11 +170,11 @@ LcaError  *theErr        = errCreate(sciclean);
 	status = multi_ezca_get( pvs, &type, &buf, mpvs, &n, &ts, theErr );
 
 	/* register cleanups for memory allocated by multi_ezca_get */
-	SCICLEAN(ts);
+	LCACLEAN(ts);
 	if ( ezcaString == type ) {
-		SCICLEAN_SVAR(buf);
+		LCACLEAN_SVAR(buf);
 	} else {
-		SCICLEAN(buf);
+		LCACLEAN(buf);
 	}
 
 	if ( !status ) {
@@ -353,7 +372,7 @@ MultiArgRec args[3];
 	status = multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args, theErr);
 
 	/* If ts was created then register a cleanup */
-	SCICLEAN(ts);
+	LCACLEAN(ts);
 
 	if ( status ) {
 
@@ -419,16 +438,16 @@ LcaError *theErr = errCreate(sciclean);
 	status = multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetUnits, NumberOf(args), args, theErr);
 
 	/* if strbuf was created register a cleanup */
-	SCICLEAN(strbuf);
+	LCACLEAN(strbuf);
 
 	if ( status && 
 		 /* scilab expects NULL terminated char** list */
-		 (tmp = malloc(sizeof(char*) * (m+1))) ) {
+		 (tmp = lcaMalloc(sizeof(char*) * (m+1))) ) {
 		for ( i=0; i<m; i++ ) {
 			tmp[i] = strbuf[i];
 		}
 		tmp[m] = 0;
-		SCICLEAN(tmp); /* register cleanup; CreateVarFromPtr may fail and execute 'return 0' */
+		LCACLEAN(tmp); /* register cleanup; CreateVarFromPtr may fail and execute 'return 0' */
  		CreateVarFromPtr(2, "S",&m,&n,tmp);
  		LhsVar(1)= 2;
 	}
@@ -719,7 +738,7 @@ char **s;
 #endif
 	CheckRow(1,m,n);
 	ecdrget(s[0], &n,&buf,&nord);
-	SCICLEAN(buf);
+	LCACLEAN(buf);
 	CreateVarFromPtr(2,"i",&m,&nord,&buf);
 	if (buf) {
  		LhsVar(1)=2;

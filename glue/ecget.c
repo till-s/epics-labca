@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.18 2004/02/11 18:51:52 till Exp $ */
+/* $Id: ecget.c,v 1.19 2004/02/11 23:06:10 till Exp $ */
 
 /* ecdrget: channel access client routine for successively reading ECDR data.  */
 
@@ -40,8 +40,8 @@ typedef long buf_t;
 
 extern void cerro(char*);
 
-#define SYS_MALLOC(nbytes)	malloc(nbytes)
-#define SYS_FREE(charptr)	free(charptr)
+#define SYS_MALLOC(nbytes)	lcaMalloc(nbytes)
+#define SYS_FREE(charptr)	lcaFree(charptr)
 /* wrapper for printing error messages */
 #define ecErr(arg)          do { cerro(arg); cerro("\n");} while (0)
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) cerro("invalid PV")
@@ -54,8 +54,8 @@ extern void cerro(char*);
 #undef DEBUG
 #endif
 
-#define SYS_MALLOC(nbytes) mxMalloc(nbytes)
-#define SYS_FREE(ptr)      mxFree(ptr)
+#define SYS_MALLOC(nbytes) lcaMalloc(nbytes)
+#define SYS_FREE(ptr)      lcaFree(ptr)
 /* wrapper for printing error messages */
 #define ecErr(arg)         mexWarnMsgTxt(arg)
 #define	NEITHER_SVAL_NOR_VAL_ACTION(pv_name,l,result,nord) mexWarnMsgTxt("invalid PV")

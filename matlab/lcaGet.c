@@ -1,4 +1,4 @@
-/* $Id: lcaGet.c,v 1.10 2007/05/23 02:50:21 strauman Exp $ */
+/* $Id: lcaGet.c,v 1.11 2007-05-31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -114,11 +114,11 @@ cleanup:
 	if ( ezcaString == type && pres ) {
 		/* free string elements also */
 		for ( i=0; i<pvs.m*n; i++ ) {
-			mxFree( ((char**)pres)[i] );
+			lcaFree( ((char**)pres)[i] );
 		}
 	}
-	mxFree(pres);
-	mxFree(ts);
+	lcaFree(pres);
+	lcaFree(ts);
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */
 	ERR_CHECK(nlhs, plhs, &theErr);

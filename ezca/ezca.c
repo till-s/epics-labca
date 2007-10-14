@@ -62,6 +62,12 @@ static epicsMutexId	ezcaMutex       = 0;
 static volatile int ezcaOutstanding = 0;
 static epicsEventId ezcaDone        = 0;
 
+#ifndef EZCA_MALLOC_TRACE
+#define ezcamalloc	malloc
+#define ezcacalloc	calloc
+#define ezcafree	free
+#endif
+
 #define DEBUG_LOCK 0
 
 #define	EZCA_LOCK() \
@@ -1053,7 +1059,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 	    *nrcs = nelem;
 
 	if (rcs)
-	    *rcs = (int *) malloc(nelem*sizeof(int));
+	    *rcs = (int *) ezcamalloc(nelem*sizeof(int));
 
 	for (i = 0, wp = Work_list.head, rc = EZCA_OK; wp; wp = wp->next, i ++)
 	{
@@ -1067,7 +1073,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 	    /* clearing all the malloc'd memory in PUT works */
 	    if ( (wp->worktype == PUT || wp->worktype == PUTOLDCA) && wp->pval)
 	    {
-		free((char *) wp->pval);
+		ezcafree((char *) wp->pval);
 		wp->pval = (void *) NULL;
 	    } /* endif */
 	} /* endfor */
@@ -1258,7 +1264,7 @@ int rc;
 
 	if (nbytes > 0)
 	{
-	    if ((*buff = calloc(nbytes, 1)))
+	    if ((*buff = ezcacalloc(nbytes, 1)))
 	    {
 		if (Debug)
 	    printf("ezcaGetErrorString() just allocated %d bytes\n", 
@@ -2138,7 +2144,7 @@ struct work *wp;
 	wp->rc = EZCA_OK;
 
 	if (buff)
-	    free(buff);
+	    ezcafree(buff);
 
 	if (Debug)
 	    printf("ezcaFree() just freed starting\n");
@@ -4031,7 +4037,7 @@ int rc;
 
 	if (nbytes > 0)
 	{
-	    if ((wp->pval = (void *) malloc ((unsigned) nbytes)))
+	    if ((wp->pval = (void *) ezcamalloc ((unsigned) nbytes)))
 		memcpy((char *) (wp->pval), (char *) buff, nbytes);
 	}
 	else
@@ -4217,7 +4223,7 @@ int rc;
 	    /* freeing malloc'd memory */
 	    if (wp->pval)
 	    {
-		free((char *) wp->pval);
+		ezcafree((char *) wp->pval);
 		wp->pval = (void *) NULL;
 	    } /* endif */
 	} /* endif */
@@ -4302,7 +4308,7 @@ int rc;
 
 	if (nbytes > 0)
 	{
-	    if ((wp->pval = (void *) malloc ((unsigned) nbytes)))
+	    if ((wp->pval = (void *) ezcamalloc ((unsigned) nbytes)))
 		memcpy((char *) (wp->pval), (char *) buff, nbytes);
 	}
 	else
@@ -4405,7 +4411,7 @@ int rc;
 	    /* freeing malloc'd memory */
 	    if (wp->pval)
 	    {
-		free((char *) wp->pval);
+		ezcafree((char *) wp->pval);
 		wp->pval = (void *) NULL;
 	    } /* endif */
 	} /* endif */
@@ -7238,11 +7244,11 @@ EZCA_LOCK();
 			    if (Trace || Debug)
 			printf("my_monitor_callback() freeing mp->pval %p\n",
 				    mp->pval);
-			    free((char *) mp->pval);
+			    ezcafree((char *) mp->pval);
 			    mp->pval = (void *) NULL;
 			} /* endif */
 
-			if (!(mp->pval = (void *) malloc((unsigned) nbytes)))
+			if (!(mp->pval = (void *) ezcamalloc((unsigned) nbytes)))
 			{
 			    fprintf(stderr, 
 	"EZCA FATAL ERROR: my_monitor_callback() could not allocate %d bytes\n",
@@ -7363,7 +7369,7 @@ EZCA_LOCK();
 			if (Trace || Debug)
 			printf("my_monitor_callback() freeing mp->pval %p\n",
 				mp->pval);
-			free((char *) mp->pval);
+			ezcafree((char *) mp->pval);
 		    } /* endif */
 
 		    mp->pval = (void *) NULL;
@@ -7510,7 +7516,7 @@ struct monitor *mp;
 
 	    if (mp->pval)
 	    {
-		free((char *) mp->pval);
+		ezcafree((char *) mp->pval);
 		mp->pval = (void *) NULL;
 	    } /* endif */
 
@@ -7552,7 +7558,7 @@ int clear_failed;
 
 	if (mp->pval)
 	{
-	    free((char *) mp->pval);
+	    ezcafree((char *) mp->pval);
 	    mp->pval = (void *) NULL;
 	} /* endif */
 
@@ -7590,10 +7596,10 @@ int i;
     else
     {
         if ((Channel_avail_hdr = (struct channel *) 
-	    malloc((unsigned) (sizeof(struct channel)*NODESPERMAL))) != NULL)
+	    ezcamalloc((unsigned) (sizeof(struct channel)*NODESPERMAL))) != NULL)
         {
 	    if (Debug)
-		printf("pop_channel() allocated sizeof(struct channel) %zd * NODESPERMAL %d bytes = %zd bytes %p\n", 
+		printf("pop_channel() allocated sizeof(struct channel) %d * NODESPERMAL %d bytes = %d bytes %p\n", 
 		    sizeof(struct channel), NODESPERMAL, 
 			sizeof(struct channel)*NODESPERMAL, Channel_avail_hdr);
 
@@ -7623,7 +7629,7 @@ int i;
 	rc->next = (struct channel *) NULL;
 	if (rc->pvname)
 	{
-	    free(rc->pvname);
+	    ezcafree(rc->pvname);
 	    rc->pvname = (char *) NULL;
 	} /* endif */
 	rc->monitor_list = (struct monitor *) NULL;
@@ -7671,10 +7677,10 @@ int i;
     else
     {
         if ((Monitor_avail_hdr = (struct monitor *) 
-	    malloc((unsigned) (sizeof(struct monitor)*NODESPERMAL))) != NULL)
+	    ezcamalloc((unsigned) (sizeof(struct monitor)*NODESPERMAL))) != NULL)
         {
 	    if (Debug)
-		printf("pop_monitor() allocated sizeof(struct monitor) %zd * NODESPERMAL %d bytes = %zd bytes %p\n", 
+		printf("pop_monitor() allocated sizeof(struct monitor) %d * NODESPERMAL %d bytes = %d bytes %p\n", 
 		    sizeof(struct monitor), NODESPERMAL, 
 		    sizeof(struct monitor)*NODESPERMAL, Monitor_avail_hdr);
 
@@ -7751,11 +7757,11 @@ int i;
     else
     {
         if ((Work_avail_hdr = (struct work *) 
-	    malloc((unsigned) (sizeof(struct work)*NODESPERMAL))) != NULL)
+	    ezcamalloc((unsigned) (sizeof(struct work)*NODESPERMAL))) != NULL)
         {
 
 	    if (Debug)
-		printf("pop_work() allocated sizeof(struct work) %zd * NODESPERMAL %d bytes = %zd bytes %p\n", 
+		printf("pop_work() allocated sizeof(struct work) %d * NODESPERMAL %d bytes = %d bytes %p\n", 
 		    sizeof(struct work), NODESPERMAL, 
 		    sizeof(struct work)*NODESPERMAL, Work_avail_hdr);
 
@@ -7814,14 +7820,14 @@ static void init_work(struct work *wp)
 	wp->error_msg = (char *) NULL;
 	if (wp->aux_error_msg)
 	{
-	    free(wp->aux_error_msg);
+	    ezcafree(wp->aux_error_msg);
 	    wp->aux_error_msg = (char *) NULL;
 	} /* endif */
 	wp->trashme = usable;
 	wp->needs_work = FALSE;
 	if (wp->pvname)
 	{
-	    free(wp->pvname);
+	    ezcafree(wp->pvname);
 	    wp->pvname = (char *) NULL;
 	} /* endif */
 	wp->dbr_type = UNDEFINED;
@@ -7872,7 +7878,7 @@ struct channel **pc,*c;
 				break;
 			}
 		
-	    free(p->pvname);
+	    ezcafree(p->pvname);
 	    p->pvname = (char *) NULL;
 	} /* endif */
 	p->next = *plist;
@@ -7987,13 +7993,13 @@ static void push_work(struct work *p)
     {
 	if (p->pvname)
 	{
-	    free(p->pvname);
+	    ezcafree(p->pvname);
 	    p->pvname = (char *) NULL;
 	} /* endif */
 
 	if (p->aux_error_msg)
 	{
-	    free(p->aux_error_msg);
+	    ezcafree(p->aux_error_msg);
 	    p->aux_error_msg = (char *) NULL;
 	} /* endif */
 
@@ -8243,7 +8249,7 @@ char *strdup(const char *str)
   if (! str)
     return(0);
   
-  new = (char *) malloc(strlen(str) + 1);
+  new = (char *) ezcamalloc(strlen(str) + 1);
   if (! new)
     return(0);
   

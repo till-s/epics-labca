@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.22 2007/06/04 18:59:17 guest Exp $ */
+/* $Id: mglue.c,v 1.23 2007/06/05 05:01:06 guest Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -21,9 +21,9 @@ releasePVs(PVs *pvs)
 int i;
 	if ( pvs && pvs->names ) {
 		for ( i=0; i<pvs->m; i++ ) {
-			mxFree(pvs->names[i]);
+			lcaFree(pvs->names[i]);
 		}
-		mxFree( pvs->names );
+		lcaFree( pvs->names );
 		multi_ezca_ctrlC_epilogue( &pvs->ctrlc );	
 	}
 }
@@ -61,7 +61,7 @@ int	rval = -1;
 		goto cleanup;
 	}
 
-	if ( ! (mem = mxCalloc(m, sizeof(*mem))) ) {
+	if ( ! (mem = lcaCalloc(m, sizeof(*mem))) ) {
 		lcaSetError(pe, EZCA_FAILEDMALLOC, "No Memory\n");
 		goto cleanup;
 	}
@@ -74,7 +74,7 @@ int	rval = -1;
 			goto cleanup;
 		}
 		buflen = mxGetN(tmp) * sizeof(mxChar) + 1;
-		if ( !(mem[i] = mxMalloc(buflen)) ) {
+		if ( !(mem[i] = lcaMalloc(buflen)) ) {
 			lcaSetError(pe, EZCA_FAILEDMALLOC, "No Memory\n");
 			goto cleanup;
 		}
@@ -209,7 +209,7 @@ mxArray *dummy = 0;
 	}
 
 	if ( mxIsCell( tmp ) ) {
-		if ( !(pstr = mxCalloc( m * n, sizeof(*pstr) )) ) {
+		if ( !(pstr = lcaCalloc( m * n, sizeof(*pstr) )) ) {
 			lcaSetError(pe, EZCA_FAILEDMALLOC, "Not Enough Memory");
 			goto cleanup;
 		}
@@ -220,7 +220,7 @@ mxArray *dummy = 0;
 				goto cleanup;
 			}
 			len = mxGetN(strval) * sizeof(mxChar) + 1;
-			if ( !(pstr[i] = mxMalloc(len)) ) {
+			if ( !(pstr[i] = lcaMalloc(len)) ) {
 				lcaSetError(pe, EZCA_FAILEDMALLOC, "Not Enough Memory");
 				goto cleanup;
 			}
@@ -271,9 +271,9 @@ cleanup:
 	if ( pstr ) {
 		/* free string elements also */
 		for ( i=0; i<m*n; i++ ) {
-			mxFree( pstr[i] );
+			lcaFree( pstr[i] );
 		}
-		mxFree( pstr );
+		lcaFree( pstr );
 	}
 	if ( dummy ) {
 		mxDestroyArray( dummy );

@@ -1,4 +1,4 @@
-/* $Id: ecget.c,v 1.4 2004/02/11 23:06:58 till Exp $ */
+/* $Id: ecget.c,v 1.5 2007-05-31 21:16:44 till Exp $ */
 
 /* matlab wrapper for ecget */
 
@@ -49,7 +49,7 @@ LcaError theErr;
     }
     
     if (!(mxa = mxCreateDoubleMatrix(1,nelems,mxREAL))){
-        mxFree(buf); buf=0;
+        lcaFree(buf); buf=0;
         lcaSetError(&theErr, EZCA_FAILEDMALLOC, "ecdrget: no memory");
         goto cleanup;
     }
@@ -62,7 +62,7 @@ LcaError theErr;
 	nlhs = 0;
 
 cleanup:
-    if (buf) mxFree(buf);
+    if (buf) lcaFree(buf);
 	if (mxa) {
 		mxDestroyArray(mxa);
 	}

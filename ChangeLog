@@ -1,5 +1,11 @@
 Changes since labca_3_0_beta:
 	2007/9/5 (TS):
+	- wrapped all malloc/calloc/realloc/free calls into 'lcaMalloc, lcaCalloc'
+	etc. to help debugging memory issues.
+	- special scilab cleanup code because many scilab sanity tests are
+	macros which return from a subroutine w/o giving us a chance to clean up
+	(see glue/sciclean/).
+	2007/9/5 (TS):
 	- fixed memory leak (lcaPutNoWait) in ezca (copy of data made by
 	ezcaPutOldCa() was never free()ed when ezcaPutOldCa() calls were
 	grouped). Thanks to Greg Portmann for helping hunting this down.

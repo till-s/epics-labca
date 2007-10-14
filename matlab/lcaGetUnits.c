@@ -1,4 +1,4 @@
-/* $Id: lcaGet.c,v 1.11 2007-05-31 21:16:45 till Exp $ */
+/* $Id: lcaGetUnits.c,v 1.1 2007/06/04 18:56:18 guest Exp $ */
 
 /* matlab wrapper for ezcaGetUnits */
 
@@ -75,7 +75,7 @@ mxArray *tmp;
 
 cleanup:
 	if ( strbuf )
-		mxFree( strbuf );
+		lcaFree( strbuf );
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */
 	ERR_CHECK(nlhs, plhs, &theErr);

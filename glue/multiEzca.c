@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.37 2007/06/04 18:59:39 guest Exp $ */
+/* $Id: multiEzca.c,v 1.38 2007/08/31 05:51:30 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -222,11 +222,15 @@ int rval = EZCA_OK;
 
 /* I believe there is no harm in just using free() as opposed
  * to ezcaFree...
+ *
+ * Update: there could be harm: under matlab, 'malloc' & friends
+ *         map to mxMalloc() but ezca uses regular 'malloc'. Hence
+ *         stuff allocatedd by ezca should be released with ezcaFree!
  */
 #if 0
 		{
 			void *tmp = pe->errs;
-			pe->errs = malloc(sizeof(*pe->errs)*m);
+			pe->errs = lcaMalloc(sizeof(*pe->errs)*m);
 			memcpy(pe->errs, tmp);
 			ezcaFree(tmp);
 		}
@@ -251,7 +255,7 @@ my_strdup(const char *str)
 {
 char *rval = 0;
 	/* under matlab, 'malloc' will be replaced by mxMalloc by means of macro uglyness */ 
-	if ( str && (rval = malloc(sizeof(*rval) * (strlen(str) + 1) )) ) {
+	if ( str && (rval = lcaMalloc(sizeof(*rval) * (strlen(str) + 1) )) ) {
 		strcpy(rval, str);
 	}
 	return rval;
@@ -470,8 +474,8 @@ register char *bufp;
 		goto cleanup;
 	}
 
-	if ( !(dims  = malloc( m * sizeof(*dims) )) ||
-	     !(types = malloc( m * sizeof(*types) )) ) {
+	if ( !(dims  = lcaMalloc( m * sizeof(*dims) )) ||
+	     !(types = lcaMalloc( m * sizeof(*types) )) ) {
 		ezErr1(
 			EZCA_FAILEDMALLOC,
 			"multi_ezca_put: not enough memory",
@@ -507,7 +511,7 @@ register char *bufp;
 	 * need to buffer the full array - we cannot do it row-wise
 	 */
 
-	if ( !(cbuf  = malloc( m * rowsize )) ) {
+	if ( !(cbuf  = lcaMalloc( m * rowsize )) ) {
 		ezErr1(
 			EZCA_FAILEDMALLOC,
 			"multi_ezca_put: not enough memory",
@@ -557,9 +561,9 @@ register char *bufp;
 		ca_flush_io(); /* make sure request goes out */
 
 cleanup:
-	free(types);
-	free(cbuf);
-	free(dims);
+	lcaFree(types);
+	lcaFree(cbuf);
+	lcaFree(dims);
 	return rval;
 }
 
@@ -590,7 +594,7 @@ register char *bufp;
 	/* get buffers; since we do asynchronous processing, we
 	 * need to buffer the full array - we cannot do it row-wise
 	 */
-	if ( !(dims = calloc( m , sizeof(*dims) )) || !(types = malloc( m * sizeof(*types) )) ) {
+	if ( !(dims = lcaCalloc( m , sizeof(*dims) )) || !(types = lcaMalloc( m * sizeof(*types) )) ) {
 		ezErr1( EZCA_FAILEDMALLOC, "multi_ezca_get: not enough memory", pe);
 		goto cleanup;
 	}
@@ -631,10 +635,10 @@ register char *bufp;
 
 	rowsize = n * typesz;
 
-	if ( !(cbuf = malloc( m * rowsize ))          ||
-		 !(stat = calloc( m,  sizeof(*stat)))     ||
-		 !(ts   = malloc( m * sizeof(TS_STAMP)))  ||
-		 !(sevr = malloc( m * sizeof(*sevr))) ) {
+	if ( !(cbuf = lcaMalloc( m * rowsize ))          ||
+		 !(stat = lcaCalloc( m,  sizeof(*stat)))     ||
+		 !(ts   = lcaMalloc( m * sizeof(TS_STAMP)))  ||
+		 !(sevr = lcaMalloc( m * sizeof(*sevr))) ) {
 		ezErr1( EZCA_FAILEDMALLOC, "multi_ezca_get: not enough memory", pe);
 		goto cleanup;
 	}
@@ -670,9 +674,9 @@ register char *bufp;
 	/* allocate the target buffer */
 	if ( ezcaString == *type )
 		/* Scilab expects NULL terminated char** list */
-		fbuf = calloc( m*n+1, sizeof(char*) );
+		fbuf = lcaCalloc( m*n+1, sizeof(char*) );
 	else
-		fbuf = malloc( m*n * sizeof(double) );
+		fbuf = lcaMalloc( m*n * sizeof(double) );
 
 	if ( !fbuf ) {
 		ezErr1( EZCA_FAILEDMALLOC, "multi_ezca_get: not enough memory", pe);
@@ -742,15 +746,15 @@ register char *bufp;
 cleanup:
 	if ( fbuf && ezcaString == *type ) {
 		for ( i=0; i<n*m; i++)
-			free(((char**)fbuf)[i]);
+			lcaFree(((char**)fbuf)[i]);
 	}
-	free(fbuf);
-	free(cbuf);
-	free(dims);
-	free(types);
-	free(stat);
-	free(sevr);
-	free(ts);
+	lcaFree(fbuf);
+	lcaFree(cbuf);
+	lcaFree(dims);
+	lcaFree(types);
+	lcaFree(stat);
+	lcaFree(sevr);
+	lcaFree(ts);
 	return rval;
 }
 
@@ -772,7 +776,7 @@ char	*bufp3;
 		else /* args[i].buf is !=0 as asserted */
 			continue; /* caller allocated/owns the buffer */
 
-		if ( !(args[i].buf = calloc( m, args[i].size )) ) {
+		if ( !(args[i].buf = lcaCalloc( m, args[i].size )) ) {
 			ezErr1(EZCA_FAILEDMALLOC, "multi_ezca_get_misc: no memory", pe);
 			goto cleanup;
 		}
@@ -856,7 +860,7 @@ cleanup:
 	for ( i=0; i<nargs; i++ ) {
 		/* release only the buffers we created/own */
 		if ( args[i].pres ) {
-			free (args[i].buf);
+			lcaFree (args[i].buf);
 			args[i].buf = 0;
 		}
 	}
@@ -869,7 +873,7 @@ char *types = 0;
 char *rval  = 0;
 int  i;
 
-	if ( !(types = malloc( m * sizeof(*types) )) ) {
+	if ( !(types = lcaMalloc( m * sizeof(*types) )) ) {
 		goto cleanup;
 	}
 
@@ -887,7 +891,7 @@ int  i;
 	types = 0;
 
 cleanup:
-	free( types );
+	lcaFree( types );
 	return rval;
 }
 
@@ -899,7 +903,7 @@ int  *dims  = 0;
 int  i, rc;
 int  rval = -1;
 
-	if ( !(dims  = malloc( m * sizeof(*dims) )) ) {
+	if ( !(dims  = lcaMalloc( m * sizeof(*dims) )) ) {
 		ezErr1(EZCA_FAILEDMALLOC, "multi_ezca_set_mon: not enough memory", pe);
 		goto cleanup;
 	}
@@ -929,8 +933,8 @@ int  rval = -1;
 
 cleanup:
 
-	free( types );
-	free( dims );
+	lcaFree( types );
+	lcaFree( dims );
 	return rval;
 }
 
@@ -973,7 +977,7 @@ char errmsg[100];
 		ezErr1(EZCA_FAILEDMALLOC, "multi_ezca_check_mon: no memory", pe);
 	}
 
-	free( types );
+	lcaFree( types );
 	return rval;
 }
 
@@ -1006,7 +1010,7 @@ int  i,rc = EZCA_FAILEDMALLOC;
 
 cleanup:
 
-	free( types );
+	lcaFree( types );
 	return (EZCA_OK == rc) ? 0 : -1;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: lcaGetStatus.c,v 1.5 2007/05/23 02:50:21 strauman Exp $ */
+/* $Id: lcaGetStatus.c,v 1.6 2007-05-31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaGetStatus */
 
@@ -83,11 +83,11 @@ cleanup:
 			mxDestroyArray( res[i] );
 	}
 	if (ts)
-		mxFree(ts);
+		lcaFree(ts);
 	if (stat)
-		mxFree(stat);
+		lcaFree(stat);
 	if (sevr)
-		mxFree(sevr);
+		lcaFree(sevr);
 	releasePVs(&pvs);
 	/* do this LAST (in case mexErrMsgTxt is called) */
 	ERR_CHECK(nlhs, plhs, &theErr);

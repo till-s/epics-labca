@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.23 2007/05/23 02:50:15 strauman Exp $ */
+/* $Id: multiEzca.h,v 1.24 2007-05-24 19:35:21 till Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -33,9 +33,6 @@ extern "C" {
 
 #ifdef MATLAB_APP
 #define cerro(arg) mexPrintf("Error: %s\n",arg)
-#define malloc(arg) mxMalloc((arg))
-#define free(arg)   mxFree((arg))
-#define calloc(n,s) mxCalloc((n),(s))
 #else
 extern void cerro(const char*);
 #endif
@@ -105,6 +102,26 @@ multi_ezca_check_mon(char **nms, int m, int type, int *val, LcaError *pe);
 
 epicsShareFunc int epicsShareAPI
 multi_ezca_wait_mon(char **nms, int m, int type, LcaError *pe);
+#ifndef LCA_MALLOC_TRACE
+/* Don't have the guts to use scilab's mxMalloc etc. 
+ * implementation. (It uses the scilab stack but
+ * I'm not sure the semantics are kosher:
+ *  - no check for NULL args (mxFree, mxRealloc)
+ *  - mxCalloc only seems to zero if element sizes
+ *    are 'double' or 'int'.
+ */
+#if   defined(SCILAB_APP)
+#define lcaMalloc	malloc
+#define lcaCalloc	calloc
+#define lcaFree		free
+#elif defined(MATLAB_APP)
+#define lcaMalloc	mxMalloc
+#define lcaCalloc	mxCalloc
+#define lcaFree		mxFree
+#else
+#error "no memory allocator defined"
+#endif
+#endif
 
 #ifdef __cplusplus
 };
