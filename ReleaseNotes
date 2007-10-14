@@ -1,4 +1,18 @@
 #####################################
+#  labca_3_1 (T.S, 2007/10/13):     #
+#####################################
+
+This is a bugfix release. Several memory leaks were plugged:
+lcaGetNoWait() and the scilab interface (only when encoutering
+errors) were leaking.
+
+Note that this is a source-code only release. I didn't have
+time to build and test on all the platforms. If you use
+scilab and/or lcaGetNoWait you should upgrade. If you use
+matlab and almost never use lcaGetNoWait then 3.0.beta
+should be OK.
+
+#####################################
 #  labca_3_0_beta (T.S, 2007/6/8):  #
 #####################################
 
