@@ -53,11 +53,11 @@ of \mhack{} strings.
 
 \title{\sca{} --- An EPICS Channel Access Interface for \scilab{} and \matlab{}}
 \author{Till Straumann $<$straumanATslac.stanford.edu$>$, 2003}
-\date{May 23, 2007}
+\date{May 21, 2008}
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.37 2007/06/04 17:28:28 strauman Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.38 2007/06/05 05:00:12 guest Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -731,6 +731,40 @@ Retrieve the graphic limits associated with a number of PVs.
 %%
 \item[lowLimit] \mxl{} column vector of the PV's low graphic limit.
 \item[hiLimit]  \mxl{} column vector of the PV's high graphic limit.
+\end{description}
+
+\vspace*{\fill}
+\pbrk
+\subsection{lcaGetWarnLimits}
+\subsubsection{Calling Syntax}
+\begin{verbatim}
+[lowLimit, hiLimit] = lcaGetWarnLimits(pvs)
+\end{verbatim}
+\subsubsection{Description}
+Retrieve the warning limits associated with a number of PVs.
+\subsubsection{Parameters}
+\begin{description}
+\PVITEM
+%%
+\item[lowLimit] \mxl{} column vector of the PV's low warning limit.
+\item[hiLimit]  \mxl{} column vector of the PV's high warning limit.
+\end{description}
+
+\vspace*{\fill}
+\pbrk
+\subsection{lcaGetAlarmLimits}
+\subsubsection{Calling Syntax}
+\begin{verbatim}
+[lowLimit, hiLimit] = lcaGetAlarmLimits(pvs)
+\end{verbatim}
+\subsubsection{Description}
+Retrieve the alarm limits associated with a number of PVs.
+\subsubsection{Parameters}
+\begin{description}
+\PVITEM
+%%
+\item[lowLimit] \mxl{} column vector of the PV's low alarm limit.
+\item[hiLimit]  \mxl{} column vector of the PV's high alarm limit.
 \end{description}
 
 \vspace*{\fill}

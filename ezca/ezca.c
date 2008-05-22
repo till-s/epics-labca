@@ -160,6 +160,8 @@ static epicsEventId ezcaDone        = 0;
 #define PUTOLDCA            25
 #define CLEARCHANNEL		26
 #define MONBLOCK            27
+#define GETWARNLIMITS       28
+#define GETALARMLIMITS      29
 
 /********************************/
 /*                              */
@@ -205,6 +207,8 @@ static epicsEventId ezcaDone        = 0;
 #define GETTIMEOUT_MSG          "ezcaGetTimeout()"
 #define CLEARCHANNEL_MSG		"ezcaClearChannel()"
 #define MONBLOCK_MSG			"ezcaNewMontorWait()"
+#define GETWARNLIMITS_MSG       "ezcaGetWarnLimits()"
+#define GETALARMLIMITS_MSG      "ezcaGetAlarmLimits()"
 /* Error Messages */
 #define INVALID_PVNAME_MSG  "invalid process variable name"
 #define INVALID_TYPE_MSG    "invalid EZCA data type"
@@ -809,6 +813,8 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 		    case GETGRAPHICLIMITS:
 		    case GETPRECISION:
 		    case GETUNITS:
+			case GETWARNLIMITS:
+			case GETALARMLIMITS:
 			wp->nelem = EzcaElementCount(wp->cp);
 			wp->needs_work = issue_get(wp, wp->cp);
 			break;
@@ -1155,6 +1161,8 @@ int rc;
 		    case GETPRECISION:     wtm = GETPRECISION_MSG;     break;
 		    case GETGRAPHICLIMITS: wtm = GETGRAPHICLIMITS_MSG; break;
 		    case GETCONTROLLIMITS: wtm = GETCONTROLLIMITS_MSG; break;
+		    case GETWARNLIMITS:    wtm = GETWARNLIMITS_MSG;    break;
+		    case GETALARMLIMITS:   wtm = GETALARMLIMITS_MSG;   break;
 		    case GETSTATUS:        wtm = GETSTATUS_MSG;        break;
 		    case GETWITHSTATUS:    wtm = GETWITHSTATUS_MSG;    break;
 		    case SETMONITOR:       wtm = SETMONITOR_MSG;       break;
@@ -1218,6 +1226,8 @@ int rc;
 		    case GETPRECISION:     wtm = GETPRECISION_MSG;     break;
 		    case GETGRAPHICLIMITS: wtm = GETGRAPHICLIMITS_MSG; break;
 		    case GETCONTROLLIMITS: wtm = GETCONTROLLIMITS_MSG; break;
+		    case GETWARNLIMITS:    wtm = GETWARNLIMITS_MSG;    break;
+		    case GETALARMLIMITS:   wtm = GETALARMLIMITS_MSG;   break;
 		    case GETSTATUS:        wtm = GETSTATUS_MSG;        break;
 		    case GETWITHSTATUS:    wtm = GETWITHSTATUS_MSG;    break;
 		    case SETMONITOR:       wtm = SETMONITOR_MSG;       break;
@@ -1298,6 +1308,10 @@ int rc;
 				wtm = GETGRAPHICLIMITS_MSG;    break;
 			    case GETCONTROLLIMITS: 
 				wtm = GETCONTROLLIMITS_MSG;    break;
+		    	case GETWARNLIMITS:
+				wtm = GETWARNLIMITS_MSG;       break;
+			    case GETALARMLIMITS:
+				wtm = GETALARMLIMITS_MSG;      break;
 			    case GETSTATUS:        
 				wtm = GETSTATUS_MSG;           break;
 			    case GETWITHSTATUS:    
@@ -1414,6 +1428,10 @@ int rc;
 				wtm = GETGRAPHICLIMITS_MSG;    break;
 			    case GETCONTROLLIMITS: 
 				wtm = GETCONTROLLIMITS_MSG;    break;
+		    	case GETWARNLIMITS:
+				wtm = GETWARNLIMITS_MSG;       break;
+			    case GETALARMLIMITS:
+				wtm = GETALARMLIMITS_MSG;      break;
 			    case GETSTATUS:        
 				wtm = GETSTATUS_MSG;           break;
 			    case GETWITHSTATUS:    
@@ -1668,6 +1686,8 @@ char *wtm;
 		case GETPRECISION:     wtm = GETPRECISION_MSG;     break;
 		case GETGRAPHICLIMITS: wtm = GETGRAPHICLIMITS_MSG; break;
 		case GETCONTROLLIMITS: wtm = GETCONTROLLIMITS_MSG; break;
+		case GETWARNLIMITS:    wtm = GETWARNLIMITS_MSG;    break;
+		case GETALARMLIMITS:   wtm = GETALARMLIMITS_MSG;   break;
 		case GETSTATUS:        wtm = GETSTATUS_MSG;        break;
 		case GETWITHSTATUS:    wtm = GETWITHSTATUS_MSG;    break;
 		case SETMONITOR:       wtm = SETMONITOR_MSG;       break;
@@ -1719,6 +1739,8 @@ char *wtm;
 		case GETPRECISION:     wtm = GETPRECISION_MSG;     break;
 		case GETGRAPHICLIMITS: wtm = GETGRAPHICLIMITS_MSG; break;
 		case GETCONTROLLIMITS: wtm = GETCONTROLLIMITS_MSG; break;
+		case GETWARNLIMITS:    wtm = GETWARNLIMITS_MSG;    break;
+		case GETALARMLIMITS:   wtm = GETALARMLIMITS_MSG;   break;
 		case GETSTATUS:        wtm = GETSTATUS_MSG;        break;
 		case GETWITHSTATUS:    wtm = GETWITHSTATUS_MSG;    break;
 		case SETMONITOR:       wtm = SETMONITOR_MSG;       break;
@@ -3070,7 +3092,8 @@ int rc;
 *
 ****************************************************************/
 
-int epicsShareAPI ezcaGetControlLimits(char *pvname, double *low, double *high)
+static int
+getLimits(char *pvname, char worktype, double *low, double *high)
 {
 
 struct work *wp;
@@ -3087,133 +3110,7 @@ int rc;
 
 	/* filling work */
 
-	wp->worktype = GETCONTROLLIMITS;
-	wp->d1p = low;
-	wp->d2p = high;
-	
-	/* checking input args */
-        if (!pvname)
-        {
-            wp->rc = EZCA_INVALIDARG;
-            wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-        else if (!(wp->pvname = strdup(pvname)))
-        {
-            wp->rc = EZCA_FAILEDMALLOC;
-            wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-	else if (!(wp->d1p))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	}
-	else if (!(wp->d2p))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	}
-	else
-	{
-	    /* arguments are valid ... EZCA_OK for now */
-	    wp->rc = EZCA_OK;
-	} /* endif */
-
-	if (InGroup)
-	    append_to_work_list(wp);
-	else if (wp->rc == EZCA_OK)
-	{
-	    /* all input args OK */
-
-	    get_channel(wp, &cp);
-
-	    if (cp)
-	    {
-		/* everything OK so far ... otherwise something */
-		/* went wrong and it is already explained in wp */
-		if (EzcaConnected(cp))
-		{
-		    /* channel is currently connected */
-
-		    /* just requesting native element count for ease */
-		    /* although will never look at count nor value   */
-
-		    wp->nelem = EzcaElementCount(cp);
-
-		    if (issue_get(wp, cp))
-		    {
-			/* a EzcaArrayGetCallback() */
-			/* was successfully  issued */
-			issue_wait(wp);
-			if (AutoErrorMessage && wp->rc != EZCA_OK)
-			    print_error(wp);
-		    } /* endif */
-		}
-		else
-		{
-		    /* channel is not connected */
-
-		    wp->rc = EZCA_NOTCONNECTED;
-		    wp->error_msg = ErrorMsgs[NOT_CONNECTED_MSG_IDX];
-
-		    if (AutoErrorMessage)
-			print_error(wp);
-		} /* endif */
-	    } /* endif */
-
-		release_channel( &cp );
-
-	} /* endif */
-
-	rc = wp->rc;
-    }
-    else
-    {
-	rc = EZCA_FAILEDMALLOC;
-
-	if (AutoErrorMessage)
-	    printf("%s\n", FAILED_MALLOC_MSG);
-    } /* endif */
-
-    epilogue();
-    return rc;
-
-} /* end ezcaGetControlLimits() */
-
-/****************************************************************
-*
-*
-****************************************************************/
-
-int epicsShareAPI ezcaGetGraphicLimits(char *pvname, double *low, double *high)
-{
-
-struct work *wp;
-struct channel *cp;
-int rc;
-
-    prologue();
-
-    if ((wp = get_work()))
-    {
-
-	ErrorLocation = (InGroup ? LISTWORK : SINGLEWORK);
-	ListPrint = (InGroup ? LASTONLY : ListPrint);
-
-	/* filling work */
-
-	wp->worktype = GETGRAPHICLIMITS;
+	wp->worktype = worktype;
 	wp->d1p = low;
 	wp->d2p = high;
 
@@ -3316,7 +3213,27 @@ int rc;
     epilogue();
     return rc;
 
-} /* end ezcaGetGraphicLimits() */
+} /* end getLimits() */
+
+int epicsShareAPI ezcaGetControlLimits(char *pvname, double *low, double *high)
+{
+	return getLimits(pvname, GETCONTROLLIMITS, low, high);
+}
+
+int epicsShareAPI ezcaGetGraphicLimits(char *pvname, double *low, double *high)
+{
+	return getLimits(pvname, GETGRAPHICLIMITS, low, high);
+}
+
+int epicsShareAPI ezcaGetWarnLimits(char *pvname, double *low, double *high)
+{
+	return getLimits(pvname, GETWARNLIMITS, low, high);
+}
+
+int epicsShareAPI ezcaGetAlarmLimits(char *pvname, double *low, double *high)
+{
+	return getLimits(pvname, GETALARMLIMITS, low, high);
+}
 
 /****************************************************************
 *
@@ -5541,7 +5458,8 @@ BOOL rc;
 *     Type 1: GET (val), GETSTATUS (time, stat, sevr), 
 *	     or GETWITHSTATUS(val, time,stat, sevr)
 *        here a DBR_TIME_XXXX based on wp->dbr_type
-*     Type 2: GETUNITS, GETGRAPHICLIMITS, GETCONTROLLIMITS, or GETPRECISION
+*     Type 2: GETUNITS, GETGRAPHICLIMITS, GETCONTROLLIMITS, 
+*        GETWARNLIMITS, GETALARMLIMITS or GETPRECISION
 *        here a DBR_CTRL_XXXX based on native type
 *        Note: native type = DBR_STRING or DBR_ENUM, none of these wortype
 *              requests are defined.
@@ -5625,6 +5543,7 @@ int rc;
 	} /* endif */
     }
     else if (wp->worktype == GETUNITS || wp->worktype == GETGRAPHICLIMITS 
+	|| wp->worktype == GETWARNLIMITS || wp->worktype == GETALARMLIMITS
 	|| wp->worktype == GETCONTROLLIMITS || wp->worktype == GETPRECISION)
     {
 	/* requesting dbr_ctrl_xxxx based on native type */
@@ -6173,8 +6092,8 @@ EZCA_UNLOCK();
 * named this routine as the callback.  The request type was either
 * DBR_TIME_XXXX (GET, GETSTATUS, GETWITHSTATUS) where XXXX is the
 * user-specified request type or DBR_CTRL_XXXX (GETUNITS, GETPRECISION, 
-* GETGRAPHICLIMITS, GETCONTROLLIMITS) where XXXX is the native data
-* type.
+* GETGRAPHICLIMITS, GETCONTROLLIMITS, GETWARNLIMITS, GETALARMLIMITS)
+* where XXXX is the native data type.
 *
 * Presumably, wp that is passed here has been set up properly based upon
 * the work type ... sometimes we copy values, sometimes status and severity, ...
@@ -6738,6 +6657,7 @@ EZCA_LOCK();
 			    break;
 
 			/* GETUNITS, GETPRECISION, GETGRAPHICLIMITS, */
+			/* GETWARNLIMITS, GETALARMLIMITS,            */
 			/* or GETCONTROLLIMITS                       */
 
 			/* case DBR_CTRL_INT = DBR_CTRL_SHORT: */
@@ -6801,6 +6721,44 @@ EZCA_LOCK();
 				    {
 					fprintf(stderr, 
     "EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
+				case GETWARNLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_short *) arg.dbr)->lower_warning_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_short *) arg.dbr)->upper_warning_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied warning limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
+				case GETALARMLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_short *) arg.dbr)->lower_alarm_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_short *) arg.dbr)->upper_alarm_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied alarm limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
 					    wp->d1p, wp->d2p);
 					exit(1);
 				    } /* endif */
@@ -6888,6 +6846,44 @@ EZCA_LOCK();
 					exit(1);
 				    } /* endif */
 				    break;
+				case GETWARNLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_float *) arg.dbr)->lower_warning_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_float *) arg.dbr)->upper_warning_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied warning limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
+				case GETALARMLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_float *) arg.dbr)->lower_alarm_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_float *) arg.dbr)->upper_alarm_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied alarm limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
 				default:
 				    fprintf(stderr, 
     "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_CTRL_FLOAT %ld with wp->worktype %d\n",
@@ -6960,6 +6956,44 @@ EZCA_LOCK();
 					exit(1);
 				    } /* endif */
 				    break;
+				case GETWARNLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_char *) arg.dbr)->lower_warning_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_char *) arg.dbr)->upper_warning_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied warning limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
+				case GETALARMLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_char *) arg.dbr)->lower_alarm_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_char *) arg.dbr)->upper_alarm_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied alarm limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
 				default:
 				    fprintf(stderr, 
     "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_CTRL_CHAR %ld with wp->worktype %d\n",
@@ -7028,6 +7062,44 @@ EZCA_LOCK();
 				    {
 					fprintf(stderr, 
     "EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
+				case GETWARNLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->lower_warning_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->upper_warning_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied warning limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
+				case GETALARMLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->lower_alarm_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->upper_alarm_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied alarm limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
 					    wp->d1p, wp->d2p);
 					exit(1);
 				    } /* endif */
@@ -7111,6 +7183,44 @@ EZCA_LOCK();
 				    {
 					fprintf(stderr, 
 "EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
+				case GETWARNLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_double *) arg.dbr)->lower_warning_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_double *) arg.dbr)->upper_warning_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied warning limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
+					exit(1);
+				    } /* endif */
+				    break;
+				case GETALARMLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_double *) arg.dbr)->lower_alarm_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_double *) arg.dbr)->upper_alarm_limit;
+
+					if (Trace || Debug)
+			printf("my_get_callback() just copied alarm limits\n");
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
 					    wp->d1p, wp->d2p);
 					exit(1);
 				    } /* endif */

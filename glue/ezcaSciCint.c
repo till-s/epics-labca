@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.26 2007/08/31 05:51:30 strauman Exp $ */
+/* $Id: ezcaSciCint.c,v 1.27 2007/10/14 03:28:04 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -287,7 +287,7 @@ LcaError *theErr = errCreate(sciclean);
  	return 0;
 }
 
-static int intsezcaGetControlLimits(char *fname, int namlen, Sciclean sciclean)
+static int getLimits(char *fname, int namlen, Sciclean sciclean, MultiEzcaFunc f)
 {
 int m,n,d1,d2;
 char **pvs MAY_ALIAS;
@@ -307,7 +307,7 @@ LcaError *theErr = errCreate(sciclean);
 	MSetArg(args[0], sizeof(double), stk(d1), 0); 
 	MSetArg(args[1], sizeof(double), stk(d2), 0); 
 
-	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetControlLimits, NumberOf(args), args, theErr) ) {
+	if ( multi_ezca_get_misc(pvs, m, f, NumberOf(args), args, theErr) ) {
 		for ( n=1; n<=Lhs; n++ )
 			LhsVar(n) = Rhs + n;
 	}
@@ -315,32 +315,24 @@ LcaError *theErr = errCreate(sciclean);
 	return 0;
 }
 
+static int intsezcaGetControlLimits(char *fname, int namlen, Sciclean sciclean)
+{
+	return getLimits(fname, namlen, sciclean, (MultiEzcaFunc)ezcaGetControlLimits);
+}
+
 static int intsezcaGetGraphicLimits(char *fname, int namlen, Sciclean sciclean)
 {
-int m,n,d1,d2;
-char **pvs MAY_ALIAS;
-MultiArgRec args[2];
-LcaError *theErr = errCreate(sciclean);
+	return getLimits(fname, namlen, sciclean, (MultiEzcaFunc)ezcaGetGraphicLimits);
+}
 
-	CheckRhs(1,1);
-	CheckLhs(1,2);
+static int intsezcaGetWarnLimits(char *fname, int namlen, Sciclean sciclean)
+{
+	return getLimits(fname, namlen, sciclean, (MultiEzcaFunc)ezcaGetWarnLimits);
+}
 
-	GetRhsVar(1,"S",&m,&n,&pvs);
-	SCICLEAN_SVAR(pvs);
-	CheckColumn(1,m,n);
-
-	CreateVar(2, "d", &m, &n, &d1);
-	CreateVar(3, "d", &m, &n, &d2);
-
-	MSetArg(args[0], sizeof(double), stk(d1), 0); 
-	MSetArg(args[1], sizeof(double), stk(d2), 0); 
-
-	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetGraphicLimits, NumberOf(args), args, theErr) ) {
-		for ( n=1; n<=Lhs; n++ )
-			LhsVar(n) = Rhs + n;
-	}
-	
-	return 0;
+static int intsezcaGetAlarmLimits(char *fname, int namlen, Sciclean sciclean)
+{
+	return getLimits(fname, namlen, sciclean, (MultiEzcaFunc)ezcaGetAlarmLimits);
 }
 
 static int intsezcaGetStatus(char *fname, int namlen, Sciclean sciclean)
@@ -754,6 +746,8 @@ static GenericTable Tab[]={
   {(Myinterfun)sciclean_gateway, intsezcaGetNelem,				"lcaGetNelem"},
   {(Myinterfun)sciclean_gateway, intsezcaGetControlLimits,		"lcaGetControlLimits"},
   {(Myinterfun)sciclean_gateway, intsezcaGetGraphicLimits,		"lcaGetGraphicLimits"},
+  {(Myinterfun)sciclean_gateway, intsezcaGetWarnLimits,		    "lcaGetWarnLimits"},
+  {(Myinterfun)sciclean_gateway, intsezcaGetAlarmLimits,		"lcaGetAlarmLimits"},
   {(Myinterfun)sciclean_gateway, intsezcaGetStatus,				"lcaGetStatus"},
   {(Myinterfun)sciclean_gateway, intsezcaGetPrecision,			"lcaGetPrecision"},
   {(Myinterfun)sciclean_gateway, intsezcaGetUnits,				"lcaGetUnits"},

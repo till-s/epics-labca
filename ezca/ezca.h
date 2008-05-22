@@ -92,6 +92,10 @@ epicsShareFunc int epicsShareAPI ezcaGetControlLimits(char *pvname,
 	double *low, double *high);
 epicsShareFunc int epicsShareAPI ezcaGetGraphicLimits(char *pvname, 
 	double *low, double *high);
+epicsShareFunc int epicsShareAPI ezcaGetWarnLimits(char *pvname, 
+	double *low, double *high);
+epicsShareFunc int epicsShareAPI ezcaGetAlarmLimits(char *pvname, 
+	double *low, double *high);
 epicsShareFunc int epicsShareAPI ezcaGetNelem(char *pvname, int *nelem);
 epicsShareFunc int epicsShareAPI ezcaGetPrecision(char *pvname, 
 	short *precision);

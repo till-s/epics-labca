@@ -9,6 +9,8 @@ ezca_funs=[...
   'lcaGetNelem';
   'lcaGetControlLimits';
   'lcaGetGraphicLimits';
+  'lcaGetWarnLimits';
+  'lcaGetAlarmLimits';
   'lcaGetStatus';
   'lcaGetPrecision';
   'lcaGetUnits';
