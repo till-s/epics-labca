@@ -1,4 +1,12 @@
 Changes since labca_3_2_beta:
+	2009/10/13 (TS):
+	- several small changes to support scilab-5.1. (Scilab-5 is completely
+	re-vamped.)
+	TODO: Since scilab-5 help files must be in their XML format (converted
+	to javahelp jars though) we need to re-write the documentation, breaking
+	out individual commands into some 'meta' format from which XML and
+	tex can be generated.
+	HELP DOES NOT WORK YET on scilab-5!
 Changes since labca_3_1:
 	2008/5/21 (TS):
 	- added ezcaGetWarnLimits() and ezcaGetAlarmLimits() and the respective

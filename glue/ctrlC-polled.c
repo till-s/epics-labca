@@ -1,4 +1,4 @@
-/* $Id: ctrlC-polled.c,v 1.2 2007-04-12 00:12:14 till Exp $ */
+/* $Id: ctrlC-polled.c,v 1.3 2007/05/09 19:08:52 till Exp $ */
 
 /* scilab Ctrl-C handling */
 
@@ -28,13 +28,16 @@ static int poll_cb()
 #else
 
 #include <stack-c.h>
+#include <version.h>
 
 /* external declaration of 'interrupt flag' */
 typedef int logical;
 
+#if 0
 IMPORT struct {
 	logical iflag, interruptible;
 } C2F(basbrk);
+#endif
 
 extern void C2F(isbrk)(int *);
 extern void C2F(inibrk)();
@@ -46,11 +49,17 @@ extern int C2F(checkevts)(int *);
 static int poll_cb()
 {
 int rval;
+/* scilab 5 doesn't need this anymore :-)
+ * OTOH, scilab 4 doesn't define SCI_VERSION_MAJOR at all
+ * but luckily has a 'version.h' header
+ */
+#if SCI_VERSION_MAJOR < 5
 	/* processing X loop necessary? */
 	C2F(checkevts)(&rval);
 	/* process X loop */
 	if ( rval )
 		C2F(sxevents)();
+#endif
 	C2F(isbrk)(&rval);
 	if (rval) {
 		/* reset irq flag so scilab doesn't detect another abort */

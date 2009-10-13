@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.29 2007/06/10 20:14:33 strauman Exp $ */
+/* $Id: ini.cc,v 1.30 2007/06/20 07:33:30 strauman Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -29,6 +29,8 @@ extern "C" int _getpid();
 
 #ifdef SCILAB_APP
 #include <signal.h>
+#include <errno.h>
+#include <version.h>
 #endif
 
 // Configurable Parameters
@@ -77,7 +79,7 @@ static int isMcc(int ini)
 
 	if ( 0 == mexCallMATLAB(1, &lhs, 0, NULL, "ismcc") &&
 		 mxGetScalar(lhs) != 0. ) {
-		mexPrintf("skip execution of multiEzca%s in ini.cc during mcc compilation\n", ini ? "Initializer" : "Finalizer");
+		mexPrintf((char*)"skip execution of multiEzca%s in ini.cc during mcc compilation\n", ini ? "Initializer" : "Finalizer");
 		return -1;
 	}
 	return 0;
@@ -153,7 +155,7 @@ multiEzcaFinalizer()
 
 #if DEBUG_FINA > 0
 		if ( ! dontPrint ) {
-			mexPrintf("Errlog thread has ID 0x%08x\n", errlogid);
+			mexPrintf((char*)"Errlog thread has ID 0x%08x\n", errlogid);
 		}
 #endif
 		// win32 'IsSuspended' routine calls GetExitCodeThread and
@@ -161,7 +163,7 @@ multiEzcaFinalizer()
 		if ( !errlogid || epicsThreadIsSuspended(errlogid) ) {
 #if DEBUG_FINA > 0
 			if ( ! dontPrint )
-				mexPrintf("aborting cleanup; bailing out\n");
+				mexPrintf((char*)"aborting cleanup; bailing out\n");
 #endif
 			return; // don't attempt any cleanup
 		}
@@ -171,13 +173,13 @@ multiEzcaFinalizer()
 	// If we make it here, it's safe to print...
 
 #if DEBUG_FINA > 0
-	mexPrintf("Entering labca finalizer\n");
+	mexPrintf((char*)"Entering labca finalizer\n");
 #endif
 
 	if ( thepid != getpid() ) {
 		/* DONT run this if a forked caRepeater exits */
 #if DEBUG_FINA > 0
-		mexPrintf("labca finalizer: PID mismatch\n");
+		mexPrintf((char*)"labca finalizer: PID mismatch\n");
 #endif
 		_exit(-1);
 		return; //never get here
@@ -186,37 +188,37 @@ multiEzcaFinalizer()
 	// FIXME: proper ezca shutdown; move all of this to ezca...
 
 #if DEBUG_FINA > 1
-	mexPrintf("clearing channels...\n");
+	mexPrintf((char*)"clearing channels...\n");
 #endif
 	multi_ezca_clear_channels(0,-1, 0);
 #if DEBUG_FINA > 1
-	mexPrintf("done\n");
+	mexPrintf((char*)"done\n");
 #endif
 	ezcaLock();
 
 
 #if DEBUG_FINA > 1
-	mexPrintf("destroying CA context...\n");
+	mexPrintf((char*)"destroying CA context...\n");
 #endif
 	ca_context_destroy();
 #if DEBUG_FINA > 1
-	mexPrintf("done\n");
+	mexPrintf((char*)"done\n");
 #endif
 
 #if BASE_IS_MIN_VERSION(3,14,7)
 #if DEBUG_FINA > 1
-	mexPrintf("calling exits...\n");
+	mexPrintf((char*)"calling exits...\n");
 #endif
 	/* replicate epicsExit w/o calling exit() */
 	epicsExitCallAtExits();
 #if DEBUG_FINA > 1
-	mexPrintf("done\n");
+	mexPrintf((char*)"done\n");
 #endif
 	epicsThreadSleep(1.);
 #endif
 
 #if DEBUG_FINA > 0
-	mexPrintf("Leaving labca finalizer\n");
+	mexPrintf((char*)"Leaving labca finalizer\n");
 #endif
 }
 
@@ -247,9 +249,14 @@ CtrlCStateRec saved;
 		return;
 #endif
 
-#ifdef SCILAB_APP
+
+#if defined( SCILAB_APP ) && SCI_VERSION_MAJOR < 5
 	/* uninstall scilabs recovery method; I'd rather have
 	 * a coredump to debug...
+	 * However, do this only for old scilab -- java installs
+	 * a sigaction handler and apparently doesn't like us messing
+	 * with a SIGSEGV handler -- I actually get segmentation faults
+	 * IF I change the handler under scilab-5!
 	 */
 	signal(SIGSEGV, SIG_DFL);
 #endif
@@ -269,6 +276,7 @@ mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
    */
   mexLock();
 #endif
+
 #if defined(USE_DLOPEN) && !defined(MATLAB_APP)
   if ( !dlopen("libsezcaglue.so",RTLD_NOW) ) {
 	mexPrintf((char*)"Locking library in memory failed: %s\n",dlerror());

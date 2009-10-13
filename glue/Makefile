@@ -11,6 +11,9 @@
 TOP = ..
 include $(TOP)/configure/CONFIG
 CMPLR = STRICT
+# allow '//' comments in C files
+# (scilab-5 uses those...)
+CONFORM_CFLAGS_STRICT=-std=c99
 
 USR_INCLUDES += -I../../ezca
 
@@ -73,7 +76,12 @@ $(LOADABLE_PREFIX)LIBRARY_HOST := mezcaglue
 #SCRIPTS+=mkmezca.m
 else
 USR_CPPFLAGS+=-DSCILAB_APP
-USR_INCLUDES += -I$(SCILABDIR)/routines -I../sciclean
+# scilab 4 has the relevant headers in <routines>, scilab 5 has
+# multiple subdirs of which we want to search <mexlib> and <core>.
+# We simply concatenate scilab 4 and 5 subdirs -- this should work
+# for both versions...
+SCIINCS=$(addprefix -I$(SCILABDIR)/,routines mexlib core .)
+USR_INCLUDES += $(SCIINCS) -I../sciclean
 LIB_SRCS+= ezcaSciCint.c
 LIB_SRCS+= sciclean.c
 $(LOADABLE_PREFIX)LIBRARY_HOST := sezcaglue
@@ -154,7 +162,7 @@ mkmezca.m: ../mkmezca.m.tmpl
 	sed -e 's%THELIB%$(LIBSUB)/$(T_A)/$($(LOADABLE_PREFIX)SHRLIBNAME)%g' -e 's/THEFILE/$@/g' <$^ >$@
 
 ../%.def: ../%.def.in
-	$(CPP) $(CPPFLAGS) -I$(SCILABDIR)/routines $< | sed -n -e '/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p' > $@
+	$(CPP) $(CPPFLAGS) $(SCIINCS) $< | sed -n -e '/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p' > $@
 
 ifneq ($(OS_CLASS),WIN32)
 PRODNAME_LINKER=$(MATLABDIR)/bin/$(MEX) -f $(MATLABDIR)/bin/engopts.sh $(TARGET_LDFLAGS) $(USR_LDFLAGS) $(OP_SYS_LDFLAGS) -output $@

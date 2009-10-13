@@ -31,6 +31,8 @@ ezca_funs=[...
   ];
 ezca_top=get_absolute_file_path('THEFILE')+'../../';
 addinter(ezca_top+'THELIB','ezca',ezca_funs);
-if grep(%helps(:,1),ezca_top)== [] then
+// help doesn't work yet on scilab-5 (and it would work in
+// a different way anyways...
+if msscanf(getversion(),"scilab-%i") < 5 & grep(%helps(:,1),ezca_top)== [] then
    %helps=[%helps;[ezca_top+"html/help", "EPICS CA Interface"]];
 end

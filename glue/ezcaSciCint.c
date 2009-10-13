@@ -1,11 +1,16 @@
-/* $Id: ezcaSciCint.c,v 1.27 2007/10/14 03:28:04 strauman Exp $ */
+/* $Id: ezcaSciCint.c,v 1.28 2008-05-22 00:17:35 till Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
 #include "stack-c.h"
+#include <version.h>
 #include <string.h>
 #include <cadef.h>
 #include <ezca.h>
+
+#if SCI_VERSION_MAJOR >= 5
+#include <output_stream/Scierror.h>
+#endif
 
 #include <sciclean.h>
 

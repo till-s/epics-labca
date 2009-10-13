@@ -11,20 +11,32 @@
 TOP = ..
 include $(TOP)/configure/CONFIG
 
-include $(TOP)/configure/RULES
+# No need for RULES - and it 
+# clashes with the realclean: target
+# which has been present since 3.14.10...
+#
+#include $(TOP)/configure/RULES
+
+install:: buildInstall
+
+buildInstall:: build
+
+build::
 
 ifeq ($(MAKEFOR),MATLAB)
-buildInstall:../lcaTest.m
+build::lcaTest.m
 endif
 
 #convert scilab test script to matlab
-../lcaTest.m:	../lcaTest.sce
+lcaTest.m:	lcaTest.sce
 	@if ! sed -e 's$$^//$$%$$' -e 's/\<sleep(1000[*]/pause(/g' -e's/mtlb_//g' -e"s/%nan/nan('double')/g" -e 's/^%MATLABWARN/disp/' $< > $@ ;  then \
 		echo "*** WARNING: Unable to create test script for MATLAB" ;  \
 		echo "%*** WARNING: Unable to create test script for MATLAB" > $@ ;  \
 	fi
 
-realclean::
+clean::
+
+realclean:: clean
 	$(RM) lcaTest.m
 
 #	EOF Makefile
