@@ -91,7 +91,7 @@ endif
 
 .SECONDARY:
 
-realclean::
+realclean:: clean
 	$(RM) -r help
 	$(RM) -r manual 
 	$(RM) *.aux *.dvi *.log *.pdf *.out *.ps
