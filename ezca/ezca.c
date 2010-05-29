@@ -815,7 +815,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 		    case GETUNITS:
 			case GETWARNLIMITS:
 			case GETALARMLIMITS:
-			wp->nelem = EzcaElementCount(wp->cp);
+			wp->nelem = 1; /* = EzcaElementCount(wp->cp); */
 			wp->needs_work = issue_get(wp, wp->cp);
 			break;
 		    case GETNELEM:
@@ -836,7 +836,7 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 printf("ezcaEndGroupWithReport(): did not find an active monitor with a value for >%s<\n",
 				wp->pvname);
 
-			    wp->nelem = EzcaElementCount(wp->cp);
+			    wp->nelem = 1; /* = EzcaElementCount(wp->cp); */
 			    wp->needs_work = issue_get(wp, wp->cp);
 			} /* endif */
 			break;
@@ -3172,7 +3172,7 @@ int rc;
 		    /* just requesting native element count for ease */
 		    /* although will never look at count nor value   */
 
-		    wp->nelem = EzcaElementCount(cp);
+		    wp->nelem = 1; /* = EzcaElementCount(cp);*/
 
 		    if (issue_get(wp, cp))
 		    {
@@ -3412,9 +3412,13 @@ int rc;
 		{
 		    /* channel is currently connected */
 
+#if 0
 		    /* just requesting native element count for ease */
 		    /* although will never look at count nor value   */
 		    wp->nelem = EzcaElementCount(cp);
+#else
+			wp->nelem = 1; /* don't request unnecessary stuff */
+#endif
 
 		    if (issue_get(wp, cp))
 		    {
@@ -3558,9 +3562,13 @@ int rc;
 			if (Trace || Debug)
     printf("ezcaGetStatus(): did not find an active monitor with a value\n");
 
+#if 0
 			/* just requesting native element count for ease */
 			/* although will never look at count nor value   */
 			wp->nelem = EzcaElementCount(cp);
+#else
+			wp->nelem = 1; /* don't request unnecessary stuff */
+#endif
 
 			if (issue_get(wp, cp))
 			{
@@ -3675,9 +3683,13 @@ int rc;
 		{
 		    /* channel is currently connected */
 
+#if 0
 		    /* just requesting native element count for ease */
 		    /* although will never look at count nor value   */
 		    wp->nelem = EzcaElementCount(cp);
+#else
+			wp->nelem = 1; /* don't request unnecessary stuff */
+#endif
 
 		    if (issue_get(wp, cp))
 		    {
