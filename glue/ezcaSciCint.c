@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.28 2008-05-22 00:17:35 till Exp $ */
+/* $Id: ezcaSciCint.c,v 1.29 2009/10/13 18:03:57 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -9,7 +9,11 @@
 #include <ezca.h>
 
 #if SCI_VERSION_MAJOR >= 5
+#if SCI_VERSION_MINOR < 2
 #include <output_stream/Scierror.h>
+#else
+#include <Scierror.h>
+#endif
 #endif
 
 #include <sciclean.h>

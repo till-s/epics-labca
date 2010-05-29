@@ -1,4 +1,12 @@
 Changes since labca_3_2_beta:
+	2010/05/28 (TS):
+	- IMPROVEMENT. ezcaGetUnits(), ezcaGet_xxx_Limits(), ezcaGetPrecision(),
+	  ezcaGetStatus() used to transfer the native element count even if
+	  the PV value itself was discarded.
+	  Modified ezca.c so that only 1 element is requested by these calls.
+	  This enhances speed with slow connections :-).
+	- several small changes to support scilab-5.2. Some header install
+	  locations have changed since 5.1; __PARAMS() macro has gone. 
 	2009/10/13 (TS):
 	- several small changes to support scilab-5.1. (Scilab-5 is completely
 	re-vamped.)

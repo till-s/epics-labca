@@ -80,7 +80,7 @@ USR_CPPFLAGS+=-DSCILAB_APP
 # multiple subdirs of which we want to search <mexlib> and <core>.
 # We simply concatenate scilab 4 and 5 subdirs -- this should work
 # for both versions...
-SCIINCS=$(addprefix -I$(SCILABDIR)/,routines mexlib core .)
+SCIINCS=$(addprefix -I$(SCILABDIR)/,routines mexlib core include/scilab .)
 USR_INCLUDES += $(SCIINCS) -I../sciclean
 LIB_SRCS+= ezcaSciCint.c
 LIB_SRCS+= sciclean.c
