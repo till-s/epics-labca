@@ -9,6 +9,16 @@ record(waveform,"lca:wav7") { field("NELM", "100") field("FTVL", "LONG") }
 record(waveform,"lca:wav8") { field("NELM", "100") field("FTVL", "LONG") }
 record(waveform,"lca:wav9") { field("NELM", "100") field("FTVL", "LONG") }
 
+# Should not fit in a CA transfer!
+record(waveform,"lca:wavA") {
+	field("NELM", "20000")
+	field("FTVL", "FLOAT")
+	field("EGU",  "testU")
+	field("PREC", "4")
+	field("HOPR", "111")
+	field("LOPR", "-222")
+}
+
 record(calc,    "lca:count") {
 	field("INPA","lca:count")
 	field("CALC","A+1")

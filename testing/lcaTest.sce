@@ -1,9 +1,25 @@
 // Test script for labCA; load 'test.db' into a soft-IOC example app
 // and run this script from scilab/matlab...
 //
+// Make sure there is no console prompt ('continue [y]/n?') during
+// the timeout test!
+//
 // Reset severity warn level
 lcaSetSeverityWarnLevel(3)
 lcaSetSeverityWarnLevel(13)
+
+// We want to verify that lcaGetPrecision, lcaGetxxxLimits, lcaGetUnits,
+// lcaGetStatus don't transfer all array elements. We want these calls
+// to fail if we fetch them for a large waveform.
+disp('VERIFYING THAT EPICS_CA_MAX_ARRAY_BYTES IS *SMALL* ENOUGH FOR TEST')
+try
+    lcaGet('lca:wavA');
+    error('lcaGet should have failed -- unset EPICS_CA_MAX_ARRAY_BYTES')
+catch
+end
+disp('<<<OK') 
+
+
 
 // Make sure any previous monitors and channels are removed
 disp('CLEARING ALL')
@@ -92,7 +108,7 @@ tic()
 	end
 tme = toc();
 if ( tme < 1 | tme > 3 )
-	error('timeout out of bounds')
+	error(msprintf('timeout (%i) out of bounds',tme))
 end
 
 catch
@@ -278,6 +294,30 @@ disp('<<<OK')
 
 disp('CHECKING lcaGetControlLimits / lcaGetGraphicLimits / lcaGetPrecision')
 
+disp('VERIFY that lcaGetControlLimits transfer size is small')
+try
+	lcaGetControlLimits('lca:wavA');
+catch
+	error('FAILED: seems lcaGetControlLimits transfers all data')
+end
+disp('<<<OK')
+
+disp('VERIFY that lcaGetGraphicLimits transfer size is small')
+try
+	lcaGetGraphicLimits('lca:wavA');
+catch
+	error('FAILED: seems lcaGetGraphicLimits transfers all data')
+end
+disp('<<<OK')
+
+disp('VERIFY that lcaGetPrecision     transfer size is small')
+try
+	lcaGetPrecision('lca:wavA');
+catch
+	error('FAILED: seems lcaGetPrecision transfers all data')
+end
+disp('<<<OK')
+
 hopr =   500;
 lopr = -1500;
 drvh = 13000;
@@ -316,6 +356,14 @@ if ( ~mtlb_strcmp(lcaGet('lca:out',0,'c'),'0.12') )
 end
 end
 
+disp('<<<OK')
+
+disp('VERIFY that lcaGetStatus transfer size is small')
+try
+	lcaGetStatus('lca:wavA');
+catch
+	error('FAILED: seems lcaGetStatus transfers all data')
+end
 disp('<<<OK')
 
 disp('CHECKING lcaGetStatus and severity rejection')
@@ -428,6 +476,15 @@ disp('<<<OK')
 
 if ( labcaversion > 2 )
 disp('CHECKING lcaGetUnits')
+
+disp('VERIFY that lcaGetUnits transfer size is small')
+try
+	lcaGetUnits('lca:wavA');
+catch
+	error('FAILED: seems lcaGetUnits transfers all data')
+end
+disp('<<<OK')
+
 lcaPut({'lca:scl0.EGU';'lca:scl1.EGU'},{'ABER';'XX'});
 if ( find(~mtlb_strcmp(lcaGetUnits({'lca:scl0';'lca:scl1'}),{'ABER';'XX'})) )
 	error('lcaGetUnits test FAILED');
@@ -508,4 +565,5 @@ disp('<<<OK')
 else
 disp('test CTRL-C handling manually under labCA version 2')
 end
+
 disp('<< ALL DONE')
