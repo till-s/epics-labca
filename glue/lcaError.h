@@ -1,16 +1,18 @@
 #ifndef LCA_ERROR_H
 #define LCA_ERROR_H
-/* $Id: lcaError.h,v 1.3 2007/05/26 02:17:35 guest Exp $ */
+/* $Id: lcaError.h,v 1.4 2010/05/29 00:53:26 strauman Exp $ */
 
 /* labca error interface */
 
 #include <stdarg.h>
 #include <shareLib.h>
 
+#ifdef SCILAB_APP
 #include <version.h>
 
 #if SCI_VERSION_MAJOR > 5 || (SCI_VERSION_MAJOR == 5 && SCI_VERSION_MINOR >= 2)
 #include <Scierror.h>
+#endif
 #endif
 
 typedef struct LcaError_ {
