@@ -33,6 +33,10 @@ ezca_top=get_absolute_file_path('THEFILE')+'../../';
 addinter(ezca_top+'THELIB','ezca',ezca_funs);
 // help doesn't work yet on scilab-5 (and it would work in
 // a different way anyways...
-if msscanf(getversion(),"scilab-%i") < 5 & grep(%helps(:,1),ezca_top)== [] then
-   %helps=[%helps;[ezca_top+"html/help", "EPICS CA Interface"]];
+if msscanf(getversion(),"scilab-%i") < 5 then
+  if grep(%helps(:,1),ezca_top)== [] then
+    %helps=[%helps;[ezca_top+"html/help", "EPICS CA Interface"]];
+  end
+else
+  add_help_chapter('labCA',ezca_top+'jar')
 end

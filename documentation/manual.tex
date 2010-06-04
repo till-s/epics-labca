@@ -57,7 +57,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.38 2007/06/05 05:00:12 guest Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.39 2008-05-22 00:17:31 till Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -239,7 +239,7 @@ The error codes are shown in
 \pbrk
 \subsection{lcaGet}
 \label{lcaget}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 [value, timestamp] = lcaGet(pvs, nmax, type)
 \end{verbatim}
@@ -278,7 +278,7 @@ an array only --- it always ships \ita{all} elements).
 (\ita{optional argument}) A string specifying the
 data type to be used for the channel access data transfer. Note
 that unless the PVs are of native ``string'' type or conversion to
-``string'' is enforced explicitely (type = \com{char}), \sca{}
+``string'' is enforced explicitly (type = \com{char}), \sca{}
 always converts the data to ``double'' locally.
 
 It can be desirable, however, to use a different data type for the
@@ -299,7 +299,7 @@ is enforced by specifying this argument.
 
 Note that while \com{native}{} might result in different types
 being used for different PVs, it is currently not possible to
-explicitely request different types for individual PVs (i.e.
+explicitly request different types for individual PVs (i.e.
 \com{type}{} can't be a vector).
 %
 %
@@ -359,7 +359,7 @@ and fractional nanoseconds (imaginary part) elapsed since
 \pbrk
 \subsection{lcaPut}
 \label{lcaput}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 lcaPut(pvs, value, type)
 \end{verbatim}
@@ -399,7 +399,7 @@ is automatically set to \com{char}.
 
 Note that while \com{native}{} might result in different types
 being used for different PVs, it is currently not possible to
-explicitely request different types for individual PVs (i.e. 
+explicitly request different types for individual PVs (i.e. 
 \com{type}{} cannot be a vector).
 %
 \end{description}
@@ -428,7 +428,7 @@ explicitely request different types for individual PVs (i.e.
 \pbrkf
 \subsection{lcaPutNoWait}
 \label{lcaputnowait}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 lcaPutNoWait(pvs, value, type)
 \end{verbatim}
@@ -447,7 +447,7 @@ See \com{lcaPut}.
 \vspace*{\fill}
 \pbrk
 \subsection{lcaGetNelem}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 numberOfElements = lcaGetNelem(pvs)
 \end{verbatim}
@@ -467,7 +467,7 @@ of elements (``array dimension'').
 \pbrk
 \subsection{lcaSetMonitor}
 \label{lcasetmonitor}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 lcaSetMonitor(pvs, nmax, type)
 \end{verbatim}
@@ -535,7 +535,7 @@ lcaSetMonitor('PV', 20, 's')
 \pbrk
 \subsection{lcaNewMonitorWait}
 \label{lcanewmonitorwait}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 lcaNewMonitorValue(pvs, type)
 \end{verbatim}
@@ -573,7 +573,7 @@ end
 \pbrk
 \subsection{lcaNewMonitorValue}
 \label{lcanewmonitorvalue}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 [flags] = lcaNewMonitorValue(pvs, type)
 \end{verbatim}
@@ -624,7 +624,7 @@ end
 \pbrk
 \subsection{lcaClear}
 \label{lcaclear}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 lcaClear(pvs)
 \end{verbatim}
@@ -653,7 +653,7 @@ thus clearing {\em all} channels (and monitors).
 \pbrkf
 \subsection{lcaLastError}
 \label{lcalasterror}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 [err_status] = lcaLastError()
 \end{verbatim}
@@ -701,7 +701,7 @@ end
 \vspace*{\fill}
 \pbrkf
 \subsection{lcaGetControlLimits}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 [lowLimit, hiLimit] = lcaGetControlLimits(pvs)
 \end{verbatim}
@@ -719,7 +719,7 @@ Retrieve the control limits associated with a number of PVs.
 \vspace*{\fill}
 \pbrk
 \subsection{lcaGetGraphicLimits}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 [lowLimit, hiLimit] = lcaGetGraphicLimits(pvs)
 \end{verbatim}
@@ -736,7 +736,7 @@ Retrieve the graphic limits associated with a number of PVs.
 \vspace*{\fill}
 \pbrk
 \subsection{lcaGetWarnLimits}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 [lowLimit, hiLimit] = lcaGetWarnLimits(pvs)
 \end{verbatim}
@@ -753,7 +753,7 @@ Retrieve the warning limits associated with a number of PVs.
 \vspace*{\fill}
 \pbrk
 \subsection{lcaGetAlarmLimits}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 [lowLimit, hiLimit] = lcaGetAlarmLimits(pvs)
 \end{verbatim}
@@ -770,7 +770,7 @@ Retrieve the alarm limits associated with a number of PVs.
 \vspace*{\fill}
 \pbrk
 \subsection{lcaGetStatus}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 [severity, status, timestamp] = lcaGetStatus(pvs)
 \end{verbatim}
@@ -791,12 +791,12 @@ PV \hyperref[ref]{timestamps}{timestamps (see }{ about the timestamp format)}{ts
 \vspace*{\fill}
 \pbrk
 \subsection{lcaGetPrecision}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 precision = lcaGetPrecision(pvs)
 \end{verbatim}
 \subsubsection{Description}
-Retrieve the precision of a number of PVs.
+Retrieve the precision associated with a number of PVs.
 \subsubsection{Parameters}
 \begin{description}
 \PVITEM
@@ -807,7 +807,7 @@ Retrieve the precision of a number of PVs.
 \vspace*{\fill}
 \pbrk
 \subsection{lcaGetUnits}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 units = lcaGetUnits(pvs)
 \end{verbatim}
@@ -825,7 +825,7 @@ of strings holding the PV EGUs.
 \pbrk
 \subsection{lcaGetRetryCount, lcaSetRetryCount}
 \label{retrycnt}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 currentRetryCount = lcaGetRetryCount()
 lcaSetRetryCount(newRetryCount)
@@ -841,7 +841,7 @@ transfers, respectively.
 \pbrk
 \subsection{lcaGetTimeout, lcaSetTimeout}
 \label{timeout}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 currentTimeout = lcaGetTimeout()
 lcaSetTimeout(newTimeout)
@@ -864,7 +864,7 @@ timeout multiplied by the
 \vspace*{\fill}
 \pbrk
 \subsection{lcaDebugOn, lcaDebugOff}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 lcaDebugOn()
 lcaDebugOff()
@@ -876,7 +876,7 @@ Switch the \ezca{} library's debugging facility on and off, respectively.
 \pbrk
 \subsection{lcaSetSeverityWarnLevel}
 \label{swarnlevel}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 lcaSetSeverityWarnLevel(newlevel)
 \end{verbatim}
@@ -896,7 +896,7 @@ the default.
 \pbrk
 \subsection{lcaDelay}
 \label{lcadelay}
-\subsubsection{Calling Syntax}
+\subsubsection{Calling Sequence}
 \begin{verbatim}
 lcaDelay(timeout)
 \end{verbatim}

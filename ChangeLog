@@ -1,4 +1,6 @@
 Changes since labca_3_2_beta:
+	2010/06/04 (TS):
+	- Added (partly hand-crafted) help files for scilab-5.
 	2010/05/28 (TS):
 	- IMPROVEMENT. ezcaGetUnits(), ezcaGet_xxx_Limits(), ezcaGetPrecision(),
 	  ezcaGetStatus() used to transfer the native element count even if

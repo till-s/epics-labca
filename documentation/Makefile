@@ -13,6 +13,16 @@ TOP = ..
 T_A = cheat
 include $(TOP)/configure/CONFIG
 
+SCILAB=scilab
+
+# Only scilab 5 can return a nonzero 'exit' code
+define scilab-lt-5
+	$(SCILAB) -nb -nw -e 'exit(sign(msscanf(getversion(),"scilab-%i")-5)+1)' >/dev/null 2>&1
+endef
+
+SCI5:=$(shell if $(scilab-lt-5); then echo NO; else echo YES; fi)
+
+
 HELPS+=help/lcaDebugOn.html
 HELPS+=help/lcaGetControlLimits.html
 HELPS+=help/lcaGetGraphicLimits.html
@@ -35,9 +45,18 @@ HELPS+=help/lcaLastError.html
 
 MHELPS=$(HELPS:%.html=%.m)
 
+SCI5HELPS=$(patsubst %.sci,%.xml,$(wildcard xmlhelp/en_US/*.sci))
+SCI5HELPS+=xmlhelp/en_US/Common.xml
+SCI5HELPS+=xmlhelp/en_US/Error.xml
+
 DOCS+=manual.pdf
 MANHTMLS=$(wildcard manual/*)
 HTMLS+=$(HELPS) help/whatis.htm $(MANHTMLS)
+
+INSTALL_SCI5_YES_HELPJAR=$(INSTALL_LOCATION)/jar/scilab_en_US_help.jar
+INSTALL_SCI5_NO_HELPJAR=
+
+INSTALL_SCI5_HELPJAR=$(INSTALL_SCI5_$(SCI5)_HELPJAR)
 
 $(INSTALL_HTML)/$(HTMLS_DIR)/%: %
 	@echo "Installing HTML Help/Documentation $@"
@@ -49,7 +68,7 @@ $(INSTALL_DOC)/%:%
 
 install: buildInstall
 
-buildInstall: build $(INSTALL_DOCS) $(INSTALL_HTMLS)
+buildInstall: build $(INSTALL_DOCS) $(INSTALL_HTMLS) $(INSTALL_SCI5_HELPJAR)
 
 clean::
 
@@ -89,10 +108,41 @@ build:
 	$(MAKE)
 endif
 
+xmlclean:
+	$(RM)    xmlhelp/en_US/lca*.xml en_US/master_help.xml
+	$(RM) -r xmlhelp/en_US/scilab_en_US_help/
+	$(RM) -r jar
+
+# prepare '.sci' file based on '.m'. This must be hand-tuned
+# to a xmlhelp/en_US/%.sci file which can be translated into xml by
+# help_from_sci()
+xml/%.sci: help/%.m
+	sed -e '1s/^%/function /' -e '1,$$s#^%#//#' -e '$$a\
+endfunction' $^ > $@	
+
+
+xmlhelp/en_US/lca%.xml: xmlhelp/en_US/lca%.sci
+	$(RM) $@
+	$(SCILAB) -nb -nw -e 'help_from_sci("$(@:%.xml=%.sci)","./xmlhelp/en_US"); quit;'
+
+./jar/scilab_en_US_help.jar: $(SCI5HELPS)
+	$(RM) $@
+	$(SCILAB) -nb -nw -e 'xmltojar("xmlhelp/en_US","labCA"); quit'
+
+$(INSTALL_LOCATION)/jar/scilab_en_US_help.jar: ./jar/scilab_en_US_help.jar $(INSTALL_LOCATION)/jar 
+	@$(INSTALL) -d -m 644 $< $(@D)
+
+$(INSTALL_LOCATION)/jar:
+	mkdir $@
+	
+
 .SECONDARY:
 
-realclean:: clean
+realclean:: clean xmlclean
 	$(RM) -r help
 	$(RM) -r manual 
 	$(RM) *.aux *.dvi *.log *.pdf *.out *.ps
 	$(RM) *~
+
+test:
+	echo $(SCI5)

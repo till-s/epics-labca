@@ -10,3 +10,5 @@ ifeq ($(MAKEFOR),MATLAB)
 DIRS += matlab
 endif
 include $(TOP)/configure/RULES_TOP
+
+UNINSTALL_DIRS+=jar
