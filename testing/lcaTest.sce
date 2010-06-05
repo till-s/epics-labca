@@ -17,7 +17,7 @@ try
 catch
 // just continue
 end
-if 0 == lca_fail then
+if ( 0 == lca_fail )
 	disp('<<<OK')
 else
 	error('basic error throwing test FAILED')
@@ -34,7 +34,7 @@ try
 	lca_fail=1;
 catch
 end
-if 0 == lca_fail then
+if ( 0 == lca_fail )
 	disp('<<<OK') 
 else
     error('lcaGet should have failed -- unset EPICS_CA_MAX_ARRAY_BYTES')
@@ -60,8 +60,9 @@ disp('<<<OK')
 
 // Test timeout and retry count
 
-try // {
-	// argument check
+try 
+// {
+//  argument check
 	if ( labcaversion > 2 )
 		try
 			lcaSetTimeout(0)
@@ -101,7 +102,7 @@ try // {
 		error('Readback of retry count FAILED')
 	end
 	
-	// estimate timeout
+//  estimate timeout
 	tic()
 		try
 			disp('Waiting for timeout to expire...')
@@ -120,7 +121,8 @@ try // {
 	if ( tme < 1 | tme > 3 )
 		error(msprintf('timeout (%i) out of bounds',tme))
 	end
-catch // }
+// }
+catch 
 	disp('Timeout/Retry count test FAILED')
 	errxxx=lasterror()
 	error(errxxx)
@@ -140,7 +142,8 @@ wavs = {...
 	'lca:wav5'; 'lca:wav6'; 'lca:wav7'; 'lca:wav8'; 'lca:wav9';...
 };
 
-try // {
+try 
+// {
 	disp('CHECKING TIMESTAMPS')
 	lcaPut( 'lca:scl0', 432 )
 	[got, ts]  = lcaGet( 'lca:scl0' );
@@ -164,9 +167,9 @@ try // {
 	lcaPutNoWait(wavs, zeros(10,100))
 	
 	disp('Sleeping for 3s to verify lcaPutNoWait() flushing queue')
-	// don't change format of sleep; sed script for
-	// conversion to matlab looks for string
-	// 's','l','e','e','p','(','1','0','0','0','*'
+//  don't change format of sleep; sed script for
+//  conversion to matlab looks for string
+//  's','l','e','e','p','(','1','0','0','0','*'
 	sleep(1000*3)
 	
 	[got, ts1] = lcaGet(wavs(1),1);
@@ -181,17 +184,17 @@ try // {
 	
 	disp('CHECKING TYPE CONVERSIONS FOR lcaPut')
 	
-	// restore values
+//  restore values
 	lcaPutNoWait(wavs,nums)
 	
-	// Verify that we can read a subarray
+//  Verify that we can read a subarray
 	got = lcaGet(wavs,4);
 	
 	if ( find(got ~= nums(:,1:4)) )
 		error('Reading subarray FAILED')
 	end
 	
-	// Verify that we can write typed values
+//  Verify that we can write typed values
 	lcaPut('lca:scl0',2^32+1234,'d')
 	if ( lcaGet('lca:scl0') ~= 2^32+1234 )
 		error('type DOUBLE readback check FAILED')
@@ -199,8 +202,8 @@ try // {
 	
 	lcaPut('lca:scl0',2^32+1234,'l')
 	longscl = lcaGet('lca:scl0');
-	// FIXME: unclear how double is converted -> long
-	// some compilers produce 2^31-1 others -2^31 and yet others 1234...
+//  FIXME: unclear how double is converted -> long
+//  some compilers produce 2^31-1 others -2^31 and yet others 1234...
 	if ( longscl ~= 2^31-1 & longscl ~= -2^31 & longscl ~= 1234 )
 		error('type LONG readback overflow check FAILED')
 	end
@@ -217,9 +220,9 @@ try // {
 		error('type SHORT readback check FAILED')
 	end
 	lcaPut('lca:scl0',1234,'b')
-	// IOC puts CHAR as UCHAR !!!
-	// (see) dbPutNotifyMapType() hence 
-	// well get 210 back instead of -46
+//  IOC puts CHAR as UCHAR !!!
+//  (see) dbPutNotifyMapType() hence 
+//  well get 210 back instead of -46
 	if ( lcaGet('lca:scl0') ~= 1234-1024 )
 		error('type BYTE readback overflow check FAILED')
 	end
@@ -232,10 +235,10 @@ try // {
 	
 	disp('CHECKING TYPE CONVERSIONS FOR lcaGet')
 	
-	// Verify that we can read typed values
+//  Verify that we can read typed values
 	lcaPut('lca:scl0', 2^32+1234)
-	// ??? conversion happens on IOC and is compiler-dependent :-(;
-	// seems we get -2^31
+//  ??? conversion happens on IOC and is compiler-dependent :-(;
+//  seems we get -2^31
 	if ( lcaGet('lca:scl0',0,'l') ~= -2^31 )
 		error('type LONG read overflow check FAILED')
 	end
@@ -244,9 +247,9 @@ try // {
 	if ( lcaGet('lca:scl0',0,'l') ~= 2^16+1234 )
 		error('type LONG read check FAILED')
 	end
-	// ??? conversion happens on IOC and is compiler-dependent :-(;
-	// some (same EPICS versions) seem to saturate, others
-	// truncate the bits...
+//  ??? conversion happens on IOC and is compiler-dependent :-(;
+//  some (same EPICS versions) seem to saturate, others
+//  truncate the bits...
 	longscl = lcaGet('lca:scl0',0,'s'); 
 	if (  longscl ~= -2^15 & longscl ~= 1234 )
 		error('type SHORT read overflow check FAILED')
@@ -255,9 +258,9 @@ try // {
 	if ( lcaGet('lca:scl0',0,'s') ~= 1234 )
 		error('type SHORT read check FAILED')
 	end
-	// ??? conversion happens on IOC and is compiler-dependent :-(;
-	// some (same EPICS versions) seem to saturate, others
-	// truncate the bits...
+//  ??? conversion happens on IOC and is compiler-dependent :-(;
+//  some (same EPICS versions) seem to saturate, others
+//  truncate the bits...
 	longscl = lcaGet('lca:scl0',0,'b'); 
 	if ( longscl ~= -46 )
 		error('type BYTE read overflow check FAILED')
@@ -267,7 +270,7 @@ try // {
 		error('type BYTE read check FAILED')
 	end
 	
-	// Check string/menu conversion
+//  Check string/menu conversion
 	if ( ~mtlb_strcmp(lcaGet('lca:scl0',0,'c'),'123') )
 		error('type STRING -> number read check FAILED')
 	end
@@ -286,7 +289,8 @@ try // {
 		error('type STRING -> number (menu) write check FAILED')
 	end
 	
-catch // }
+// }
+catch 
 	disp('Testing lcaGet/lcaPut/lcaPutNoWait FAILED')
 	errxxx=lasterror()
 	error(errxxx)
@@ -394,7 +398,7 @@ try
 catch
 // just continue
 end
-if 0 ~= lca_fail then
+if ( 0 ~= lca_fail )
 	error('lcaGetStatus FAILED to reject no arg');
 end
 
@@ -405,7 +409,7 @@ try
 catch
 // just continue
 end
-if 0 ~= lca_fail then
+if ( 0 ~= lca_fail )
 	error('lcaGetStatus FAILED to reject to many output args');
 end
 
@@ -556,7 +560,7 @@ catch
 		error('lcaNewMonitorValue un-monitored PV error catch check: FAILED')
 	end
 end
-if 0 ~= lca_fail then
+if ( 0 ~= lca_fail )
 	error('lcaNewMonitorValue on un-monitored PV should throw error: FAILED')
 end
 else
@@ -568,22 +572,22 @@ end
 disp('<<<OK')
 
 if ( labcaversion > 2 )
-	// NOTE NOTE This MUST be the last test until I know how to catch
-	// a Ctrl-C event under matlab
+//  NOTE NOTE This MUST be the last test until I know how to catch
+//  a Ctrl-C event under matlab
 	disp('CHECKING CTRL-C HANDLING: press Ctrl-C and verify that the command')
 	disp('                          aborts prior to expiration of a 10s timeout')
-	//MATLABWARN('WARNING: Cannot catch CTRL-C under MATLAB from .m file -- ignore error message')
+//  MATLABWARN('WARNING: Cannot catch CTRL-C under MATLAB from .m file -- ignore error message')
 	lca_fail=0;
 	try
 		lcaDelay(10)
 		lca_fail=1;
 	catch
-	// MATLAB NOTE: CTRL-C aborts entire .m file -- we never get here...
+//  MATLAB NOTE: CTRL-C aborts entire .m file -- we never get here...
 		if ( lcaLastError() ~= 9 )
 			error('CTRL-C test FAILED (unknown cause)')
 		end
 	end
-	if 0 ~= lca_fail then
+	if ( 0 ~= lca_fail )
 		error('No Ctrl-C detected')
 	end
 	disp('<<<OK')
