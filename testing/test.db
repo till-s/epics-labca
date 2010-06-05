@@ -17,6 +17,7 @@ record(waveform,"lca:wavA") {
 	field("PREC", "4")
 	field("HOPR", "111")
 	field("LOPR", "-222")
+	field("PINI", "YES")
 }
 
 record(calc,    "lca:count") {
