@@ -36,5 +36,9 @@ if msscanf(getversion(),"scilab-%i") < 5 then
     %helps=[%helps;[ezca_top+"html/help", "EPICS CA Interface"]];
   end
 else
-  add_help_chapter('labCA',ezca_top+'jar')
+  if add_help_chapter('labCA',ezca_top+'jar') then
+	disp('Help files loaded')
+  else
+	disp('Loading help files FAILED')
+  end
 end
