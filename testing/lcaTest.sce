@@ -576,13 +576,14 @@ if ( labcaversion > 2 )
 //  a Ctrl-C event under matlab
 	disp('CHECKING CTRL-C HANDLING: press Ctrl-C and verify that the command')
 	disp('                          aborts prior to expiration of a 10s timeout')
-//  MATLABWARN('WARNING: Cannot catch CTRL-C under MATLAB from .m file -- ignore error message')
+    //  MATLABWARN('WARNING: Cannot catch CTRL-C under some versions of MATLAB from .m file -- ignore possible error message')
 	lca_fail=0;
 	try
 		lcaDelay(10)
 		lca_fail=1;
 	catch
-//  MATLAB NOTE: CTRL-C aborts entire .m file -- we never get here...
+//  MATLAB NOTE (some versions, 2010a with -nojvm seems to work fine):
+//  CTRL-C aborts entire .m file -- we never get here...
 		if ( lcaLastError() ~= 9 )
 			error('CTRL-C test FAILED (unknown cause)')
 		end

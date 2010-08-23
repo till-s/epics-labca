@@ -1,4 +1,8 @@
 Changes since labca_3_3:
+	2010/08/23 (TS):
+	- Changed SED commands that transform lcaTest.sce -> lcaTest.m
+	  so that the script is (again) properly transformed for matlab.
+	  Thanks to Steph Allison for pointing out problems...
 Changes since labca_3_2_beta:
 	2010/06/04 (TS):
 	- Added (partly hand-crafted) help files for scilab-5.
