@@ -9,9 +9,6 @@ This directory contains a modified version of the 'ezca' library
  - added 'ezcaAbort()' to abort polling loops from a signal handler.
  - added 'ezcaPollCbInstall()' to let the user install a callback
    to poll for an abort condition while pending for CA activity.
- - removed all monitor related calls (simplifies channel management
-   and the whole library. Monitors are not used by the scilab/matlab
-   interface).
  - added channel management (i.e. channels that are not found are 
    removed from the cache; added ezcaClearChannel() and ezcaPurge()
    to allow for explicitely removing cache entries and disconnect
