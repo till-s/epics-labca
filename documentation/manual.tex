@@ -9,7 +9,7 @@
 \newcommand{\sca}{\ita{labCA}}
 \newcommand{\scilab}{\ita{scilab}}
 \newcommand{\matlab}{\ita{matlab}}
-\newcommand{\windoze}{\ita{win32}}
+\newcommand{\windoze}{\ita{win32/64}}
 \newcommand{\linux}{\ita{linux}}
 \newcommand{\solaris}{\ita{solaris}}
 \newcommand{\ezca}{\ita{ezca}}
@@ -57,7 +57,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.41 2010/06/08 02:26:05 strauman Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.42 2010/06/12 21:57:35 strauman Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -94,7 +94,7 @@ of PV names.
 \sca{} has been tested with EPICS 3.13%
 \footnote{Support for 3.13 has been dropped as of \sca{} version 3}%
 ,
-3.14, \scilab-2.7 .. \scilab-5.2,
+3.14, \scilab-2.7 .. \scilab-5.3,
 \matlab-6.5, \matlab-7 (R2010a) on \ita{linux}, \ita{solaris} and
 \windoze. Note that while some of these combinations have been
 tested and been known working in the past, only the latest
@@ -956,8 +956,8 @@ would end up in the running \matlab{} application with possible adverse
 effects. It should be possible to build and use the \scilab{} interface
 with static libraries --- minor tweaks to the Makefiles might be necessary.
 
-\sca{} has been tested with \matlab-6.5, \matlab-7.0 and \scilab-2.7 .. \scilab-4.1
-under a variety of EPICS releases up to 3.14.10 on \ita{linux-x86},
+\sca{} has been tested with \matlab-6.5, \matlab-7.0 and \scilab-2.7 .. \scilab-5.3
+under a variety of EPICS releases up to 3.14.12 on \ita{linux-x86},
 \ita{linux-ppc}, \ita{solaris-sparc-gnu},
 \ita{linux-x86\_64}, \ita{solaris-sparc}, \ita{solaris-sparc64}
 and \windoze%
@@ -1043,7 +1043,10 @@ white space as they are commonly used on \windoze. Although I have
 tried to work around this, you still might encounter problems. I found
 that setting the environment variable \com{MATLAB} to point to the \matlab{}
 directory helped (\ita{cygwin}). It is best to avoid white space in path
-names, however.
+names, however. This can be achieved by using symbolic links under recent
+\windoze (but this unfortunately requires special privileges), re-mounting
+as a network drive or simpy copying relevant headers and libraries
+to a secondary, white-space free ``work-directory hierarchy''.
 
 \subsubsection{Building \sca}
 After setting the
