@@ -5,10 +5,10 @@ DIRS += configure
 DIRS += ezca
 DIRS += glue
 DIRS += documentation
-DIRS += testing
 ifeq ($(MAKEFOR),MATLAB)
 DIRS += matlab
 endif
+DIRS += testing
 include $(TOP)/configure/RULES_TOP
 
 UNINSTALL_DIRS+=jar
