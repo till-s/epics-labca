@@ -1,5 +1,7 @@
 Changes since labca_3_3:
 	2012/01/11 (TS):
+	- glue/ctrlC-polled.c: scilab-5 seems to properly export + declare
+	  'basbrk' (even under windows) so we use it.
 	- glue/multiEzca.c: silence compiler warnings (64-bit?)  by
 	  using ptrdiff_t instead of int and explicit type conversions
 	  where appropriate.

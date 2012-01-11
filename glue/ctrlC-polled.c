@@ -1,4 +1,4 @@
-/* $Id: ctrlC-polled.c,v 1.3 2007/05/09 19:08:52 till Exp $ */
+/* $Id: ctrlC-polled.c,v 1.4 2009/10/13 18:03:57 strauman Exp $ */
 
 /* scilab Ctrl-C handling */
 
@@ -30,10 +30,10 @@ static int poll_cb()
 #include <stack-c.h>
 #include <version.h>
 
+#if SCI_VERSION_MAJOR < 5
 /* external declaration of 'interrupt flag' */
 typedef int logical;
 
-#if 0
 IMPORT struct {
 	logical iflag, interruptible;
 } C2F(basbrk);
@@ -63,7 +63,8 @@ int rval;
 	C2F(isbrk)(&rval);
 	if (rval) {
 		/* reset irq flag so scilab doesn't detect another abort */
-#if 0 /* win32 dosesn't export 'basbrk' */
+#if SCI_VERSION_MAJOR >= 5 /* win32 dosesn't export 'basbrk' */
+      /* UPDATE: scilab-5.3.3 does export and declare basbrk :-) */
 		C2F(basbrk).iflag = 0;
 #else
 		/* this clears iflag but also (re-) installs the SIGINT handler */
