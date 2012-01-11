@@ -34,22 +34,22 @@ CONFIG_ECDRGET=NO
 # No need to change anything below here
 # (except for adding more matlab extensions for
 # other platforms...)
-MEXEXT_hpux-parisc=.mexhpux
+MEXEXT_hpux-parisc=mexhpux
 MLBARCH_hpux-parisc=hpux
 
-MEXEXT_linux-x86=.mexglx
+MEXEXT_linux-x86=mexglx
 MLBARCH_linux-x86=glnx86
 
-MEXEXT_linux-x86_64=.mexa64
+MEXEXT_linux-x86_64=mexa64
 MLBARCH_linux-x86_64=glnxa64
 
-MEXEXT_solaris-sparc=.mexsol
+MEXEXT_solaris-sparc=mexsol
 MLBARCH_solaris-sparc=sol2
 
-MEXEXT_solaris-sparc64=.mexs64
+MEXEXT_solaris-sparc64=mexs64
 MLBARCH_solaris-sparc64=sol64
 
-MEXEXT_Darwin-ppc=.mexmac
+MEXEXT_Darwin-ppc=mexmac
 MLBARCH_Darwin-ppc=mac
 
 # Matlab at least >= 2006b uses mexw32
@@ -57,15 +57,18 @@ MLBARCH_Darwin-ppc=mac
 # which will define MEXEXT eventually.
 # MEXEXT_DFLT will be used for older versions
 # of matlab only...
-MEXEXT_win32-x86=.dll
+MEXEXT_win32-x86=dll
 MLBARCH_win32-x86=win32
+
+MEXEXT_windows-x64=dll
+MLBARCH_windows-x64=win64
 
 EPICSARCH=$(word 1,$(subst -, ,$(EPICS_HOST_ARCH)))-$(word 2,$(subst -, ,$(EPICS_HOST_ARCH)))
 MEXEXT_DFLT=$(MEXEXT_$(EPICSARCH))
 MLBARCH=$(MLBARCH_$(EPICSARCH))
 
 ifeq ($(OS_CLASS),WIN32)
-MEX=win32/mex.bat
+MEX=mex.bat
 MEXEXT_SH=mexext.bat
 MEXCXXFLAGS=
   ifeq ($(MAKEFOR),MATLAB)

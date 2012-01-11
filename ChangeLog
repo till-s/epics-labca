@@ -1,5 +1,9 @@
 Changes since labca_3_3:
 	2012/01/11 (TS):
+	- configure/CONFIG: added defaults for 'windows-x64'
+	- configure/RULES: avoid complicated shell commands (which windows command.com
+	  is unable to unerstand).
+	2012/01/11 (TS):
 	- ezca/ezca.c: silenced compiler warnings (signed/unsigned,
 	  size_t printf format).
 	2010/08/23 (TS):
