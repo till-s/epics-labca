@@ -1,5 +1,6 @@
 Changes since labca_3_3:
 	2012/01/11 (TS):
+	- configure/RELEASE: removed CONFIG-SLAC hacks - doesn't work as intended.
 	- configure/CONFIG: added defaults for 'windows-x64'
 	- configure/RULES: avoid complicated shell commands (which windows command.com
 	  is unable to unerstand).
