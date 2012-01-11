@@ -13,15 +13,14 @@ TOP = ..
 T_A = cheat
 include $(TOP)/configure/CONFIG
 
+# Broken: scilab 5 under windows executable is 'scilex' :-(
+# but we have no T_A/OS_CLASS to test here
 SCILAB=scilab
 
 # Only scilab 5 can return a nonzero 'exit' code
-define scilab-lt-5
-	$(SCILAB) -nb -nw -e 'exit(sign(msscanf(getversion(),"scilab-%i")-5)+1)' >/dev/null 2>&1
-endef
-
-SCI5:=$(shell if $(scilab-lt-5); then echo NO; else echo YES; fi)
-
+#define scilab-lt-5
+#	$(SCILAB) -nb -nw -e 'exit(sign(msscanf(getversion(),"scilab-%i")-5)+1)' >/dev/null 2>&1
+#endef
 
 HELPS+=help/lcaDebugOn.html
 HELPS+=help/lcaGetControlLimits.html
@@ -53,10 +52,7 @@ DOCS+=manual.pdf
 MANHTMLS=$(wildcard manual/*)
 HTMLS+=$(HELPS) help/whatis.htm $(MANHTMLS)
 
-INSTALL_SCI5_YES_HELPJAR=$(INSTALL_LOCATION)/jar/scilab_en_US_help.jar
-INSTALL_SCI5_NO_HELPJAR=
-
-INSTALL_SCI5_HELPJAR=$(INSTALL_SCI5_$(SCI5)_HELPJAR)
+INSTALL_SCI5_HELPJAR=$(INSTALL_LOCATION)/jar/scilab_en_US_help.jar
 
 $(INSTALL_HTML)/$(HTMLS_DIR)/%: %
 	@echo "Installing HTML Help/Documentation $@"
@@ -143,6 +139,3 @@ realclean:: clean xmlclean
 	$(RM) -r manual 
 	$(RM) *.aux *.dvi *.log *.pdf *.out *.ps
 	$(RM) *~
-
-test:
-	echo $(SCI5)

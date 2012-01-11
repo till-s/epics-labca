@@ -1,5 +1,8 @@
 Changes since labca_3_3:
 	2012/01/11 (TS):
+	- documentation/Makefile: removed run-time test for scilab version (too
+	  hard to get to work under windows). We just in stall the scilab-5 help
+	  files anyways.
 	- configure/RELEASE: removed CONFIG-SLAC hacks - doesn't work as intended.
 	- configure/CONFIG: added defaults for 'windows-x64'
 	- configure/RULES: avoid complicated shell commands (which windows command.com
