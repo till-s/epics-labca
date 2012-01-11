@@ -1,4 +1,7 @@
 Changes since labca_3_3:
+	2012/01/11 (TS):
+	- ezca/ezca.c: silenced compiler warnings (signed/unsigned,
+	  size_t printf format).
 	2010/08/23 (TS):
 	- Changed SED commands that transform lcaTest.sce -> lcaTest.m
 	  so that the script is (again) properly transformed for matlab.

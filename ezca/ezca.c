@@ -585,7 +585,11 @@ void epicsShareAPI ezcaAbort()
 EzcaPollCb epicsShareAPI ezcaPollCbInstall(EzcaPollCb newCb)
 {
 EzcaPollCb rval;
+#ifdef EPICS_THREE_FOURTEEN
+epicsThreadOnceId i;
+#else
 int	i;
+#endif
 
 /* give them the option to call this prior to initializing the library */
 if ( (i=Initialized) )
@@ -2080,7 +2084,7 @@ int epicsShareAPI ezcaDelay(float sec)
 struct work *wp;
 int status;
 int rc;
-int   attempt;
+unsigned   attempt;
 
     prologue();
 
@@ -2091,9 +2095,9 @@ int   attempt;
 	/* filling work */
 	wp->worktype = DELAY;
 
-	if (sec > 0)
+	if (sec > 0.)
 	{
-		RetryCount = sec/TimeoutSeconds;
+		RetryCount = (unsigned)(sec/TimeoutSeconds);
 		if ( RetryCount * TimeoutSeconds < sec )
 			RetryCount++;
 		for ( attempt=0, status = ECA_TIMEOUT;
@@ -7722,8 +7726,8 @@ int i;
         {
 	    if (Debug)
 		printf("pop_channel() allocated sizeof(struct channel) %d * NODESPERMAL %d bytes = %d bytes %p\n", 
-		    sizeof(struct channel), NODESPERMAL, 
-			sizeof(struct channel)*NODESPERMAL, Channel_avail_hdr);
+		    (unsigned)sizeof(struct channel), NODESPERMAL, 
+			(unsigned)sizeof(struct channel)*NODESPERMAL, Channel_avail_hdr);
 
             for (rc = Channel_avail_hdr, i=0; i < (NODESPERMAL-1); i ++)
             {
@@ -7803,8 +7807,8 @@ int i;
         {
 	    if (Debug)
 		printf("pop_monitor() allocated sizeof(struct monitor) %d * NODESPERMAL %d bytes = %d bytes %p\n", 
-		    sizeof(struct monitor), NODESPERMAL, 
-		    sizeof(struct monitor)*NODESPERMAL, Monitor_avail_hdr);
+		    (unsigned)sizeof(struct monitor), NODESPERMAL, 
+		    (unsigned)sizeof(struct monitor)*NODESPERMAL, Monitor_avail_hdr);
 
             for (rc = Monitor_avail_hdr, i=0; i < (NODESPERMAL-1); i ++)
             {
@@ -7884,8 +7888,8 @@ int i;
 
 	    if (Debug)
 		printf("pop_work() allocated sizeof(struct work) %d * NODESPERMAL %d bytes = %d bytes %p\n", 
-		    sizeof(struct work), NODESPERMAL, 
-		    sizeof(struct work)*NODESPERMAL, Work_avail_hdr);
+		    (unsigned)sizeof(struct work), NODESPERMAL, 
+		    (unsigned)sizeof(struct work)*NODESPERMAL, Work_avail_hdr);
 
             for (rc = Work_avail_hdr, i=0; i < (NODESPERMAL-1); i ++)
             {
