@@ -1,6 +1,9 @@
 Changes since labca_3_3:
 	2012/01/11 (TS):
-	- glue/mglue.c, glue/mglue.h: silence compiler warning (64-bit?) by
+	- glue/multiEzca.c: silence compiler warnings (64-bit?)  by
+	  using ptrdiff_t instead of int and explicit type conversions
+	  where appropriate.
+	- glue/mglue.c, glue/mglue.h: silence compiler warnings (64-bit?) by
 	  using size_t instead of int where appropriate.
 	- documentation/Makefile: removed run-time test for scilab version (too
 	  hard to get to work under windows). We just in stall the scilab-5 help

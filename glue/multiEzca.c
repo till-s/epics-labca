@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.38 2007/08/31 05:51:30 strauman Exp $ */
+/* $Id: multiEzca.c,v 1.39 2007/10/14 03:28:04 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -292,8 +292,8 @@ int i;
 struct timespec ts;
 	for ( i=0; i<m; i++ ) {
 		epicsTimeToTimespec( &ts, pts + i );
-		pre[i] = ts.tv_sec;
-		pim[i] = ts.tv_nsec;
+		pre[i] = (double)ts.tv_sec;
+		pim[i] = (double)ts.tv_nsec;
 	}
 }
 
@@ -303,7 +303,7 @@ static void
 ezErr(int rc, char *nm, LcaError *pe)
 {
 	char *msg,*b,*ok, *nl;
-	int	 l;
+	ptrdiff_t	 l;
 
 	if ( pe )
 		pe->err = rc;
@@ -526,7 +526,7 @@ register char *bufp;
 		case ezcaByte:    CVTVEC( double, isnan(*(double*)fpt), epicsInt8,  *cpt=(epicsInt32)*fpt );  break;
 		case ezcaShort:   CVTVEC( double, isnan(*(double*)fpt), epicsInt16, *cpt=(epicsInt32)*fpt );  break;
 		case ezcaLong :   CVTVEC( double, isnan(*(double*)fpt), epicsInt32, *cpt=(epicsInt32)*fpt );  break;
-		case ezcaFloat:   CVTVEC( double, isnan(*(double*)fpt), float,  *cpt=*fpt ); break;
+		case ezcaFloat:   CVTVEC( double, isnan(*(double*)fpt), float,  *cpt=(float)*fpt ); break;
 		case ezcaDouble:  CVTVEC( double, isnan(*(double*)fpt), double, *cpt=*fpt ); break;
 		case ezcaString:  CVTVEC( char*,
 								    (!*fpt || !**fpt),
