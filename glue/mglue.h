@@ -1,5 +1,5 @@
 #ifndef  MATLAB_EZCA_GLUE_H
-/* $Id: mglue.h,v 1.20 2007/06/04 18:58:42 guest Exp $ */
+/* $Id: mglue.h,v 1.21 2007/08/31 05:51:30 strauman Exp $ */
 
 /* matlab-ezca interface utility header */
 
@@ -15,7 +15,7 @@
 
 typedef struct PVs_ {
 	CtrlCStateRec	ctrlc;
-	int    			m;
+	size_t    		m;
 	char 			**names;
 } PVs;
 
