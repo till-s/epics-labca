@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.23 2007/06/05 05:01:06 guest Exp $ */
+/* $Id: mglue.c,v 1.24 2007/10/14 03:28:04 strauman Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -32,7 +32,7 @@ int epicsShareAPI
 buildPVs(const mxArray *pin, PVs *pvs, LcaError *pe)
 {
 char	**mem = 0;
-int     i,m,buflen;
+size_t  i,m,buflen;
 const mxArray *tmp;
 int	rval = -1;
 
