@@ -1,4 +1,4 @@
-/* $Id: lcaSetMonitor.c,v 1.5 2007/05/23 02:50:22 strauman Exp $ */
+/* $Id: lcaSetMonitor.c,v 1.6 2007-05-31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaSetMonitor */
 
@@ -16,7 +16,7 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-int     i,n = 0;
+int     n = 0;
 const mxArray *tmp;
 PVs     pvs = { {0} };
 char	type = ezcaNative;

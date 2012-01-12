@@ -1,4 +1,4 @@
-/* $Id: lcaNewMonitorWait.c,v 1.1 2007-05-24 19:35:24 till Exp $ */
+/* $Id: lcaNewMonitorWait.c,v 1.2 2007-05-31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaNewMonitorWait */
 
@@ -16,7 +16,6 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-int     i   = 0;
 PVs     pvs = { {0} };
 char	type = ezcaNative;
 LcaError theErr;
