@@ -100,9 +100,15 @@ $(notdir $(MATDOCS)):%.m:$(TOP)/documentation/help/%.m
 
 MEXLIBS = $(PROD_LDLIBS)
 
+# Under linux (also unix or cygwin), warnings can be enabled adding
+#
+MEXCFLAGS_Linux=CFLAGS="\$$CFLAGS $(WARN_CFLAGS)"
+#
+# to the MEX command
+
 $(PRODNAME):%$(MEXEXT):../%.c $(PROD_DEPLIBS)
 	@$(RM) $@
-	$(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(USR_CPPFLAGS) $< $(INCLUDES) $(PRODDIR_LDFLAGS) $(MEXLIBS)
+	$(MATLABDIR)/bin/$(MEX) $(MEXCXXFLAGS) $(USR_CPPFLAGS) $(MEXCFLAGS_$(OS_CLASS)) $< $(INCLUDES) $(PRODDIR_LDFLAGS) $(MEXLIBS)
 
 build:	$(MEXTARGET)
 
