@@ -137,9 +137,9 @@ USR_SYS_LIBS_WIN32 += user32
 #libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 #libut_DIR  := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 
-#mx_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
-#mex_DIR := $(MATLABDIR)/bin/$(MLBARCH)
-#ut_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
+mx_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
+mex_DIR := $(MATLABDIR)/bin/$(MLBARCH)
+ut_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
 
 export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(mx_DIR)
 

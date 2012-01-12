@@ -1,6 +1,7 @@
 Changes since labca_3_4:
 Changes since labca_3_3:
 	2012/01/12 (TS):
+	- glue/Makefile: re-enabled mx_DIR + friends (non-windows only)
 	- matlab/lcaSetMonitor.c, matlab/lcaNewMonitorWait.c,
 	  matlab/lcaNewMonitorValue.c: removed unused 'i' variable.
 	- matlab/Makefile: enable warnings for MEX compiler (linux).
