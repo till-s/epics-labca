@@ -1,5 +1,7 @@
+Changes since labca_3_4:
 Changes since labca_3_3:
 	2012/01/12 (TS):
+	- ReleaseNotes: updated.
 	- glue/Makefile:
 	   o win32/64 scilab-5 needs 'output_stream' and 'intersci'
 	     libraries in addition to LibScilab :-(. Manual intervention is

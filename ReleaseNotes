@@ -1,4 +1,24 @@
 #####################################
+#  labca_3_4 (T.S, 2010/6/4):       #
+#####################################
+
+Win64 support.
+Reworked makefiles so labCA can be built under
+windows without cygwin.
+
+#####################################
+#  labca_3_3 (T.S, 2010/6/4):       #
+#####################################
+
+Support scilab-5.
+
+ezcaGetUnits(), ezcaGet_xxx_Limits(), ezcaGetPrecision(),
+ezcaGetStatus() no longer read/transfer the native element
+count. ezca only requests 1 element (since these calls
+are only interested in sideband data, the 'real' data is
+irrelevant).
+
+#####################################
 #  labca_3_2_beta (T.S, 2008/5/21): #
 #####################################
 
