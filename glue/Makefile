@@ -10,6 +10,7 @@
 
 TOP = ..
 include $(TOP)/configure/CONFIG
+
 CMPLR = STRICT
 # allow '//' comments in C files
 # (scilab-5 uses those...)
@@ -38,6 +39,12 @@ else
 ifeq ($(OS_CLASS),WIN32)
 USR_CPPFLAGS += -DFORDLL
 LIB_LIBS += LibScilab
+ifndef SCILAB_V4
+# these are required under scilab-5
+# we have no test available at 'make' time for now...
+LIB_LIBS += output_stream
+LIB_LIBS += intersci
+endif
 endif
 endif
 
@@ -81,6 +88,11 @@ USR_CPPFLAGS+=-DSCILAB_APP
 # We simply concatenate scilab 4 and 5 subdirs -- this should work
 # for both versions...
 SCIINCS=$(addprefix -I$(SCILABDIR)/,routines mexlib core include/scilab .)
+
+ifeq ($(OS_CLASS),WIN32)
+SCIINCS+=$(addprefix -I$(SCILABDIR)/modules/,mexlib/includes core/includes output_stream/includes)
+endif
+
 USR_INCLUDES += $(SCIINCS) -I../sciclean
 LIB_SRCS+= ezcaSciCint.c
 LIB_SRCS+= sciclean.c
@@ -121,17 +133,20 @@ USR_SYS_LIBS_WIN32 += user32
 #G++_SHRLIB_LDFLAGS_YES+=-Wl,-z,nodelete
 
 # these are not used since we pass the path manually (TARGET_LDFLAGS above)
-libmx_DIR  := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
-libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
-libut_DIR  := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+#libmx_DIR  := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+#libmex_DIR := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
+#libut_DIR  := $(MATLABDIR)/extern/lib/$(MATLIB_SUBDIR)
 
-mx_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
-mex_DIR := $(MATLABDIR)/bin/$(MLBARCH)
-ut_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
+#mx_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
+#mex_DIR := $(MATLABDIR)/bin/$(MLBARCH)
+#ut_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
 
 export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(mx_DIR)
 
 LibScilab_DIR:=$(SCILABDIR)/bin
+output_stream_DIR:=$(SCILABDIR)/bin
+intersci_DIR:=$(SCILABDIR)/bin
+
 mezcaglue_DIR:=$(INSTALL_LIB)
 
 ezcamt_DIR := $(INSTALL_LIB)
@@ -155,14 +170,14 @@ include $(TOP)/configure/RULES
 $($(LOADABLE_PREFIX)SHRLIBNAME): ../$($(LOADABLE_PREFIX)LIBRARY_HOST).def
 
 mkmezca.m: ../mkmezca.m.tmpl
-	sed -e 's/%%TARCH%%/$(T_A)/g' -e 's/%%ARCH%%/$(OS_CLASS)/g' -e 's$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g' < $^ >$@
+	psed -e "s/%%TARCH%%/$(T_A)/g" -e "s/%%ARCH%%/$(OS_CLASS)/g" -e "s$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g" < $^ >$@
 
 %.sce: ../%.sce.in
 	$(RM) $@
-	sed -e 's%THELIB%$(LIBSUB)/$(T_A)/$($(LOADABLE_PREFIX)SHRLIBNAME)%g' -e 's/THEFILE/$@/g' <$^ >$@
+	psed -e "s=THELIB=$(LIBSUB)/$(T_A)/$($(LOADABLE_PREFIX)SHRLIBNAME)=g" -e "s/THEFILE/$@/g" <$^ >$@
 
 ../%.def: ../%.def.in
-	$(CPP) $(CPPFLAGS) $(SCIINCS) $< | sed -n -e '/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p' > $@
+	$(CPP) $(CPPFLAGS) $(SCIINCS) $< | psed -n -e "/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p" > $@
 
 ifneq ($(OS_CLASS),WIN32)
 PRODNAME_LINKER=$(MATLABDIR)/bin/$(MEX) -f $(MATLABDIR)/bin/engopts.sh $(TARGET_LDFLAGS) $(USR_LDFLAGS) $(OP_SYS_LDFLAGS) -output $@
@@ -172,5 +187,4 @@ endif
 check_name:
 	echo $($(LOADABLE_PREFIX)SHRLIBNAME)
 
-sciclean.c: sciclean/sciclean.c
-	ln -s $^ $@
+vpath sciclean.c ../sciclean

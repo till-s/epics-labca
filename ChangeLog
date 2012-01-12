@@ -1,4 +1,14 @@
 Changes since labca_3_3:
+	2012/01/12 (TS):
+	- glue/Makefile:
+	   o win32/64 scilab-5 needs 'output_stream' and 'intersci'
+	     libraries in addition to LibScilab :-(. Manual intervention is
+	     needed to build for scilab-4 (define SCILAB_V4 makefile variable).
+	   o Commented unused library paths (libmx_DIR + friends).
+	   o Use 'psed' (perl) instead of 'sed' and use double quotes for
+	     sake of win-non-cygwin portability.
+	   o Use 'vpath' instead of symlink to find sciclean.c for sake
+	     of win-non-cygwin portability.
 	2012/01/11 (TS):
 	- glue/ctrlC-polled.c: scilab-5 seems to properly export + declare
 	  'basbrk' (even under windows) so we use it.
