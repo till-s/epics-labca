@@ -17,7 +17,7 @@
 ##########################################
 ## Tell us where EPICS base is installed
 
-#EPICS_BASE=/opt/epics/base
+EPICS_BASE=/afs/slac.stanford.edu/g/lcls/epics/base/base-R3-14-12
 
 ##########################################
 # For the following definitions
@@ -57,7 +57,7 @@
 # Tell us where MATLAB is installed (only
 # needed if MAKEFOR=MATLAB [in CONFIG])
 
-#MATLABDIR=/opt/matlab/2006b
+MATLABDIR=/afs/slac/package/matlab/2010a
 
 #you can also use EPICS_HOST_ARCH - specific
 #paths -- see above
