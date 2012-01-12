@@ -21,11 +21,7 @@ install:: buildInstall
 
 buildInstall:: build
 
-build::
-
-ifeq ($(MAKEFOR),MATLAB)
 build::lcaTest.m
-endif
 
 #convert scilab test script to matlab
 lcaTest.m:	lcaTest.sce

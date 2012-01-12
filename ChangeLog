@@ -1,6 +1,8 @@
 Changes since labca_3_4:
 Changes since labca_3_3:
 	2012/01/12 (TS):
+	- testing/Makefile: always build lcaTest.m (even under scilab) so that
+	  it is present for distribution.
 	- ReleaseNotes: updated.
 	- glue/Makefile:
 	   o win32/64 scilab-5 needs 'output_stream' and 'intersci'
