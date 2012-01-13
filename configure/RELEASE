@@ -17,7 +17,7 @@
 ##########################################
 ## Tell us where EPICS base is installed
 
-EPICS_BASE=/afs/slac.stanford.edu/g/lcls/epics/base/base-R3-14-12
+#EPICS_BASE=/home/till/epics/base/base-3-14-12
 
 ##########################################
 # For the following definitions
@@ -48,7 +48,7 @@ EPICS_BASE=/afs/slac.stanford.edu/g/lcls/epics/base/base-R3-14-12
 # Tell us where SCILAB is installed (only
 # needed if MAKEFOR != MATLAB [in CONFIG])
 
-#SCILABDIR=/usr/lib/scilab-4.1
+#SCILABDIR=/usr
 
 #you can also use EPICS_HOST_ARCH - specific
 #paths -- see above
@@ -57,7 +57,7 @@ EPICS_BASE=/afs/slac.stanford.edu/g/lcls/epics/base/base-R3-14-12
 # Tell us where MATLAB is installed (only
 # needed if MAKEFOR=MATLAB [in CONFIG])
 
-MATLABDIR=/afs/slac/package/matlab/2010a
+#MATLABDIR=/afs/slac/package/matlab/2010a
 
 #you can also use EPICS_HOST_ARCH - specific
 #paths -- see above
