@@ -2,6 +2,8 @@ Changes since labca_3_4:
 Changes since labca_3_3:
 	2012/01/13 (TS):
 	- README.win32pathwithblanks: updated info.
+	- documentation/Makefile: use portable workaround for mkdir -p
+	  (w/o causing errors if target dir is already present).
 	2012/01/12 (TS):
 	- glue/Makefile: re-enabled mx_DIR + friends (non-windows only)
 	- matlab/lcaSetMonitor.c, matlab/lcaNewMonitorWait.c,

@@ -22,6 +22,8 @@ SCILAB=$(SCILABDIR)/bin/scilab
 #	$(SCILAB) -nb -nw -e 'exit(sign(msscanf(getversion(),"scilab-%i")-5)+1)' >/dev/null 2>&1
 #endef
 
+TEST_D=perl -MExtUtils::Command -e test_d
+
 HELPS+=help/lcaDebugOn.html
 HELPS+=help/lcaGetControlLimits.html
 HELPS+=help/lcaGetGraphicLimits.html
@@ -72,7 +74,7 @@ $(sort manual/index.html $(wildcard manual/*.html)): manual.aux
 	latex2html -no_footnode -split 5 -link 1 manual.tex
 
 $(HELPS): manual.aux
-	if [ ! -x help ] ; then $(MKDIR) help; fi
+	$(TEST_D) help || $(MKDIR) help
 	latex2html -no_footnode -split 5 -link 0 -no_navigation -no_antialias_text -long_titles 1 -dir help manual.tex
 
 %.pdf %.aux: %.tex
@@ -81,12 +83,12 @@ $(HELPS): manual.aux
 
 
 help/whatis.htm: whatis.htm
-	if [ ! -x help ] ; then $(MKDIR) help; fi
+	$(TEST_D) help || $(MKDIR) help
 	$(RM) $@
 	cp $< $@
 
 help/Contents.m: Contents.m
-	if [ ! -x help ] ; then $(MKDIR) help; fi
+	$(TEST_D) help || $(MKDIR) help
 	$(RM) $@
 	cp $< $@
 
@@ -129,7 +131,7 @@ $(INSTALL_LOCATION)/jar/scilab_en_US_help.jar: ./jar/scilab_en_US_help.jar $(INS
 	@$(INSTALL) -d -m 644 $< $(@D)
 
 $(INSTALL_LOCATION)/jar:
-	$(MKDIR) $@
+	-$(TEST_D) $@ || $(MKDIR) $@
 	
 
 .SECONDARY:
