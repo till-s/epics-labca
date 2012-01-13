@@ -167,7 +167,9 @@ endif
 include $(TOP)/configure/RULES
 
 
-$($(LOADABLE_PREFIX)SHRLIBNAME): ../$($(LOADABLE_PREFIX)LIBRARY_HOST).def
+# recent windows doesn't seem to need 'def' anymore - rather: it causes
+# linker warnings!
+#$($(LOADABLE_PREFIX)SHRLIBNAME): ../$($(LOADABLE_PREFIX)LIBRARY_HOST).def
 
 mkmezca.m: ../mkmezca.m.tmpl
 	psed -e "s/%%TARCH%%/$(T_A)/g" -e "s/%%ARCH%%/$(OS_CLASS)/g" -e "s$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g" < $^ >$@
