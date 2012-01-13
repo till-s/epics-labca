@@ -1281,8 +1281,8 @@ int rc;
 	    if ((*buff = ezcacalloc(nbytes, 1)))
 	    {
 		if (Debug)
-	    printf("ezcaGetErrorString() just allocated %d bytes\n", 
-		    nbytes);
+	    printf("ezcaGetErrorString() just allocated %ld bytes\n", 
+		    (long)nbytes);
 
 		/* filling the buffer */
 
