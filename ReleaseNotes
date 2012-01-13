@@ -3,8 +3,8 @@
 #####################################
 
 Win64 support.
-Reworked makefiles so labCA can be built under
-windows without cygwin.
+Reworked makefiles so that labCA can be built under
+windows without cygwin (command.com shell).
 
 This release does NOT feature any code changes
 at all. It only addresses build issues
