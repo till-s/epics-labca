@@ -38,12 +38,15 @@ endif
 else
 ifeq ($(OS_CLASS),WIN32)
 USR_CPPFLAGS += -DFORDLL
-LIB_LIBS += LibScilab
+#LIB_LIBS += LibScilab
+TARGET_LDFLAGS += $(SCILABDIR)/bin/LibScilab.lib
 ifndef SCILAB_V4
 # these are required under scilab-5
 # we have no test available at 'make' time for now...
-LIB_LIBS += output_stream
-LIB_LIBS += intersci
+#LIB_LIBS += output_stream
+TARGET_LDFLAGS += $(SCILABDIR)/bin/output_stream.lib
+#LIB_LIBS += intersci
+TARGET_LDFLAGS += $(SCILABDIR)/bin/intersci.lib
 endif
 endif
 endif
@@ -142,10 +145,6 @@ mex_DIR := $(MATLABDIR)/bin/$(MLBARCH)
 ut_DIR  := $(MATLABDIR)/bin/$(MLBARCH)
 
 export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(mx_DIR)
-
-LibScilab_DIR:=$(SCILABDIR)/bin
-output_stream_DIR:=$(SCILABDIR)/bin
-intersci_DIR:=$(SCILABDIR)/bin
 
 mezcaglue_DIR:=$(INSTALL_LIB)
 

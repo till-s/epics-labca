@@ -1,6 +1,9 @@
 Changes since labca_3_4:
 Changes since labca_3_3:
 	2012/01/13 (TS):
+	- glue/Makefile: (WIN) add dependency libraries to TARGET_LDFLAGS instead
+	  of LIB_LIBS + <xxx>_DIR. This works around problems if the library path
+	  contains blanks.
 	- README.win32pathwithblanks: updated info.
 	- documentation/Makefile: use portable workaround for mkdir -p
 	  (w/o causing errors if target dir is already present).
