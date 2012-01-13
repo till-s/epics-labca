@@ -1,4 +1,4 @@
-/* $Id: mglue.c,v 1.24 2007/10/14 03:28:04 strauman Exp $ */
+/* $Id: mglue.c,v 1.25 2012/01/11 20:47:55 strauman Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 
@@ -166,7 +166,7 @@ int epicsShareAPI
 theLcaPutMexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], int doWait, LcaError *pe)
 {
 char	**pstr = 0;
-int     i, m = 0, n = 0;
+size_t  i, m = 0, n = 0;
 int		rval;
 const	mxArray *tmp, *strval;
 PVs     pvs = { {0}, };
@@ -214,7 +214,7 @@ mxArray *dummy = 0;
 			goto cleanup;
 		}
 		for ( i = 0; i < m * n; i++ ) {
-			int len;
+			size_t len;
 			if ( !mxIsChar( (strval = mxGetCell(tmp, i)) ) || 1 != mxGetM( strval ) ) {
 				lcaSetError(pe, EZCA_INVALIDARG, "Value argument must be a cell matrix of strings");
 				goto cleanup;
@@ -254,7 +254,7 @@ mxArray *dummy = 0;
 
 	assert( (pstr != 0) == (ezcaString ==  type) );
 
-	rval = multi_ezca_put( pvs.names, pvs.m, type, (pstr ? (void*)pstr : (void*)mxGetPr(prhs[1])), m, n, doWait, pe);
+	rval = multi_ezca_put( pvs.names, (int)pvs.m, type, (pstr ? (void*)pstr : (void*)mxGetPr(prhs[1])), (int)m, (int)n, doWait, pe);
 
 	if ( rval > 0 ) {
 #ifdef LCAPUT_RETURNS_VALUE
