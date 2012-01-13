@@ -1,4 +1,4 @@
-/* $Id: ini.cc,v 1.30 2007/06/20 07:33:30 strauman Exp $ */
+/* $Id: ini.cc,v 1.31 2009/10/13 18:03:57 strauman Exp $ */
 
 /* xlabcaglue library initializer */
 
@@ -9,8 +9,6 @@
 #include <mex.h>
 #include <cadef.h>
 #include <ezca.h>
-#include <multiEzcaCtrlC.h>
-#include <multiEzca.h>
 
 #if BASE_IS_MIN_VERSION(3,14,7)
 #include <stdlib.h>
@@ -63,6 +61,11 @@ extern "C" void C2F(xscion)(int*);
  */
 #include <dlfcn.h>
 #endif
+
+#define epicsExportSharedSymbols
+#include <shareLib.h>
+#include <multiEzcaCtrlC.h>
+#include <multiEzca.h>
 
 /* Our PID -- distinguish ourself from a forked caRepeater */
 static	pid_t thepid;
