@@ -72,7 +72,7 @@ $(sort manual/index.html $(wildcard manual/*.html)): manual.aux
 	latex2html -no_footnode -split 5 -link 1 manual.tex
 
 $(HELPS): manual.aux
-	if [ ! -x help ] ; then mkdir help; fi
+	if [ ! -x help ] ; then $(MKDIR) help; fi
 	latex2html -no_footnode -split 5 -link 0 -no_navigation -no_antialias_text -long_titles 1 -dir help manual.tex
 
 %.pdf %.aux: %.tex
@@ -81,12 +81,12 @@ $(HELPS): manual.aux
 
 
 help/whatis.htm: whatis.htm
-	if [ ! -x help ] ; then mkdir help; fi
+	if [ ! -x help ] ; then $(MKDIR) help; fi
 	$(RM) $@
 	cp $< $@
 
 help/Contents.m: Contents.m
-	if [ ! -x help ] ; then mkdir help; fi
+	if [ ! -x help ] ; then $(MKDIR) help; fi
 	$(RM) $@
 	cp $< $@
 
@@ -129,7 +129,7 @@ $(INSTALL_LOCATION)/jar/scilab_en_US_help.jar: ./jar/scilab_en_US_help.jar $(INS
 	@$(INSTALL) -d -m 644 $< $(@D)
 
 $(INSTALL_LOCATION)/jar:
-	mkdir $@
+	$(MKDIR) $@
 	
 
 .SECONDARY:
