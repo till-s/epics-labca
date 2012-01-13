@@ -1134,7 +1134,7 @@ int epicsShareAPI ezcaGetErrorString(char *prefix, char **buff)
 struct work *wp;
 char *wtm;
 char *cp;
-unsigned nbytes;
+size_t nbytes;
 int rc;
 
     prologue();
