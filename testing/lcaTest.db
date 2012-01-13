@@ -1,3 +1,14 @@
+#
+# Load this database into a basic application, e.g., the
+# EPICS base 'example' application will do (no need for
+# the example's own db files):
+#
+# example
+# epics> dbLoadDatabase("dbd/example.dbd")
+# epics> example_registerRecordDeviceDriver(pdbbase)
+# epics> dbLoadDatabase("lcaTest.db")
+# epics> iocInit()
+#
 record(waveform,"lca:wav0") { field("NELM", "100") field("FTVL", "LONG") }
 record(waveform,"lca:wav1") { field("NELM", "100") field("FTVL", "LONG") }
 record(waveform,"lca:wav2") { field("NELM", "100") field("FTVL", "LONG") }
