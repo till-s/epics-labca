@@ -71,5 +71,15 @@ MATLABDIR=/afs/slac/package/matlab/2010a
 # other platforms) where the 'libmex.lib' and
 # 'libmx.lib' are found.
 
+# older matlab needed 'msvcXY' subdir
+#
 #MATLIB_SUBDIR=win32/microsoft/msvc70
-
+#
+# more recent matlab just uses win32/microsoft
+#
+#MATLIB_SUBDIR=win32/microsoft
+#
+# or win64/microsoft
+#
+#MATLIB_SUBDIR=win64/microsoft
+#
