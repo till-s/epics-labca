@@ -15,7 +15,7 @@ include $(TOP)/configure/CONFIG
 
 # Broken: scilab 5 under windows executable is 'scilex' :-(
 # but we have no T_A/OS_CLASS to test here
-SCILAB=scilab
+SCILAB=$(SCILABDIR)/bin/scilab
 
 # Only scilab 5 can return a nonzero 'exit' code
 #define scilab-lt-5
