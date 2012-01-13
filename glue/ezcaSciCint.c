@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.29 2009/10/13 18:03:57 strauman Exp $ */
+/* $Id: ezcaSciCint.c,v 1.30 2010/05/29 00:53:26 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -24,7 +24,14 @@
 #include <multiEzca.h>
 #include <multiEzcaCtrlC.h>
 
-epicsShareFunc int epicsShareAPI C2F(ezca)();
+/* WIN:
+ * epicsShareAPI causes leading underscore which is not expected by 
+ * scilab 'addinter()'.  However, if a function has varargs then 
+ * the non __stdcall API seems to be enforced...
+ * Thus we must not use epicsShareAPI for C2F(ezca) -- but it seems
+ * deprecated anyways (see shareLib.h).
+ */
+epicsShareFunc void C2F(ezca)();
 
 /* Note about cleanup and errors:
  *
@@ -778,7 +785,7 @@ static GenericTable Tab[]={
 #endif
 };
 
-int epicsShareAPI
+void 
 C2F(ezca)()
 {
 CtrlCStateRec save;
@@ -789,5 +796,4 @@ CtrlCStateRec save;
 	(*(Tab[Fin-1].f))(Tab[Fin-1].name, Tab[Fin-1].F);
 
 	multi_ezca_ctrlC_epilogue(&save);
-  return 0;
 }

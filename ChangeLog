@@ -1,6 +1,9 @@
 Changes since labca_3_4:
 Changes since labca_3_3:
 	2012/01/13 (TS):
+	- glue/ezcaSciInt.c: removed epicsShareAPI for C2F(ezca). This caused
+	  a leading underscore (when building w/o .def file as we now do) which
+	  is not understood by scilab's addinter.
 	- glue/Makefile: (WIN) add dependency libraries to TARGET_LDFLAGS instead
 	  of LIB_LIBS + <xxx>_DIR. This works around problems if the library path
 	  contains blanks.
