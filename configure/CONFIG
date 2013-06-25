@@ -107,6 +107,10 @@ ifndef $(MAKEFOR)DIR
     endif
   endif
 endif
+
+SCIEXE_DEFAULT=$(SCILABDIR)/bin/scilab
+SCIEXE_WIN32=$(SCILABDIR)/bin/Scilex
+SCIEXE=$(or $(SCIEXE_$(OS_CLASS)),$(SCIEXE_DEFAULT))
    
 # dont hardcode searchpaths
 # NOTE: this way of removing 'rpath' doesn't work anymore for base-3.14.9

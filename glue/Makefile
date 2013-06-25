@@ -37,9 +37,26 @@ LIB_LIBS += mx mex ut
 endif
 else
 ifeq ($(OS_CLASS),WIN32)
+
+VERS:=$(subst ., ,$(patsubst scilab-%,%,$(lastword $(shell $(SCIEXE) -version))))
+ifeq ($(VERS),)
+$(error "Unable to determine SCILAB version")
+endif
+
+VERS_CHECK=$(shell perl -e 'if ( $(MAJ) > $(1) || $(MAJ) == $(1) && $(MIN) >= $(2) ) { print "TRUE\n"; }')
+
+MAJ=$(word 1,$(VERS))
+MIN=$(word 2,$(VERS))
+REV=$(word 3,$(VERS))
+
 USR_CPPFLAGS += -DFORDLL
-#LIB_LIBS += LibScilab
+
+# Libraries changed in scilab 5.4 (windows only)
+ifeq ($(call VERS_CHECK,5,4),TRUE)
+TARGET_LDFLAGS += $(SCILABDIR)/bin/core.lib $(SCILABDIR)/bin/core_f.lib
+else
 TARGET_LDFLAGS += $(SCILABDIR)/bin/LibScilab.lib
+endif
 ifndef SCILAB_V4
 # these are required under scilab-5
 # we have no test available at 'make' time for now...
