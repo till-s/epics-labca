@@ -58,19 +58,19 @@
    </para>
 
    <table xml:id='lca_errorcodes'>
-   <titleabbrev>
-   labCA error codes
-   </titleabbrev>
    <caption>
-   labCA error codes. Numerical codes (scilab lasterror
+   labCA Error Codes.
+   <para>
+   Numerical codes (scilab lasterror
    and lcaLastError()) and corresponding matlab error ``ID''s (as returned
    by matlab lasterror).
+   </para>
    </caption>
-   <thead>
+   <th>
      <tr>
-       <td>#</td><td>Matlab Error ID</td><td>Comment</td>
+       <td>#</td><td>Scilab Error ID</td><td>Comment</td>
      </tr>
-   </thead>
+   </th>
    <tbody>
      <tr> <td>0</td><td>labca:unexpectedOK     </td><td>No error</td></tr>
      <tr> <td>1</td><td>labca:invalidArg       </td><td>Invalid argument</td></tr>

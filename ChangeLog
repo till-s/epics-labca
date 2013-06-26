@@ -4,6 +4,8 @@ Changes since labca_3_4:
 	- FIXED: build problems due to changed scilab libraries when going
 	  from scilab-5.3 to 5.4. Thanks to Takashi Obina for reporting and
 	  suggesting a fix.
+	- xmlhelp/en_US/Error.xml no longer passed through xml_to_jar. Removed
+	  <titleabbrev> and replaced <thead> by <th>.
 Changes since labca_3_3:
 	2012/01/13 (TS):
 	- glue/ezcaSciInt.c: removed epicsShareAPI for C2F(ezca). This caused
