@@ -1,3 +1,4 @@
+Changes since labca_3_4_2:
 Changes since labca_3_4_1:
 	2015/03/12 (TS):
 	- Silenced compiler warnings (changed format string arg of lcaSetError()
