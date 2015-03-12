@@ -1,5 +1,7 @@
 Changes since labca_3_4_1:
 	2015/03/12 (TS):
+	- Silenced compiler warnings (changed format string arg of lcaSetError()
+      to 'const char*')
 	- Applied fixes for matlab 2014a contributed by Matthew Furseman.
 Changes since labca_3_4:
 	2013/06/25 (TS):

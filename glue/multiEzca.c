@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.39 2007/10/14 03:28:04 strauman Exp $ */
+/* $Id: multiEzca.c,v 1.40 2012/01/11 20:52:19 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -1076,7 +1076,7 @@ lcaGetLastError()
 }
 
 void epicsShareAPI
-lcaSetError(LcaError *pe, int err, char *fmt, ...)
+lcaSetError(LcaError *pe, int err, const char *fmt, ...)
 {
 va_list ap;
 	if ( !pe )

@@ -1,6 +1,6 @@
 #ifndef LCA_ERROR_H
 #define LCA_ERROR_H
-/* $Id: lcaError.h,v 1.4 2010/05/29 00:53:26 strauman Exp $ */
+/* $Id: lcaError.h,v 1.5 2010/06/04 21:40:11 till Exp $ */
 
 /* labca error interface */
 
@@ -42,7 +42,7 @@ epicsShareFunc void epicsShareAPI
 lcaSaveLastError(LcaError *pe);
 
 epicsShareFunc void epicsShareAPI
-lcaSetError(LcaError *pe, int err, char *fmt, ...);
+lcaSetError(LcaError *pe, int err, const char *fmt, ...);
 
 epicsShareFunc LcaError * epicsShareAPI
 lcaGetLastError();
