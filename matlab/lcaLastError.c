@@ -1,4 +1,4 @@
-/* $Id: lcaLastError.c,v 1.3 2007-05-31 21:16:45 till Exp $ */
+/* $Id: lcaLastError.c,v 1.4 2007/06/01 21:36:53 guest Exp $ */
 
 /* matlab wrapper for lcaGetLastError */
 
@@ -18,11 +18,11 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-int        i;
-int        *src;
-epicsInt32 *dst;
-LcaError   *ptheErr = lcaGetLastError();
-LcaError   theErr;
+int      i;
+int      *src;
+int      *dst;
+LcaError *ptheErr = lcaGetLastError();
+LcaError theErr;
 
 	lcaErrorInit(&theErr);
 
@@ -50,7 +50,7 @@ LcaError   theErr;
 		goto cleanup;
 	}
 
-	dst = mxGetData(plhs[0]);
+	dst = (int*)mxGetData(plhs[0]);
 
 	while ( i-- ) {
 		*dst++ = *src++;

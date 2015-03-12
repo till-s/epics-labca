@@ -1,4 +1,4 @@
-/* $Id: lcaGetNelem.c,v 1.6 2007/05/23 02:50:21 strauman Exp $ */
+/* $Id: lcaGetNelem.c,v 1.7 2007/05/31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaGetNelem */
 
@@ -41,7 +41,7 @@ LcaError theErr;
 		goto cleanup;
 	}
 
-    if ( multi_ezca_get_nelem( pvs.names, pvs.m, mxGetData(plhs[0]), &theErr) ) {
+    if ( multi_ezca_get_nelem( pvs.names, pvs.m, (int*)mxGetData(plhs[0]), &theErr) ) {
 		goto cleanup;
 	}
 	nlhs = 0;

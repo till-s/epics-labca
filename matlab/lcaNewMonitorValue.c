@@ -1,4 +1,4 @@
-/* $Id: lcaNewMonitorValue.c,v 1.6 2007-05-31 21:16:45 till Exp $ */
+/* $Id: lcaNewMonitorValue.c,v 1.7 2012/01/12 18:38:19 strauman Exp $ */
 
 /* matlab wrapper for ezcaNewMonitorValue */
 
@@ -49,7 +49,7 @@ LcaError theErr;
 		goto cleanup;
 	}
 
-    if ( 0 == multi_ezca_check_mon( pvs.names, pvs.m, type, mxGetData(plhs[0]), &theErr) ) {
+    if ( 0 == multi_ezca_check_mon( pvs.names, pvs.m, type, (int*)mxGetData(plhs[0]), &theErr) ) {
 		nlhs = 0;
 	}
 
