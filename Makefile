@@ -12,3 +12,7 @@ DIRS += testing
 include $(TOP)/configure/RULES_TOP
 
 UNINSTALL_DIRS+=jar
+
+tarclean: UNINSTALL_DIRS:=$(filter-out %jar %html %doc,$(UNINSTALL_DIRS))
+
+tarclean: uninstall
