@@ -1,4 +1,11 @@
 Changes since labca_3_4_2:
+	2015/06/03 (TS):
+	- Reorganized ezcaGetPrecision(), ezcaGetUnits(), ezcaGetNelem(),
+	  ezcaGetStatus(), getLimits() (which is now getInfo()) to share
+	  more code and eliminate duplication (of which there is still
+	  plenty).
+	- added compile-time test to check consistency between CA size 
+	  macros and EZCA's
 Changes since labca_3_4_1:
 	2015/03/12 (TS):
 	- Added top-level rule to uninstall everything but documentation (for

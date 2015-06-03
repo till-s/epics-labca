@@ -16,6 +16,7 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 /* #include <strings.h>  index()  */
 /* #include <malloc.h> */
 /* #include <memory.h>  for memcpy()  */
@@ -33,6 +34,12 @@
 #include <shareLib.h>
 
 #include <ezca.h> /* what all users of EZCA include */
+
+/* Check consistency between our symbols and CA's (the designers of ezca decided not to export the CA API) */
+#if EZCA_UNITS_SIZE != MAX_UNITS_SIZE
+#error "Inconsistent definition:  our EZCA_UNITS_SIZE does not match CA's MAX_UNITS_SIZE !"
+#endif
+
 
 /*
 #if defined(WIN32) || defined(_WIN32)
@@ -238,6 +245,7 @@ static epicsEventId ezcaDone        = 0;
 /* Additional ezca Messages    */
 #define NO_MONITOR_MSG         "no monitor on PV/type found" 
 #define ABORTED_MSG            "EZCA call aborted by user"
+#define INTERNALERR_MSG        "EZCA internal error"
 
 /************************/
 /*                      */
@@ -273,7 +281,8 @@ static char *ErrorMsgs[] =
     CAARRAYGETCALLBACK_MSG,
 
 	NO_MONITOR_MSG,
-	ABORTED_MSG
+	ABORTED_MSG,
+	INTERNALERR_MSG
 };
 
 /* These MUST match the above table */
@@ -303,6 +312,7 @@ static char *ErrorMsgs[] =
 #define CAARRAYGETCALLBACK_MSG_IDX 22
 #define NO_MONITOR_MSG_IDX         23
 #define ABORTED_MSG_IDX            24
+#define INTERNALERR_MSG_IDX        25
 
 /**********************/
 /*                    */
@@ -3097,12 +3107,18 @@ int rc;
 ****************************************************************/
 
 static int
-getLimits(char *pvname, char worktype, double *low, double *high)
+getInfo(char *pvname, char worktype, ...)
 {
 
 struct work *wp;
 struct channel *cp;
 int rc;
+va_list ap;
+void    **ptrs[4];
+int     nptrs = 0;
+int     i;
+int     canGetFromMon = 0;
+
 
     prologue();
 
@@ -3115,47 +3131,69 @@ int rc;
 	/* filling work */
 
 	wp->worktype = worktype;
-	wp->d1p = low;
-	wp->d2p = high;
+	wp->rc       = EZCA_OK;
 
 	/* checking input args */
-        if (!pvname)
-        {
-            wp->rc = EZCA_INVALIDARG;
-            wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-        else if (!(wp->pvname = strdup(pvname)))
-        {
-            wp->rc = EZCA_FAILEDMALLOC;
-            wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-	else if (!(wp->d1p))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	}
-	else if (!(wp->d2p))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	}
+    if (!pvname)
+    {
+        wp->rc = EZCA_INVALIDARG;
+        wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
+    } 
+    else if (!(wp->pvname = strdup(pvname)))
+    {
+        wp->rc = EZCA_FAILEDMALLOC;
+        wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
+    }
 	else
 	{
-	    /* arguments are valid */
-	    wp->rc = EZCA_OK;
-	} /* endif */
+
+		switch ( worktype ) {
+			default:
+				wp->rc        = EZCA_INTERNALERR;
+				wp->error_msg = ErrorMsgs[INTERNALERR_MSG_IDX];
+			break;
+
+			case GETCONTROLLIMITS:
+			case GETGRAPHICLIMITS:
+			case GETALARMLIMITS:
+			case GETWARNLIMITS:
+				ptrs[nptrs++] = (void*)&wp->d1p;
+				ptrs[nptrs++] = (void*)&wp->d2p;
+			break;
+
+			case GETPRECISION:
+				ptrs[nptrs++] = (void*)&wp->s1p;
+			break;
+
+			case GETUNITS:
+				ptrs[nptrs++] = (void*)&wp->units;
+			break;
+
+			case GETNELEM:
+				ptrs[nptrs++] = (void*)&wp->intp;
+			break;
+
+			case GETSTATUS:
+				ptrs[nptrs++] = (void*)&wp->tsp;
+				ptrs[nptrs++] = (void*)&wp->status;
+				ptrs[nptrs++] = (void*)&wp->severity;
+				canGetFromMon = 1;
+			break;
+		}
+
+		va_start( ap, worktype );
+			for (i = 0; i<nptrs; i++ ) {
+				if ( ! (*ptrs[i] = va_arg(ap, void*)) ) {
+	    			wp->rc        = EZCA_INVALIDARG;
+	    			wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
+					break;
+				}
+			}
+		va_end( ap );
+	}
+
+	if ( wp->rc != EZCA_OK && AutoErrorMessage )
+		print_error(wp);
 
 	if (InGroup)
 	    append_to_work_list(wp);
@@ -3166,38 +3204,59 @@ int rc;
 	    get_channel(wp, &cp);
 
 	    if (cp)
-	    {
-		/* everything OK so far ... otherwise something */
-		/* went wrong and it is already explained in wp */
-		if (EzcaConnected(cp))
 		{
-		    /* channel is currently connected */
+			/* everything OK so far ... otherwise something */
+			/* went wrong and it is already explained in wp */
+			if (EzcaConnected(cp))
+			{
+				/* channel is currently connected */
 
-		    /* just requesting native element count for ease */
-		    /* although will never look at count nor value   */
+				if ( GETNELEM == worktype )
+				{
+					/* we dont have to do more; the info is already available
+					 * with the channel...
+					 */
+					*(wp->intp) = EzcaElementCount(cp);
+				}
+				else
+				{
 
-		    wp->nelem = 1; /* = EzcaElementCount(cp);*/
+				    if ( !canGetFromMon || !get_from_monitor(wp, cp))
+					{
+						/* could not use or did not find an active   */
+						/* monitor that had a value                  */
+						/* need to do explicit get                   */
 
-		    if (issue_get(wp, cp))
-		    {
-			/* a EzcaArrayGetCallback() */
-			/* was successfully  issued */
-			issue_wait(wp);
-			if (AutoErrorMessage && wp->rc != EZCA_OK)
-			    print_error(wp);
-		    } /* endif */
-		}
-		else
-		{
-		    /* channel is not connected */
+						if ( canGetFromMon && (Trace || Debug) )
+							printf("%s: did not find an active monitor with a value\n", pvname);
 
-		    wp->rc = EZCA_NOTCONNECTED;
-		    wp->error_msg = ErrorMsgs[NOT_CONNECTED_MSG_IDX];
+						/* we are not really interested in the actual data,
+						 * just the sideband info. Request minimum of elements...
+						 */
+						wp->nelem = 1;
 
-		    if (AutoErrorMessage)
-			print_error(wp);
+						if (issue_get(wp, cp))
+						{
+							/* a EzcaArrayGetCallback() */
+							/* was successfully  issued */
+							issue_wait(wp);
+							if (AutoErrorMessage && wp->rc != EZCA_OK)
+								print_error(wp);
+						} /* endif */
+					}
+				}
+			}
+			else
+			{
+				/* channel is not connected */
+
+				wp->rc = EZCA_NOTCONNECTED;
+				wp->error_msg = ErrorMsgs[NOT_CONNECTED_MSG_IDX];
+
+				if (AutoErrorMessage)
+					print_error(wp);
+			} /* endif */
 		} /* endif */
-	    } /* endif */
 
 		release_channel( &cp );
 
@@ -3217,524 +3276,48 @@ int rc;
     epilogue();
     return rc;
 
-} /* end getLimits() */
+} /* end getInfo() */
 
 int epicsShareAPI ezcaGetControlLimits(char *pvname, double *low, double *high)
 {
-	return getLimits(pvname, GETCONTROLLIMITS, low, high);
+	return getInfo(pvname, GETCONTROLLIMITS, low, high);
 }
 
 int epicsShareAPI ezcaGetGraphicLimits(char *pvname, double *low, double *high)
 {
-	return getLimits(pvname, GETGRAPHICLIMITS, low, high);
+	return getInfo(pvname, GETGRAPHICLIMITS, low, high);
 }
 
 int epicsShareAPI ezcaGetWarnLimits(char *pvname, double *low, double *high)
 {
-	return getLimits(pvname, GETWARNLIMITS, low, high);
+	return getInfo(pvname, GETWARNLIMITS, low, high);
 }
 
 int epicsShareAPI ezcaGetAlarmLimits(char *pvname, double *low, double *high)
 {
-	return getLimits(pvname, GETALARMLIMITS, low, high);
+	return getInfo(pvname, GETALARMLIMITS, low, high);
 }
-
-/****************************************************************
-*
-*
-****************************************************************/
-
-int epicsShareAPI ezcaGetNelem(char *pvname, int *nelem)
-{
-
-struct channel *cp;
-struct work *wp;
-int rc;
-
-    prologue();
-
-    if ((wp = get_work()))
-    {
-
-	ErrorLocation = (InGroup ? LISTWORK : SINGLEWORK);
-	ListPrint = (InGroup ? LASTONLY : ListPrint);
-
-	/* filling work */
-
-	wp->worktype = GETNELEM;
-	wp->intp = nelem;
-
-	/* checking input args */
-        if (!pvname)
-        {
-            wp->rc = EZCA_INVALIDARG;
-            wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-        else if (!(wp->pvname = strdup(pvname)))
-        {
-            wp->rc = EZCA_FAILEDMALLOC;
-            wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-	else if (!(wp->intp))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	}
-	else
-	{
-	    /* arguments are valid */
-	    wp->rc = EZCA_OK;
-	} /* endif */
-
-	if (InGroup)
-	    append_to_work_list(wp);
-	else if (wp->rc == EZCA_OK)
-	{
-	    /* all input args OK */
-
-	    get_channel(wp, &cp);
-
-	    if (cp)
-	    {
-		/* everything OK so far ... otherwise something */
-		/* went wrong and it is already explained in wp */
-
-		*(wp->intp) = EzcaElementCount(cp);
-
-		if (EzcaConnected(cp))
-		    /* channel is currently connected */
-		    wp->rc = EZCA_OK;
-		else
-		{
-		    /* channel is not connected */
-
-		    wp->rc = EZCA_NOTCONNECTED;
-		    wp->error_msg = ErrorMsgs[NOT_CONNECTED_MSG_IDX];
-
-		    if (AutoErrorMessage)
-			print_error(wp);
-		} /* endif */
-	    } /* endif */
-
-		release_channel( &cp );
-
-	} /* endif */
-
-	rc = wp->rc;
-	    
-    }
-    else
-    {
-	rc = EZCA_FAILEDMALLOC;
-
-	if (AutoErrorMessage)
-	    printf("%s\n", FAILED_MALLOC_MSG);
-    } /* endif */
-
-    epilogue();
-    return rc;
-
-} /* end ezcaGetNelem() */
-
-/****************************************************************
-*
-*
-****************************************************************/
 
 int epicsShareAPI ezcaGetPrecision(char *pvname, short *precision)
 {
+	return getInfo(pvname, GETPRECISION, precision);
+}
 
-struct channel *cp;
-struct work *wp;
-int rc;
+int epicsShareAPI ezcaGetUnits(char *pvname, char *units)
+{
+	return getInfo(pvname, GETUNITS, units);
+}
 
-    prologue();
-
-    if ((wp = get_work()))
-    {
-
-	ErrorLocation = (InGroup ? LISTWORK : SINGLEWORK);
-	ListPrint = (InGroup ? LASTONLY : ListPrint);
-
-	/* filling work */
-
-	wp->worktype = GETPRECISION;
-	wp->s1p = precision;
-
-	/* checking input args */
-        if (!pvname)
-        {
-            wp->rc = EZCA_INVALIDARG;
-            wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-        else if (!(wp->pvname = strdup(pvname)))
-        {
-            wp->rc = EZCA_FAILEDMALLOC;
-            wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-	else if (!(wp->s1p))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	}
-	else
-	{
-	    /* arguments are valid */
-	    wp->rc = EZCA_OK;
-	} /* endif */
-
-	if (InGroup)
-	    append_to_work_list(wp);
-	else if (wp->rc == EZCA_OK)
-	{
-	    /* all input args OK */
-	    get_channel(wp, &cp);
-
-	    if (cp)
-	    {
-		/* everything OK so far ... otherwise something */
-		/* went wrong and it is already explained in wp */
-		if (EzcaConnected(cp))
-		{
-		    /* channel is currently connected */
-
-#if 0
-		    /* just requesting native element count for ease */
-		    /* although will never look at count nor value   */
-		    wp->nelem = EzcaElementCount(cp);
-#else
-			wp->nelem = 1; /* don't request unnecessary stuff */
-#endif
-
-		    if (issue_get(wp, cp))
-		    {
-			/* a EzcaArrayGetCallback() */
-			/* was successfully  issued */
-			issue_wait(wp);
-			if (AutoErrorMessage && wp->rc != EZCA_OK)
-			    print_error(wp);
-		    } /* endif */
-		}
-		else
-		{
-		    /* channel is not connected */
-
-		    wp->rc = EZCA_NOTCONNECTED;
-		    wp->error_msg = ErrorMsgs[NOT_CONNECTED_MSG_IDX];
-
-		    if (AutoErrorMessage)
-			print_error(wp);
-		} /* endif */
-	    } /* endif */
-
-		release_channel( &cp );
-
-	} /* endif */
-
-	rc = wp->rc;
-	    
-    }
-    else
-    {
-	rc = EZCA_FAILEDMALLOC;
-
-	if (AutoErrorMessage)
-	    printf("%s\n", FAILED_MALLOC_MSG);
-    } /* endif */
-
-    epilogue();
-    return rc;
-
-} /* end ezcaGetPrecision() */
-
-/****************************************************************
-*
-*
-****************************************************************/
+int epicsShareAPI ezcaGetNelem(char *pvname, int *nelem)
+{
+	return getInfo(pvname, GETNELEM, nelem);
+}
 
 int epicsShareAPI ezcaGetStatus(char *pvname, TS_STAMP *timestamp, 
     short *status, short *severity)
 {
-
-struct channel *cp;
-struct work *wp;
-int rc;
-
-    prologue();
-
-    if ((wp = get_work()))
-    {
-
-	ErrorLocation = (InGroup ? LISTWORK : SINGLEWORK);
-	ListPrint = (InGroup ? LASTONLY : ListPrint);
-
-	/* filling work */
-
-	wp->worktype = GETSTATUS;
-	wp->tsp = timestamp;
-	wp->status = status;
-	wp->severity = severity;
-
-	/* checking input args */
-        if (!pvname)
-        {
-            wp->rc = EZCA_INVALIDARG;
-            wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-        else if (!(wp->pvname = strdup(pvname)))
-        {
-            wp->rc = EZCA_FAILEDMALLOC;
-            wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-	else if (!(wp->tsp))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	} 
-	else if (!(wp->status))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	}
-	else if (!(wp->severity))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	}
-	else
-	{
-	    /* arguments are valid */
-	    wp->rc = EZCA_OK;
-	} /* endif */
-
-	if (InGroup)
-	    append_to_work_list(wp);
-	else if (wp->rc == EZCA_OK)
-	{
-	    /* all input args OK */
-
-	    get_channel(wp, &cp);
-
-	    if (cp)
-	    {
-		/* everything OK so far ... otherwise something */
-		/* went wrong and it is already explained in wp */
-
-		if (EzcaConnected(cp))
-		{
-		    /* channel is currently connected */
-
-		    if (!get_from_monitor(wp, cp))
-		    {
-			/* did not find an active   */
-			/* monitor that had a value */
-			/* need to do explicit get  */
-
-			if (Trace || Debug)
-    printf("ezcaGetStatus(): did not find an active monitor with a value\n");
-
-#if 0
-			/* just requesting native element count for ease */
-			/* although will never look at count nor value   */
-			wp->nelem = EzcaElementCount(cp);
-#else
-			wp->nelem = 1; /* don't request unnecessary stuff */
-#endif
-
-			if (issue_get(wp, cp))
-			{
-			    /* a EzcaArrayGetCallback() */
-			    /* was successfully  issued */
-			    issue_wait(wp);
-			    if (AutoErrorMessage && wp->rc != EZCA_OK)
-				print_error(wp);
-			} /* endif */
-		    } /* endif */
-		}
-		else
-		{
-		    /* channel is not connected */
-
-		    wp->rc = EZCA_NOTCONNECTED;
-		    wp->error_msg = ErrorMsgs[NOT_CONNECTED_MSG_IDX];
-
-		    if (AutoErrorMessage)
-			print_error(wp);
-		} /* endif */
-	    } /* endif */
-
-		release_channel( &cp );
-
-	} /* endif */
-
-	rc = wp->rc;
-	    
-    }
-    else
-    {
-	rc = EZCA_FAILEDMALLOC;
-
-	if (AutoErrorMessage)
-	    printf("%s\n", FAILED_MALLOC_MSG);
-    } /* endif */
-
-    epilogue();
-    return rc;
-
-} /* end ezcaGetStatus() */
-
-/****************************************************************
-*
-*
-****************************************************************/
-
-int epicsShareAPI ezcaGetUnits(char *pvname, char *units)
-{
-
-struct channel *cp;
-struct work *wp;
-int rc;
-
-    prologue();
-
-    if ((wp = get_work()))
-    {
-
-	ErrorLocation = (InGroup ? LISTWORK : SINGLEWORK);
-	ListPrint = (InGroup ? LASTONLY : ListPrint);
-
-	/* filling work */
-
-	wp->worktype = GETUNITS;
-	wp->units = units;
-
-	/* checking input args */
-        if (!pvname)
-        {
-            wp->rc = EZCA_INVALIDARG;
-            wp->error_msg = ErrorMsgs[INVALID_PVNAME_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-        else if (!(wp->pvname = strdup(pvname)))
-        {
-            wp->rc = EZCA_FAILEDMALLOC;
-            wp->error_msg = ErrorMsgs[FAILED_MALLOC_MSG_IDX];
-
-            if (AutoErrorMessage)
-		print_error(wp);
-        } 
-	else if (!(wp->units))
-	{
-	    wp->rc = EZCA_INVALIDARG;
-	    wp->error_msg = ErrorMsgs[INVALID_PBUFF_MSG_IDX];
-
-	    if (AutoErrorMessage)
-		print_error(wp);
-	}
-	else
-	{
-	    /* arguments are valid */
-	    wp->rc = EZCA_OK;
-	} /* endif */
-	    
-	if (InGroup)
-	    append_to_work_list(wp);
-	else if (wp->rc == EZCA_OK)
-	{
-	    /* all input args OK */
-	    get_channel(wp, &cp);
-
-	    if (cp)
-	    {
-		/* everything OK so far ... otherwise something */
-		/* went wrong and it is already explained in wp */
-		if (EzcaConnected(cp))
-		{
-		    /* channel is currently connected */
-
-#if 0
-		    /* just requesting native element count for ease */
-		    /* although will never look at count nor value   */
-		    wp->nelem = EzcaElementCount(cp);
-#else
-			wp->nelem = 1; /* don't request unnecessary stuff */
-#endif
-
-		    if (issue_get(wp, cp))
-		    {
-			/* a EzcaArrayGetCallback() */
-			/* was successfully  issued */
-			issue_wait(wp);
-			if (AutoErrorMessage && wp->rc != EZCA_OK)
-			    print_error(wp);
-		    } /* endif */
-		}
-		else
-		{
-		    /* channel is not connected */
-
-		    wp->rc = EZCA_NOTCONNECTED;
-		    wp->error_msg = ErrorMsgs[NOT_CONNECTED_MSG_IDX];
-
-		    if (AutoErrorMessage)
-			print_error(wp);
-		} /* endif */
-	    } /* endif */
-
-		release_channel( &cp );
-
-	} /* endif */
-
-	rc = wp->rc;
-
-    }
-    else
-    {
-	rc = EZCA_FAILEDMALLOC;
-
-	if (AutoErrorMessage)
-	    printf("%s\n", FAILED_MALLOC_MSG);
-    } /* endif */
-
-    epilogue();
-    return rc;
-
-} /* end ezcaGetUnits() */
+	return getInfo(pvname, GETSTATUS, timestamp, status, severity);
+}
 
 /****************************************************************
 *

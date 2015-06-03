@@ -135,6 +135,7 @@ epicsShareFunc int epicsShareAPI ezcaPutOldCa(char *pvname, char ezcatype,
 #define EZCA_INGROUP           7
 #define EZCA_NOTINGROUP        8
 #define EZCA_ABORTED           9
+#define EZCA_INTERNALERR      10
 
 #ifdef __cplusplus
 }
