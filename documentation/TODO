@@ -1,10 +1,11 @@
- - 2010/06/03: hand-generated '.sci' files from 'help/%.m', then
+ - 2015/06/04: '.sci' files are automatically (albeit crudely)
+               generated from 'help/%.m', then
                conversion to .xml via help_from_sci().
               
                Error.xml, Common.xml are hand-written.
 
                => If 'manual.tex' changes then the scilab-5
-                  help files must be updated by hand!
+			   help files should be double-checked.
 
 - scilab-5 needs javaHelp files.
 

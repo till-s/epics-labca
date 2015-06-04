@@ -24,25 +24,7 @@ SCILAB=$(SCILABDIR)/bin/scilab
 
 TEST_D=perl -MExtUtils::Command -e test_d
 
-HELPS+=help/lcaDebugOn.html
-HELPS+=help/lcaGetControlLimits.html
-HELPS+=help/lcaGetGraphicLimits.html
-HELPS+=help/lcaGet.html
-HELPS+=help/lcaGetNelem.html
-HELPS+=help/lcaGetPrecision.html
-HELPS+=help/lcaGetRetryCount.html
-HELPS+=help/lcaGetStatus.html
-HELPS+=help/lcaGetTimeout.html
-HELPS+=help/lcaGetUnits.html
-HELPS+=help/lcaPut.html
-HELPS+=help/lcaPutNoWait.html
-HELPS+=help/lcaSetSeverityWarnLevel.html
-HELPS+=help/lcaClear.html
-HELPS+=help/lcaSetMonitor.html
-HELPS+=help/lcaNewMonitorValue.html
-HELPS+=help/lcaNewMonitorWait.html
-HELPS+=help/lcaDelay.html
-HELPS+=help/lcaLastError.html
+HELPS=$(patsubst %,help/%.html,$(shell sed -n -e 's/\(.*[^b]subsection.*[{][ \t]*\)\(lca[a-zA-Z0-9]*\).*/\2/gp' manual.tex))
 
 MHELPS=$(HELPS:%.html=%.m)
 
@@ -96,7 +78,7 @@ help/Contents.m: Contents.m
 # html->text, add leading '%' and remove long URLs, just leave filename
 %.m:%.html
 	$(RM) $@
-	lynx -dump $^ | sed -e 's/^/%/g'  -e 's/\([0-9]*[.][ ]*\)\(file:\([^/]*[/]\)*\)/\1/g'  > $@
+	lynx -dump $^ | sed -e 's/^/%/g'  -e 's/\([0-9]*[.][ ]*\)\(file:\([^/]*[/]\)*\)\(.*\)\([.]html.*\)/\4 \1\4/g' > $@
 
 build: manual/index.html $(MHELPS) help/Contents.m
 
@@ -114,9 +96,12 @@ xmlclean:
 # prepare '.sci' file based on '.m'. This must be hand-tuned
 # to a xmlhelp/en_US/%.sci file which can be translated into xml by
 # help_from_sci()
-xml/%.sci: help/%.m
-	sed -e '1s/^%/function /' -e '1,$$s#^%#//#' -e '$$a\
+xmlhelp/en_US/%.sci: help/%.m
+	sed -e '1s/^%/function /' -e '1,$$s#^%#//#' -e 's/References/See also/' -e '$$a\
 endfunction' $^ > $@	
+	# extract first sentence and insert into first line
+	# insert as second line
+	sed $@ -i -e "1a\// `sed $@ -e 's#^[/][/]##g' | tr '\n' ' ' | sed -e 's/\(.*Description[ \t]*\)\([^.]*[.]\)\(.*\)/\2/'`"
 
 
 xmlhelp/en_US/lca%.xml: xmlhelp/en_US/lca%.sci
@@ -141,3 +126,6 @@ realclean:: clean xmlclean
 	$(RM) -r manual 
 	$(RM) *.aux *.dvi *.log *.pdf *.out *.ps
 	$(RM) *~
+
+test:
+	echo $(HELPS)

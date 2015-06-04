@@ -18,6 +18,7 @@
 \newcommand{\pbrk}{\pagebreak[3]}
 \newcommand{\pbrkf}{\pagebreak}
 \newcommand{\comref}[2]{\hyperref[ref]{\com{#1}}{\com{#1} (see }{)}{#2}}
+\newcommand{\MAXENUM}{16}
 
 \newcommand{\ita}[1]{\emph{#1}}
 
@@ -29,6 +30,7 @@
 \newcommand{\lxn}{$1\times n$}
 \newcommand{\calimit}{$\approx 16$kB}
 \newcommand{\sevrange}{$0..3$}
+\newcommand{\inmath}[1]{$#1$}
 
 
 \begin{htmlonly}
@@ -42,6 +44,7 @@
 \renewcommand{\sevrange}{0..3}
 \renewcommand{\pbrk}{}
 \renewcommand{\pbrkf}{}
+\renewcommand{\inmath}[1]{\ita{#1}}
 \end{htmlonly}
 
 
@@ -57,7 +60,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.42 2010/06/12 21:57:35 strauman Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.43 2012/01/11 16:47:09 strauman Exp $}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
@@ -824,6 +827,31 @@ of strings holding the PV EGUs.
 
 \vspace*{\fill}
 \pbrk
+\subsection{lcaGetEnumStates}
+\subsubsection{Calling Sequence}
+\begin{verbatim}
+enum_states = lcaGetEnumStates(pvs)
+\end{verbatim}
+\subsubsection{Description}
+Retrieve the symbolic values of all \ita{ENUM} states of a number of PVs.
+Some PVs represent a selection of a particular value from a small (up to \MAXENUM)
+set of possible values or states and the IOC designer may associate symbolic names
+with the permissible states. This call lets the user retrieve the symbolic names
+of all these states.
+
+\subsubsection{Parameters}
+\begin{description}
+\PVITEM
+%%
+\item[enum\_states] \mxn{} (with \n \inmath{=\MAXENUM}) matrix (on \matlab: \ita{cell-} matrix)
+of strings holding the \ita{ENUM} states defined for the PVs.
+
+Unused/undefined states --- this covers also the
+case when the PV does not support \ita{ENUM} states --- are set to the empty string.
+\end{description}
+
+\vspace*{\fill}
+\pbrk
 \subsection{lcaGetRetryCount, lcaSetRetryCount}
 \label{retrycnt}
 \subsubsection{Calling Sequence}
@@ -864,14 +892,23 @@ timeout multiplied by the
 
 \vspace*{\fill}
 \pbrk
-\subsection{lcaDebugOn, lcaDebugOff}
+\subsection{lcaDebugOn}
 \subsubsection{Calling Sequence}
 \begin{verbatim}
 lcaDebugOn()
+\end{verbatim}
+\subsubsection{Description}
+Switch the \ezca{} library's debugging facility on.
+
+\vspace*{\fill}
+\pbrk
+\subsection{lcaDebugOff}
+\subsubsection{Calling Sequence}
+\begin{verbatim}
 lcaDebugOff()
 \end{verbatim}
 \subsubsection{Description}
-Switch the \ezca{} library's debugging facility on and off, respectively.
+Switch the \ezca{} library's debugging facility off.
 
 \vspace*{\fill}
 \pbrk
