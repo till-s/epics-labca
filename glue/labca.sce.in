@@ -2,7 +2,7 @@
 // for hppa/sun-solaris/linux/dec
 //--------------------------------
 //Scilab functions 
-ezca_funs=[...
+labca_funs=[...
   'lcaGet';
   'lcaPut';
   'lcaPutNoWait';
@@ -14,6 +14,7 @@ ezca_funs=[...
   'lcaGetStatus';
   'lcaGetPrecision';
   'lcaGetUnits';
+  'lcaGetEnumStates';
   'lcaGetRetryCount';
   'lcaSetRetryCount';
   'lcaGetTimeout';
@@ -29,16 +30,25 @@ ezca_funs=[...
   'lcaLastError';
   'lecdrGet';
   ];
-ezca_top=get_absolute_file_path('THEFILE')+'../../';
-addinter(ezca_top+'THELIB','ezca',ezca_funs);
+labca_top=get_absolute_file_path('THEFILE')+'../../';
+addinter(labca_top+'THELIB','labCA',labca_funs);
+// a hack - addinter doesn't return a library handle
+// (for unloading) -- obtain the last handle...
+labca_hdl=link('show');
+labca_hdl=labca_hdl($);
 if msscanf(getversion(),"scilab-%i") < 5 then
-  if grep(%helps(:,1),ezca_top)== [] then
-    %helps=[%helps;[ezca_top+"html/help", "EPICS CA Interface"]];
+  if grep(%helps(:,1),labca_top)== [] then
+    %helps=[%helps;[labca_top+"html/help", "EPICS CA Interface"]];
   end
 else
-  if add_help_chapter('labCA',ezca_top+'jar') then
+  if add_help_chapter('labCA',labca_top+'jar') then
 	disp('Help files loaded')
   else
 	disp('Loading help files FAILED')
   end
 end
+
+function lcaExit()
+	del_help_chapter('labCA')
+	ulink(labca_hdl)
+endfunction

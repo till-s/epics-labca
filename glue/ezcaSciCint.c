@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.30 2010/05/29 00:53:26 strauman Exp $ */
+/* $Id: ezcaSciCint.c,v 1.31 2012/01/13 17:10:26 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -31,7 +31,7 @@
  * Thus we must not use epicsShareAPI for C2F(ezca) -- but it seems
  * deprecated anyways (see shareLib.h).
  */
-epicsShareFunc void C2F(ezca)();
+epicsShareFunc void C2F(labCA)();
 
 /* Note about cleanup and errors:
  *
@@ -463,6 +463,48 @@ LcaError *theErr = errCreate(sciclean);
  	return 0;
 }
 
+typedef char enum_strings[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE];
+
+static int intsezcaGetEnumStates(char *fname, int namlen, Sciclean sciclean)
+{
+int  m,n,i,j,ij,status;
+char **pvs MAY_ALIAS,**tmp;
+enum_strings *strbuf MAY_ALIAS = 0;
+MultiArgRec  args[1];
+LcaError *theErr = errCreate(sciclean);
+
+	CheckRhs(1,1);
+	CheckLhs(1,1);
+	GetRhsVar(1,"S",&m,&n,&pvs);
+	SCICLEAN_SVAR(pvs);
+	CheckColumn(1,m,n);
+
+	MSetArg(args[0], sizeof(enum_strings), 0, &strbuf);
+
+	n     = EZCA_ENUM_STATES;
+	status = multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetEnumStates, NumberOf(args), args, theErr);
+
+	/* if strbuf was created register a cleanup */
+	LCACLEAN(strbuf);
+
+	if ( status && 
+		 /* scilab expects NULL terminated char** list */
+		 (tmp = lcaMalloc(sizeof(char*) * (n*m+1))) ) {
+		ij = 0;
+		for ( j=0; j<n; j++ ) {
+			for ( i=0; i<m; i++ ) {
+				tmp[ij++] = strbuf[i][j];
+			}
+		}
+		tmp[ij] = 0;
+		LCACLEAN(tmp); /* register cleanup; CreateVarFromPtr may fail and execute 'return 0' */
+ 		CreateVarFromPtr(2, "S",&m,&n,tmp);
+ 		LhsVar(1)= 2;
+	}
+
+ 	return 0;
+}
+
 
 static int intsezcaGetRetryCount(char *fname, int namlen, Sciclean sciclean)
 {
@@ -767,6 +809,7 @@ static GenericTable Tab[]={
   {(Myinterfun)sciclean_gateway, intsezcaGetStatus,				"lcaGetStatus"},
   {(Myinterfun)sciclean_gateway, intsezcaGetPrecision,			"lcaGetPrecision"},
   {(Myinterfun)sciclean_gateway, intsezcaGetUnits,				"lcaGetUnits"},
+  {(Myinterfun)sciclean_gateway, intsezcaGetEnumStates,			"lcaGetEnumStates"},
   {(Myinterfun)sciclean_gateway, intsezcaGetRetryCount,			"lcaGetRetryCount"},
   {(Myinterfun)sciclean_gateway, intsezcaSetRetryCount,			"lcaSetRetryCount"},
   {(Myinterfun)sciclean_gateway, intsezcaGetTimeout,			"lcaGetTimeout"},
@@ -786,7 +829,7 @@ static GenericTable Tab[]={
 };
 
 void 
-C2F(ezca)()
+C2F(labCA)()
 {
 CtrlCStateRec save;
 
