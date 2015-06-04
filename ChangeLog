@@ -1,4 +1,12 @@
 Changes since labca_3_4_2:
+	2015/06/04 (TS):
+	 - matlab/lcaGetEnumStates.c, matlab/Makefile: added lcaGetEnumStates()
+	 - matlab/lcaDebugOn.c, matlab/lcaDebugOff.c, matlab/Makefile: added
+	   lcaDebugOn()/lcaDebugOff().
+	 - ezca/ezca.c, ezca/ezca.h: added ezcaGetEnumStates()
+	 - glue/labca.sce.in, glue/ezcaSciInt.c: changed names from ezca->labca.
+	   Added helper to unload labca. Added lcaGetEnumStates()
+	 - testing/lcaTest.sce, testing/lcaTest.m: added tests for lcaGetEnumStates()
 	2015/06/03 (TS):
 	- Reorganized ezcaGetPrecision(), ezcaGetUnits(), ezcaGetNelem(),
 	  ezcaGetStatus(), getLimits() (which is now getInfo()) to share
