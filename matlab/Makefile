@@ -32,6 +32,7 @@ MEXF += lcaGetWarnLimits
 MEXF += lcaGetAlarmLimits
 MEXF += lcaGetPrecision
 MEXF += lcaGetUnits
+MEXF += lcaGetEnumStates
 MEXF += lcaPut
 MEXF += lcaPutNoWait
 MEXF += lcaGetRetryCount

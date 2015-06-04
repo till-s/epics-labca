@@ -1,6 +1,6 @@
 /* $Id: lcaGetUnits.c,v 1.2 2007/10/14 03:28:04 strauman Exp $ */
 
-/* matlab wrapper for ezcaGetUnits */
+/* matlab wrapper for ezcaGetEnumStates */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2007  */
 
@@ -14,7 +14,7 @@
 
 #include <ctype.h>
 
-typedef char units_string[EZCA_UNITS_SIZE];
+typedef char enum_states[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE];
 
 #ifdef __GNUC__
 #define MAY_ALIAS __attribute__((may_alias))
@@ -25,10 +25,10 @@ typedef char units_string[EZCA_UNITS_SIZE];
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 PVs     pvs = { {0} };
-int     i,j;
+int     i,j,ij,n;
 LcaError theErr;
 MultiArgRec	args[1];
-units_string *strbuf MAY_ALIAS = 0;
+enum_states *strbuf MAY_ALIAS = 0;
 mxArray *tmp;
 
 	lcaErrorInit(&theErr);
@@ -50,25 +50,31 @@ mxArray *tmp;
 
 	MSetArg(args[0], sizeof(*strbuf), 0, &strbuf);
 
-	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetUnits, NumberOf(args), args, &theErr) )
+	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetEnumStates, NumberOf(args), args, &theErr) )
 		goto cleanup;
 
+	n = EZCA_ENUM_STATES;
+
 	/* convert string array to a matlab cell array of matlab strings */
-	if ( !(plhs[0] = mxCreateCellMatrix(pvs.m, 1)) ) {
+	if ( !(plhs[0] = mxCreateCellMatrix(pvs.m, n)) ) {
 		lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
 		goto cleanup;
 	}
-	for ( i = 0; i < pvs.m; i++ ) {
-		if ( !(tmp = mxCreateString((char*)&strbuf[i])) ) {
-			for ( j=0; j<i; j++ ) {
-				mxDestroyArray(mxGetCell(plhs[0],i));
+	ij = 0;
+	for ( j = 0; j < n; j++ ) {
+		for ( i = 0; i < pvs.m; i++ ) {
+			if ( !(tmp = mxCreateString(strbuf[i][j])) ) {
+				for ( j=0; j<ij; j++ ) {
+					mxDestroyArray(mxGetCell(plhs[0],ij));
+				}
+				mxDestroyArray(plhs[0]);
+				plhs[0] = 0;
+				lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
+				goto cleanup;
 			}
-			mxDestroyArray(plhs[0]);
-			plhs[0] = 0;
-			lcaSetError(&theErr, EZCA_FAILEDMALLOC, "Not enough memory");
-			goto cleanup;
+			mxSetCell(plhs[0], ij, (mxArray*)tmp);
+			ij++;
 		}
-		mxSetCell(plhs[0], i, (mxArray*)tmp);
 	}
 
 	nlhs = 0;
