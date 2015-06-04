@@ -52,7 +52,12 @@ disp('<<<OK')
 disp('CHECKING FEATURES/VERSION')
 try
 	lcaLastError();
-	labcaversion=3
+	try
+		lcaGetEnumStates("lca:scl0");
+		labcaversion=3.5
+	catch
+		labcaversion=3
+	end
 catch
 	labcaversion=2
 end
@@ -594,6 +599,54 @@ if ( labcaversion > 2 )
 	disp('<<<OK')
 else
 	disp('test CTRL-C handling manually under labCA version 2')
+end
+
+// Test lcaGetEnumStates
+if ( labcaversion >= 3.5 )
+	disp('CHECKING lcaGetEnumStates')
+	try
+		enums=lcaGetEnumStates(["lca:scl0.SCAN";"lca:scl1.SCAN";"lca:scl0"])
+	catch
+		error('lcaGetEnumStates() on two PVs FAILED')
+	end
+	if ( size(enums,'*') ~= 48 | enums(1,:) ~= enums(2,:) )
+		error('lcaGetEnumStates() SCAN enums of two PVs mismatch!')
+	end
+	if ( enums(1,:) ~= ['Passive',  'Event', 'I/O Intr', '10 second',...
+	                   '5 second', '2 second', '1 second', '.5 second',...
+						'', '', '', '',...
+						'', '', '', ''] )
+		error('lcaGetEnumStates() SCAN enums mismatch')
+	end
+	if ( enums(3,:) ~= [ '', '', '', '',...
+						'', '', '', '',...
+						'', '', '', '',...
+						'', '', '', ''] )
+		error('lcaGetEnumStates() on non-enum PV mismatch')
+	end
+	// test a single PV
+	try
+		enums=lcaGetEnumStates(["lca:scl0.SCAN"])
+	catch
+		error('lcaGetEnumStates() on single PV FAILED')
+	end
+	if ( enums(1,:) ~= ['Passive',  'Event', 'I/O Intr', '10 second',...
+	                   '5 second', '2 second', '1 second', '.5 second',...
+						'', '', '', '',...
+						'', '', '', ''] )
+		error('lcaGetEnumStates() SCAN enum mismatches')
+	end
+	try
+		enums=lcaGetEnumStates(["lca:scl0"])
+	catch
+		error('lcaGetEnumStates() on single PV FAILED')
+	end
+	if ( enums(1,:) ~= [ '', '', '', '',...
+						'', '', '', '',...
+						'', '', '', '',...
+						'', '', '', ''] )
+		error('lcaGetEnumStates() SCAN enum mismatches')
+	end
 end
 
 disp('<< ALL DONE')
