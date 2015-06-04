@@ -114,6 +114,12 @@ epicsShareFunc int epicsShareAPI ezcaPutOldCa(char *pvname, char ezcatype,
 /* must match size of char units[] in dbr_gr_xxxx */
 /* and dbr_ctrl_xxxx structs in db_access.h       */
 #define EZCA_UNITS_SIZE 8
+/* must match size of char strs[][] in dbr_gr_xxxx */
+/* and dbr_ctrl_xxxx structs in db_access.h       */
+#define EZCA_ENUM_STATES 16
+#define EZCA_ENUM_STRING_SIZE 26
+
+epicsShareFunc int epicsShareAPI ezcaGetEnumStates(char *pvname, char states[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE]);
 
 /* Data Types */
 #define ezcaByte   0

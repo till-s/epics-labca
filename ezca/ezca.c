@@ -39,6 +39,12 @@
 #if EZCA_UNITS_SIZE != MAX_UNITS_SIZE
 #error "Inconsistent definition:  our EZCA_UNITS_SIZE does not match CA's MAX_UNITS_SIZE !"
 #endif
+#if EZCA_ENUM_STATES != MAX_ENUM_STATES
+#error "Inconsistent definition:  our EZCA_ENUM_STATES does not match CA's MAX_ENUM_STATES !"
+#endif
+#if EZCA_ENUM_STRING_SIZE != MAX_ENUM_STRING_SIZE
+#error "Inconsistent definition:  our EZCA_ENUM_STRING_SIZE does not match CA's MAX_ENUM_STRING_SIZE !"
+#endif
 
 
 /*
@@ -169,6 +175,7 @@ static epicsEventId ezcaDone        = 0;
 #define MONBLOCK            27
 #define GETWARNLIMITS       28
 #define GETALARMLIMITS      29
+#define GETENUMSTATES       30
 
 /********************************/
 /*                              */
@@ -190,6 +197,7 @@ static epicsEventId ezcaDone        = 0;
 #define PUT_MSG                 "ezcaPut()"
 #define PUTOLDCA_MSG            "ezcaPutOldCa()"
 #define GETUNITS_MSG            "ezcaGetUnits()"
+#define GETENUMSTATES_MSG       "ezcaGetEnumStates()"
 #define GETNELEM_MSG            "ezcaGetNelem()"
 #define GETPRECISION_MSG        "ezcaGetPrecision()"
 #define GETGRAPHICLIMITS_MSG    "ezcaGetGraphicLimits()"
@@ -383,7 +391,7 @@ struct work
     void *pval;
     int nelem;
     char ezcadatatype;
-    char *units;
+    char *strp;
     int *intp;
     short *s1p, *s2p;
     double *d1p, *d2p;
@@ -832,6 +840,15 @@ printf("ezcaEndGroupWithReport(): did not find an active monitor with a value fo
 			wp->nelem = 1; /* = EzcaElementCount(wp->cp); */
 			wp->needs_work = issue_get(wp, wp->cp);
 			break;
+			case GETENUMSTATES:
+				if ( DBF_ENUM != EzcaNativeType(wp->cp) ) {
+					wp->strp[0] = 0;
+					wp->needs_work = FALSE;
+				} else {
+					wp->nelem = 1;
+					wp->needs_work = issue_get(wp, wp->cp);
+				}
+			break;
 		    case GETNELEM:
 			*wp->intp = wp->nelem = EzcaElementCount(wp->cp);
 			wp->needs_work = FALSE;
@@ -1171,6 +1188,7 @@ int rc;
 		    case PUT:              wtm = PUT_MSG;              break;
 		    case PUTOLDCA:         wtm = PUTOLDCA_MSG;         break;
 		    case GETUNITS:         wtm = GETUNITS_MSG;         break;
+		    case GETENUMSTATES:    wtm = GETENUMSTATES_MSG;    break;
 		    case GETNELEM:         wtm = GETNELEM_MSG;         break;
 		    case GETPRECISION:     wtm = GETPRECISION_MSG;     break;
 		    case GETGRAPHICLIMITS: wtm = GETGRAPHICLIMITS_MSG; break;
@@ -1236,6 +1254,7 @@ int rc;
 		    case PUT:              wtm = PUT_MSG;              break;
 		    case PUTOLDCA:         wtm = PUTOLDCA_MSG;         break;
 		    case GETUNITS:         wtm = GETUNITS_MSG;         break;
+		    case GETENUMSTATES:    wtm = GETENUMSTATES_MSG;    break;
 		    case GETNELEM:         wtm = GETNELEM_MSG;         break;
 		    case GETPRECISION:     wtm = GETPRECISION_MSG;     break;
 		    case GETGRAPHICLIMITS: wtm = GETGRAPHICLIMITS_MSG; break;
@@ -1314,6 +1333,8 @@ int rc;
 				wtm = PUTOLDCA_MSG;            break;
 			    case GETUNITS:         
 				wtm = GETUNITS_MSG;            break;
+			    case GETENUMSTATES:         
+				wtm = GETENUMSTATES_MSG;       break;
 			    case GETNELEM:         
 				wtm = GETNELEM_MSG;            break;
 			    case GETPRECISION:     
@@ -1434,6 +1455,8 @@ int rc;
 				wtm = PUTOLDCA_MSG;            break;
 			    case GETUNITS:         
 				wtm = GETUNITS_MSG;            break;
+			    case GETENUMSTATES:         
+				wtm = GETENUMSTATES_MSG;       break;
 			    case GETNELEM:         
 				wtm = GETNELEM_MSG;            break;
 			    case GETPRECISION:     
@@ -1696,6 +1719,7 @@ char *wtm;
 		case PUT:              wtm = PUT_MSG;              break;
 		case PUTOLDCA:         wtm = PUTOLDCA_MSG;         break;
 		case GETUNITS:         wtm = GETUNITS_MSG;         break;
+	    case GETENUMSTATES:    wtm = GETENUMSTATES_MSG;    break;
 		case GETNELEM:         wtm = GETNELEM_MSG;         break;
 		case GETPRECISION:     wtm = GETPRECISION_MSG;     break;
 		case GETGRAPHICLIMITS: wtm = GETGRAPHICLIMITS_MSG; break;
@@ -1749,6 +1773,7 @@ char *wtm;
 		case PUT:              wtm = PUT_MSG;              break;
 		case PUTOLDCA:         wtm = PUTOLDCA_MSG;         break;
 		case GETUNITS:         wtm = GETUNITS_MSG;         break;
+	    case GETENUMSTATES:    wtm = GETENUMSTATES_MSG;    break;
 		case GETNELEM:         wtm = GETNELEM_MSG;         break;
 		case GETPRECISION:     wtm = GETPRECISION_MSG;     break;
 		case GETGRAPHICLIMITS: wtm = GETGRAPHICLIMITS_MSG; break;
@@ -3166,7 +3191,8 @@ int     canGetFromMon = 0;
 			break;
 
 			case GETUNITS:
-				ptrs[nptrs++] = (void*)&wp->units;
+			case GETENUMSTATES:
+				ptrs[nptrs++] = (void*)&wp->strp;
 			break;
 
 			case GETNELEM:
@@ -3217,6 +3243,10 @@ int     canGetFromMon = 0;
 					 * with the channel...
 					 */
 					*(wp->intp) = EzcaElementCount(cp);
+				}
+				else if ( DBF_ENUM != EzcaNativeType(wp->cp) )
+				{
+					wp->strp[0] = 0;
 				}
 				else
 				{
@@ -3317,6 +3347,11 @@ int epicsShareAPI ezcaGetStatus(char *pvname, TS_STAMP *timestamp,
     short *status, short *severity)
 {
 	return getInfo(pvname, GETSTATUS, timestamp, status, severity);
+}
+
+int epicsShareAPI ezcaGetEnumStates(char *pvname, char states[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE])
+{
+	return getInfo(pvname, GETENUMSTATES, states);
 }
 
 /****************************************************************
@@ -5058,11 +5093,12 @@ BOOL rc;
 *	     or GETWITHSTATUS(val, time,stat, sevr)
 *        here a DBR_TIME_XXXX based on wp->dbr_type
 *     Type 2: GETUNITS, GETGRAPHICLIMITS, GETCONTROLLIMITS, 
-*        GETWARNLIMITS, GETALARMLIMITS or GETPRECISION
+*        GETWARNLIMITS, GETALARMLIMITS or GETPRECISION, GETENUMSTATES
 *        here a DBR_CTRL_XXXX based on native type
-*        Note: native type = DBR_STRING or DBR_ENUM, none of these wortype
+*        Note: native type = DBR_STRING, none of these wortype
 *              requests are defined.
 *        Note: GETPRECISION defined for native type DBR_FLOAT or DBR_DOUBLE
+*        Note: GETENUMSTATES defined for native type DBR_ENUM
 *
 * if evertything goes ok, then wp is unchanged.
 *
@@ -5143,15 +5179,23 @@ int rc;
     }
     else if (wp->worktype == GETUNITS || wp->worktype == GETGRAPHICLIMITS 
 	|| wp->worktype == GETWARNLIMITS || wp->worktype == GETALARMLIMITS
-	|| wp->worktype == GETCONTROLLIMITS || wp->worktype == GETPRECISION)
+	|| wp->worktype == GETCONTROLLIMITS || wp->worktype == GETPRECISION
+	|| wp->worktype == GETENUMSTATES)
     {
 	/* requesting dbr_ctrl_xxxx based on native type */
 	if (EzcaConnected(cp))
 	{
 	    switch (EzcaNativeType(cp))
 	    {
-		case DBF_STRING:
 		case DBF_ENUM:
+			if ( GETENUMSTATES == wp->worktype )
+			{
+				wp->dbr_type = DBR_CTRL_ENUM;
+				break;
+			}
+			/* else FALL THRU */
+
+		case DBF_STRING:
 		    /* units, gr limits, ctrl limits, precision are  */
 		    /* all undefined for native type string and enum */
 
@@ -5691,7 +5735,7 @@ EZCA_UNLOCK();
 * named this routine as the callback.  The request type was either
 * DBR_TIME_XXXX (GET, GETSTATUS, GETWITHSTATUS) where XXXX is the
 * user-specified request type or DBR_CTRL_XXXX (GETUNITS, GETPRECISION, 
-* GETGRAPHICLIMITS, GETCONTROLLIMITS, GETWARNLIMITS, GETALARMLIMITS)
+* GETGRAPHICLIMITS, GETCONTROLLIMITS, GETWARNLIMITS, GETALARMLIMITS, GETENUMSTATES)
 * where XXXX is the native data type.
 *
 * Presumably, wp that is passed here has been set up properly based upon
@@ -6257,19 +6301,19 @@ EZCA_LOCK();
 
 			/* GETUNITS, GETPRECISION, GETGRAPHICLIMITS, */
 			/* GETWARNLIMITS, GETALARMLIMITS,            */
-			/* or GETCONTROLLIMITS                       */
+			/* GETCONTROLLIMITS or GETENUMSTATES         */
 
 			/* case DBR_CTRL_INT = DBR_CTRL_SHORT: */
 			case DBR_CTRL_SHORT:
 			    switch (wp->worktype)
 			    {
 				case GETUNITS:
-				    if (wp->units)
+				    if (wp->strp)
 				    {
-					strncpy(wp->units, 
+					strncpy(wp->strp, 
 					((struct dbr_ctrl_short *) arg.dbr)->units,
 						EZCA_UNITS_SIZE);
-					wp->units[EZCA_UNITS_SIZE-1] = '\0';
+					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
 					    if (Trace || Debug)
 				    printf("my_get_callback() just copied units\n");
@@ -6277,7 +6321,7 @@ EZCA_LOCK();
 				    else
 				    {
 					fprintf(stderr, 
-    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->units\n");
+    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
 				    } /* endif */
 				    break;
@@ -6374,12 +6418,12 @@ EZCA_LOCK();
 			    switch (wp->worktype)
 			    {
 				case GETUNITS:
-				    if (wp->units)
+				    if (wp->strp)
 				    {
-					strncpy(wp->units, 
+					strncpy(wp->strp, 
 					((struct dbr_ctrl_float *) arg.dbr)->units,
 						EZCA_UNITS_SIZE);
-					wp->units[EZCA_UNITS_SIZE-1] = '\0';
+					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
 					    if (Trace || Debug)
 				    printf("my_get_callback() just copied units\n");
@@ -6387,7 +6431,7 @@ EZCA_LOCK();
 				    else
 				    {
 					fprintf(stderr, 
-    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->units\n");
+    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
 				    } /* endif */
 				    break;
@@ -6495,12 +6539,12 @@ EZCA_LOCK();
 			    switch (wp->worktype)
 			    {
 				case GETUNITS:
-				    if (wp->units)
+				    if (wp->strp)
 				    {
-					strncpy(wp->units, 
+					strncpy(wp->strp, 
 					((struct dbr_ctrl_char *) arg.dbr)->units,
 						EZCA_UNITS_SIZE);
-					wp->units[EZCA_UNITS_SIZE-1] = '\0';
+					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
 					    if (Trace || Debug)
 				    printf("my_get_callback() just copied units\n");
@@ -6508,7 +6552,7 @@ EZCA_LOCK();
 				    else
 				    {
 					fprintf(stderr, 
-    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->units\n");
+    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
 				    } /* endif */
 				    break;
@@ -6605,12 +6649,12 @@ EZCA_LOCK();
 			    switch (wp->worktype)
 			    {
 				case GETUNITS:
-				    if (wp->units)
+				    if (wp->strp)
 				    {
-					strncpy(wp->units, 
+					strncpy(wp->strp, 
 					((struct dbr_ctrl_long *) arg.dbr)->units,
 						EZCA_UNITS_SIZE);
-					wp->units[EZCA_UNITS_SIZE-1] = '\0';
+					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
 					    if (Trace || Debug)
 				    printf("my_get_callback() just copied units\n");
@@ -6618,7 +6662,7 @@ EZCA_LOCK();
 				    else
 				    {
 					fprintf(stderr, 
-    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->units\n");
+    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
 				    } /* endif */
 				    break;
@@ -6715,12 +6759,12 @@ EZCA_LOCK();
 			    switch (wp->worktype)
 			    {
 				case GETUNITS:
-				    if (wp->units)
+				    if (wp->strp)
 				    {
-					strncpy(wp->units, 
+					strncpy(wp->strp, 
 					((struct dbr_ctrl_double *) arg.dbr)->units,
 						EZCA_UNITS_SIZE);
-					wp->units[EZCA_UNITS_SIZE-1] = '\0';
+					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
 					    if (Trace || Debug)
 				    printf("my_get_callback() just copied units\n");
@@ -6728,7 +6772,7 @@ EZCA_LOCK();
 				    else
 				    {
 					fprintf(stderr, 
-"EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->units\n");
+"EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
 				    } /* endif */
 				    break;
@@ -6832,6 +6876,40 @@ EZCA_LOCK();
 				    break;
 			    } /* end switch() */
 			    break;
+
+			case DBR_CTRL_ENUM:
+				if ( GETENUMSTATES == wp->worktype )
+				{
+				char *p;
+				int   i,m;
+					if ( (p = wp->strp) ) 
+					{
+					struct dbr_ctrl_enum *dbr = (struct dbr_ctrl_enum*)arg.dbr;
+						m = dbr->no_str;
+						if ( m > EZCA_ENUM_STATES )
+							m = EZCA_ENUM_STATES;
+						for ( i = 0; i < m; i++, p+=EZCA_ENUM_STRING_SIZE )
+						{
+							strncpy( p, dbr->strs[i], EZCA_ENUM_STRING_SIZE );
+						}
+						if ( i < EZCA_ENUM_STATES )
+							*p = 0;
+					}
+					else
+					{
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETENUMSTATES got NULL wp->strp\n");
+					exit(1);
+					}
+				}
+				else
+				{
+				    fprintf(stderr, 
+"EZCA FATAL ERROR: my_get_callback() found arg.type DBR_CTRL_ENUM %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				    exit(1);
+				}
+				break;
 			default:
 			    fprintf(stderr, 
 		    "EZCA FATAL ERROR: my_get_callback() unknown arg.type %ld\n",
@@ -7545,7 +7623,7 @@ static void init_work(struct work *wp)
 	wp->pval = (void *) NULL;
 	wp->nelem = UNDEFINED;
 	wp->ezcadatatype = UNDEFINED;
-	wp->units = (char *) NULL;
+	wp->strp = (char *) NULL;
 	wp->intp = (int *) NULL;
 	wp->s1p = (short *) NULL;
 	wp->s2p = (short *) NULL;
