@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.31 2012/01/13 17:10:26 strauman Exp $ */
+/* $Id: ezcaSciCint.c,v 1.32 2015/06/04 19:41:21 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -465,7 +465,7 @@ LcaError *theErr = errCreate(sciclean);
 
 typedef char enum_strings[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE];
 
-static int intsezcaGetEnumStates(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetEnumStrings(char *fname, int namlen, Sciclean sciclean)
 {
 int  m,n,i,j,ij,status;
 char **pvs MAY_ALIAS,**tmp;
@@ -482,7 +482,7 @@ LcaError *theErr = errCreate(sciclean);
 	MSetArg(args[0], sizeof(enum_strings), 0, &strbuf);
 
 	n     = EZCA_ENUM_STATES;
-	status = multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetEnumStates, NumberOf(args), args, theErr);
+	status = multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetEnumStrings, NumberOf(args), args, theErr);
 
 	/* if strbuf was created register a cleanup */
 	LCACLEAN(strbuf);
@@ -809,7 +809,7 @@ static GenericTable Tab[]={
   {(Myinterfun)sciclean_gateway, intsezcaGetStatus,				"lcaGetStatus"},
   {(Myinterfun)sciclean_gateway, intsezcaGetPrecision,			"lcaGetPrecision"},
   {(Myinterfun)sciclean_gateway, intsezcaGetUnits,				"lcaGetUnits"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetEnumStates,			"lcaGetEnumStates"},
+  {(Myinterfun)sciclean_gateway, intsezcaGetEnumStrings,			"lcaGetEnumStrings"},
   {(Myinterfun)sciclean_gateway, intsezcaGetRetryCount,			"lcaGetRetryCount"},
   {(Myinterfun)sciclean_gateway, intsezcaSetRetryCount,			"lcaSetRetryCount"},
   {(Myinterfun)sciclean_gateway, intsezcaGetTimeout,			"lcaGetTimeout"},

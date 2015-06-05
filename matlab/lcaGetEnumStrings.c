@@ -1,6 +1,6 @@
-/* $Id: lcaGetUnits.c,v 1.2 2007/10/14 03:28:04 strauman Exp $ */
+/* $Id: lcaGetEnumStrings.c,v 1.1 2015/06/04 19:45:30 strauman Exp $ */
 
-/* matlab wrapper for ezcaGetEnumStates */
+/* matlab wrapper for ezcaGetEnumStrings */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu>, 2002-2007  */
 
@@ -50,7 +50,7 @@ mxArray *tmp;
 
 	MSetArg(args[0], sizeof(*strbuf), 0, &strbuf);
 
-	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetEnumStates, NumberOf(args), args, &theErr) )
+	if ( !multi_ezca_get_misc(pvs.names, pvs.m, (MultiEzcaFunc)ezcaGetEnumStrings, NumberOf(args), args, &theErr) )
 		goto cleanup;
 
 	n = EZCA_ENUM_STATES;

@@ -24,11 +24,13 @@ SCILAB=$(SCILABDIR)/bin/scilab
 
 TEST_D=perl -MExtUtils::Command -e test_d
 
-HELPS=$(patsubst %,help/%.html,$(shell sed -n -e 's/\(.*[^b]subsection.*[{][ \t]*\)\(lca[a-zA-Z0-9]*\).*/\2/gp' manual.tex))
+HELP_AUTOGEN_CHAPTERS:=$(shell sed -n -e 's/\(.*[^b]subsection.*[{][ \t]*\)\(lca[a-zA-Z0-9]*\).*/\2/gp' manual.tex)
+
+HELPS=$(patsubst %,help/%.html,$(HELP_AUTOGEN_CHAPTERS))
 
 MHELPS=$(HELPS:%.html=%.m)
 
-SCI5HELPS=$(patsubst %.sci,%.xml,$(wildcard xmlhelp/en_US/*.sci))
+SCI5HELPS=$(patsubst %,xmlhelp/en_US/%.xml,$(HELP_AUTOGEN_CHAPTERS))
 SCI5HELPS+=xmlhelp/en_US/Common.xml
 SCI5HELPS+=xmlhelp/en_US/Error.xml
 
@@ -89,7 +91,7 @@ build:
 endif
 
 xmlclean:
-	$(RM)    xmlhelp/en_US/lca*.xml en_US/master_help.xml
+	$(RM)    xmlhelp/en_US/lca*.xml xmlhelp/en_US/master_help.xml
 	$(RM) -r xmlhelp/en_US/scilab_en_US_help/
 	$(RM) -r jar
 
@@ -126,6 +128,5 @@ realclean:: clean xmlclean
 	$(RM) -r manual 
 	$(RM) *.aux *.dvi *.log *.pdf *.out *.ps
 	$(RM) *~
-
 test:
-	echo $(HELPS)
+	echo $(SCI5HELPS)

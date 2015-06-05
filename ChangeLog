@@ -1,5 +1,7 @@
 Changes since labca_3_4_2:
 	2015/06/04 (TS):
+	 - RENAMED lcaGetEnumStates -> lcaGetEnumStrings
+	2015/06/04 (TS):
 	 - matlab/lcaGetEnumStates.c, matlab/Makefile: added lcaGetEnumStates()
 	 - matlab/lcaDebugOn.c, matlab/lcaDebugOff.c, matlab/Makefile: added
 	   lcaDebugOn()/lcaDebugOff().

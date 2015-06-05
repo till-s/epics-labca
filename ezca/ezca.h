@@ -119,7 +119,7 @@ epicsShareFunc int epicsShareAPI ezcaPutOldCa(char *pvname, char ezcatype,
 #define EZCA_ENUM_STATES 16
 #define EZCA_ENUM_STRING_SIZE 26
 
-epicsShareFunc int epicsShareAPI ezcaGetEnumStates(char *pvname, char states[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE]);
+epicsShareFunc int epicsShareAPI ezcaGetEnumStrings(char *pvname, char states[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE]);
 
 /* Data Types */
 #define ezcaByte   0

@@ -17,7 +17,7 @@
 ##########################################
 ## Tell us where EPICS base is installed
 
-#EPICS_BASE=/home/till/epics/base/base-3-14-12
+EPICS_BASE=/home/till/epics/base/base-3-14-12
 
 ##########################################
 # For the following definitions
@@ -48,7 +48,7 @@
 # Tell us where SCILAB is installed (only
 # needed if MAKEFOR != MATLAB [in CONFIG])
 
-#SCILABDIR=/usr
+SCILABDIR=/usr
 
 #you can also use EPICS_HOST_ARCH - specific
 #paths -- see above

@@ -197,7 +197,7 @@ static epicsEventId ezcaDone        = 0;
 #define PUT_MSG                 "ezcaPut()"
 #define PUTOLDCA_MSG            "ezcaPutOldCa()"
 #define GETUNITS_MSG            "ezcaGetUnits()"
-#define GETENUMSTATES_MSG       "ezcaGetEnumStates()"
+#define GETENUMSTATES_MSG       "ezcaGetEnumStrings()"
 #define GETNELEM_MSG            "ezcaGetNelem()"
 #define GETPRECISION_MSG        "ezcaGetPrecision()"
 #define GETGRAPHICLIMITS_MSG    "ezcaGetGraphicLimits()"
@@ -3349,7 +3349,7 @@ int epicsShareAPI ezcaGetStatus(char *pvname, TS_STAMP *timestamp,
 	return getInfo(pvname, GETSTATUS, timestamp, status, severity);
 }
 
-int epicsShareAPI ezcaGetEnumStates(char *pvname, char states[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE])
+int epicsShareAPI ezcaGetEnumStrings(char *pvname, char states[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE])
 {
 	return getInfo(pvname, GETENUMSTATES, states);
 }

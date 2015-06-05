@@ -14,7 +14,7 @@ labca_funs=[...
   'lcaGetStatus';
   'lcaGetPrecision';
   'lcaGetUnits';
-  'lcaGetEnumStates';
+  'lcaGetEnumStrings';
   'lcaGetRetryCount';
   'lcaSetRetryCount';
   'lcaGetTimeout';
