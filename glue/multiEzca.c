@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.40 2012/01/11 20:52:19 strauman Exp $ */
+/* $Id: multiEzca.c,v 1.41 2015/03/12 17:12:13 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -33,7 +33,6 @@
 #include <mex.h> /* fortran/C name conversion for scilab */
 
 /* CA includes */
-#include <tsDefs.h> 
 #include <cadef.h> 
 #include <ezca.h>
 #include <alarm.h>

@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.24 2007-05-24 19:35:21 till Exp $ */
+/* $Id: multiEzca.h,v 1.25 2007/10/14 03:28:04 strauman Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -29,7 +29,6 @@ extern "C" {
 #endif
 
 /* CA includes */
-#include <tsDefs.h> 
 
 #ifdef MATLAB_APP
 #define cerro(arg) mexPrintf("Error: %s\n",arg)
