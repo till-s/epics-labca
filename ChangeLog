@@ -1,4 +1,9 @@
+Changes since labca_3_4_3:
 Changes since labca_3_4_2:
+	2015/09/08 (TS):
+	 - replaced #include <tsDefs.h> by <epicsTime.h>
+	 - replaced obsolete TS_STAMP by epicsTimeStamp (TS_STAMP is a macro
+	   for the latter under reasonably recent base)
 	2015/06/04 (TS):
 	 - RENAMED lcaGetEnumStates -> lcaGetEnumStrings
 	2015/06/04 (TS):
