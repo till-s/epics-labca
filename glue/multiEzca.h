@@ -1,6 +1,6 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.25 2007/10/14 03:28:04 strauman Exp $ */
+/* $Id: multiEzca.h,v 1.26 2015/09/08 18:08:50 strauman Exp $ */
 
 /* interface to multi-PV EZCA calls */
 
@@ -80,7 +80,7 @@ typedef struct MultiArgRec_ {
     (a).pres = (void**)(p); \
 	} while (0)
 
-typedef epicsShareFunc int (epicsShareAPI *MultiEzcaFunc)();
+typedef int (epicsShareAPI *MultiEzcaFunc)();
 
 epicsShareFunc int epicsShareAPI
 multi_ezca_get_misc(char **nms, int m, MultiEzcaFunc ezcaProc, int nargs, MultiArg args, LcaError *pe);
