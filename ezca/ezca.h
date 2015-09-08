@@ -32,6 +32,7 @@
 
 #include <epicsVersion.h>
 #include <shareLib.h>
+#include <epicsTime.h>
 
 #define BASE_IS_MIN_VERSION(a,b,c) \
 	(   EPICS_VERSION > (a)    \
@@ -100,11 +101,11 @@ epicsShareFunc int epicsShareAPI ezcaGetNelem(char *pvname, int *nelem);
 epicsShareFunc int epicsShareAPI ezcaGetPrecision(char *pvname, 
 	short *precision);
 epicsShareFunc int epicsShareAPI ezcaGetStatus(char *pvname, 
-	TS_STAMP *timestamp, short *status, short *severity);
+	epicsTimeStamp *timestamp, short *status, short *severity);
 epicsShareFunc int epicsShareAPI ezcaGetUnits(char *pvname, 
 	char *units); /* units must be at least	EZCA_UNITS_SIZE large */
 epicsShareFunc int epicsShareAPI ezcaGetWithStatus(char *pvname, 
-	char ezcatype, int nelem, void *data_buff, TS_STAMP *timestamp, 
+	char ezcatype, int nelem, void *data_buff, epicsTimeStamp *timestamp, 
 	short *status, short *severity);
 epicsShareFunc int epicsShareAPI ezcaPut(char *pvname, char ezcatype, 
 	int nelem, void *data_buff);

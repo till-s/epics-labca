@@ -41,6 +41,8 @@ extern void cerro(const char*);
 #  include <shareLib.h>
 #endif
 
+#include <epicsTime.h>
+
 epicsShareFunc void epicsShareAPI
 ezcaSetSeverityWarnLevel(int level);
 
@@ -54,7 +56,7 @@ ezcaSetSeverityWarnLevel(int level);
  */
 
 epicsShareFunc void epicsShareAPI
-multi_ezca_ts_cvt(int m, TS_STAMP *pts, double *pre, double *pim);
+multi_ezca_ts_cvt(int m, epicsTimeStamp *pts, double *pre, double *pim);
 
 epicsShareFunc int epicsShareAPI
 multi_ezca_get_nelem(char **nms, int m, int *dims, LcaError *pe);
@@ -66,7 +68,7 @@ epicsShareFunc int epicsShareAPI
 multi_ezca_put(char **nms, int m, char type, void *fbuf, int mo, int n, int doWait4Callback, LcaError *pe);
 
 epicsShareFunc int epicsShareAPI
-multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts, LcaError *pe);
+multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, epicsTimeStamp **pts, LcaError *pe);
 
 typedef struct MultiArgRec_ {
 	int		size;

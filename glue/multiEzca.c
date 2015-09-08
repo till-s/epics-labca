@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.41 2015/03/12 17:12:13 strauman Exp $ */
+/* $Id: multiEzca.c,v 1.42 2015/09/08 18:08:50 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -174,7 +174,7 @@ int idx,i;
 	return 0;
 }
 
-static int ezcaGetWithStatus(char *name, char type, int nelms, void *bufp, TS_STAMP *pts, short *st, short *se)
+static int ezcaGetWithStatus(char *name, char type, int nelms, void *bufp, epicsTimeStamp *pts, short *st, short *se)
 {
 unsigned idx,i;
 
@@ -273,7 +273,7 @@ struct timespec {
 
 /* provide bogus epicsTimeToTimespec */
 static void
-epicsTimeToTimespec(struct timespec *tspec, TS_STAMP *tstamp)
+epicsTimeToTimespec(struct timespec *tspec, epicsTimeStamp *tstamp)
 {
 	mexPrintf("WARNING: epicsTimeToTimespec not implemented\n");
 	tspec->tv_sec = 0;
@@ -285,7 +285,7 @@ epicsTimeToTimespec(struct timespec *tspec, TS_STAMP *tstamp)
 /* convert timestamps into complex array */
 
 void epicsShareAPI
-multi_ezca_ts_cvt(int m, TS_STAMP *pts, double *pre, double *pim)
+multi_ezca_ts_cvt(int m, epicsTimeStamp *pts, double *pre, double *pim)
 {
 int i;
 struct timespec ts;
@@ -567,19 +567,19 @@ cleanup:
 }
 
 int epicsShareAPI
-multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, TS_STAMP **pts, LcaError *pe)
+multi_ezca_get(char **nms, char *type, void **pres, int m, int *pn, epicsTimeStamp **pts, LcaError *pe)
 {
-void          *cbuf  = 0;
-void          *fbuf  = 0;
-int           *dims  = 0;
-short         *stat  = 0;
-short         *sevr  = 0;
-int           rval   = 0;
-char          *types = 0;
-int           mo     = m;
-int           rowsize,typesz,nreq,nstrings;
-TS_STAMP      *ts    = 0;
-int           rc;
+void            *cbuf  = 0;
+void            *fbuf  = 0;
+int             *dims  = 0;
+short           *stat  = 0;
+short           *sevr  = 0;
+int             rval   = 0;
+char            *types = 0;
+int             mo     = m;
+int             rowsize,typesz,nreq,nstrings;
+epicsTimeStamp *ts    = 0;
+int             rc;
 
 register int  i,n = 0;
 register char *bufp;
@@ -636,7 +636,7 @@ register char *bufp;
 
 	if ( !(cbuf = lcaMalloc( m * rowsize ))          ||
 		 !(stat = lcaCalloc( m,  sizeof(*stat)))     ||
-		 !(ts   = lcaMalloc( m * sizeof(TS_STAMP)))  ||
+		 !(ts   = lcaMalloc( m * sizeof(epicsTimeStamp)))  ||
 		 !(sevr = lcaMalloc( m * sizeof(*sevr))) ) {
 		ezErr1( EZCA_FAILEDMALLOC, "multi_ezca_get: not enough memory", pe);
 		goto cleanup;

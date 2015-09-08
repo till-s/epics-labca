@@ -354,7 +354,7 @@ struct monitor
     /* other info */
     short status;
     short severity;
-    TS_STAMP time_stamp;
+    epicsTimeStamp time_stamp;
 }; /* end struct monitor */
 
 struct channel
@@ -395,7 +395,7 @@ struct work
     double *d1p, *d2p;
     short *status;
     short *severity;
-    TS_STAMP *tsp;
+    epicsTimeStamp *tsp;
     chid *pchid;
     evid *pevid;
 }; /* end struct work */
@@ -478,7 +478,7 @@ static unsigned char RandomNumbers[256] =
 
 /* Utilities */
 static void append_to_work_list(struct work *);
-static void copy_time_stamp(TS_STAMP *, TS_STAMP *); /* really should be */
+static void copy_time_stamp(epicsTimeStamp *, epicsTimeStamp *); /* really should be */
 						     /* in tsDefs.h      */
 static void empty_work_list(void);
 static struct channel *find_channel(char *);
@@ -3341,7 +3341,7 @@ int epicsShareAPI ezcaGetNelem(char *pvname, int *nelem)
 	return getInfo(pvname, GETNELEM, nelem);
 }
 
-int epicsShareAPI ezcaGetStatus(char *pvname, TS_STAMP *timestamp, 
+int epicsShareAPI ezcaGetStatus(char *pvname, epicsTimeStamp *timestamp, 
     short *status, short *severity)
 {
 	return getInfo(pvname, GETSTATUS, timestamp, status, severity);
@@ -3358,7 +3358,7 @@ int epicsShareAPI ezcaGetEnumStrings(char *pvname, char states[EZCA_ENUM_STATES]
 ****************************************************************/
 
 int epicsShareAPI ezcaGetWithStatus(char *pvname, char type, int nelem, 
-	void *buff, TS_STAMP *timestamp, short *status, short *severity)
+	void *buff, epicsTimeStamp *timestamp, short *status, short *severity)
 {
 
 struct channel *cp;
@@ -4152,7 +4152,7 @@ static void append_to_work_list(struct work *wp)
 *
 ****************************************************************/
 
-static void copy_time_stamp(TS_STAMP *dest, TS_STAMP *src)
+static void copy_time_stamp(epicsTimeStamp *dest, epicsTimeStamp *src)
 {
 
     if (dest && src)
@@ -7629,7 +7629,7 @@ static void init_work(struct work *wp)
 	wp->d2p = (double *) NULL;
 	wp->status = (short *) NULL;
 	wp->severity = (short *) NULL;
-	wp->tsp = (TS_STAMP *) NULL;
+	wp->tsp = (epicsTimeStamp *) NULL;
 	wp->pchid = (chid *) NULL;
 	wp->pevid = (evid *) NULL;
     } /* endif */

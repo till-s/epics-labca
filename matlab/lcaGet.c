@@ -1,4 +1,4 @@
-/* $Id: lcaGet.c,v 1.11 2007-05-31 21:16:45 till Exp $ */
+/* $Id: lcaGet.c,v 1.12 2007/10/14 03:28:04 strauman Exp $ */
 
 /* matlab wrapper for ezcaGet */
 
@@ -19,10 +19,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 void	*pres = 0;
 int     i,n = 0;
 const mxArray *tmp;
-mxArray *clean0 = 0, *clean1 = 0;
-PVs     pvs = { {0} };
-char	type = ezcaNative;
-TS_STAMP *ts = 0;
+mxArray     *clean0 = 0, *clean1 = 0;
+PVs             pvs = { {0} };
+char	       type = ezcaNative;
+epicsTimeStamp  *ts = 0;
 LcaError theErr;
 
 	lcaErrorInit(&theErr);

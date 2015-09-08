@@ -1,4 +1,4 @@
-/* $Id: ezcaSciCint.c,v 1.32 2015/06/04 19:41:21 strauman Exp $ */
+/* $Id: ezcaSciCint.c,v 1.33 2015/06/05 01:50:14 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
@@ -157,12 +157,12 @@ LcaError *theErr = lcaMalloc(sizeof(*theErr));
 static int intsezcaGet(char *fname, int namlen, Sciclean sciclean)
 {
 int mpvs, mtmp, ntmp, itmp, jtmp, status;
-char     **pvs MAY_ALIAS = 0;
-void      *buf MAY_ALIAS = 0;
-int	      n              = 0;
-char      type           = ezcaNative;
-TS_STAMP  *ts            = 0;
-LcaError  *theErr        = errCreate(sciclean);
+char           **pvs MAY_ALIAS = 0;
+void            *buf MAY_ALIAS = 0;
+int	            n              = 0;
+char            type           = ezcaNative;
+epicsTimeStamp  *ts            = 0;
+LcaError        *theErr        = errCreate(sciclean);
 
 	CheckRhs(1,3);
 	CheckLhs(1,2);
@@ -353,10 +353,10 @@ static int intsezcaGetAlarmLimits(char *fname, int namlen, Sciclean sciclean)
 
 static int intsezcaGetStatus(char *fname, int namlen, Sciclean sciclean)
 {
-TS_STAMP *ts MAY_ALIAS;
-int      hasImag, m,n,i,j, status;
-char     **pvs MAY_ALIAS;
-LcaError *theErr = errCreate(sciclean);
+epicsTimeStamp *ts MAY_ALIAS;
+int            hasImag, m,n,i,j, status;
+char           **pvs MAY_ALIAS;
+LcaError       *theErr = errCreate(sciclean);
 
 MultiArgRec args[3];
 
@@ -366,7 +366,7 @@ MultiArgRec args[3];
 	SCICLEAN_SVAR(pvs);
 	CheckColumn(1,m,n);
 
-	MSetArg(args[0], sizeof(TS_STAMP), 0,       &ts); /* timestamp */
+	MSetArg(args[0], sizeof(epicsTimeStamp), 0,       &ts); /* timestamp */
 
  	CreateVar(2,"i",&m,&n,&i);
 	MSetArg(args[1], sizeof(short),    istk(i), 0  ); /* status    */
