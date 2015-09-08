@@ -1,4 +1,4 @@
-/* $Id: lcaDelay.c,v 1.6 2007-05-31 21:16:45 till Exp $ */
+/* $Id: lcaDelay.c,v 1.7 2007/06/05 05:03:12 guest Exp $ */
 
 /* matlab wrapper for ezcaDelay */
 
@@ -40,7 +40,7 @@ LcaError theErr;
 	if ( !rc ) {
 		nlhs = 0;
 	} else {
-		char *msg = "lcaDelay";
+		const char *msg = "lcaDelay";
 		switch ( rc ) {
 			case EZCA_INVALIDARG: msg = "lcaDelay: need 1 timeout arg > 0";
 			break;
