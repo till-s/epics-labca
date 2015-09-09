@@ -1,4 +1,7 @@
 Changes since labca_3_5_0:
+	2015/09/08 (TS):
+	 - fixed test script (didn't catch all partial enum string mismatch)
+	 - fixed test script (matlab compatibility)
 Changes since labca_3_4_2:
 	2015/09/08 (TS):
 	 - replaced #include <tsDefs.h> by <epicsTime.h>
