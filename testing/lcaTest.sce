@@ -53,7 +53,7 @@ disp('CHECKING FEATURES/VERSION')
 try
 	lcaLastError();
 	try
-		lcaGetEnumStrings("lca:scl0");
+		lcaGetEnumStrings('lca:scl0');
 		labcaversion=3.5
 	catch
 		labcaversion=3
@@ -605,46 +605,46 @@ end
 if ( labcaversion >= 3.5 )
 	disp('CHECKING lcaGetEnumStrings')
 	try
-		enums=lcaGetEnumStrings(["lca:scl0.SCAN";"lca:scl1.SCAN";"lca:scl0"])
+		enums=lcaGetEnumStrings(['lca:scl0.SCAN';'lca:scl1.SCAN';'lca:scl0'])
 	catch
-		error('lcaGetEnumStrings() on two PVs FAILED')
+		error('lcaGetEnumStrings() on three PVs FAILED')
 	end
-	if ( size(enums,'*') ~= 48 | enums(1,:) ~= enums(2,:) )
+	if ( prod(size(enums)) ~= 48 | or(enums(1,:) ~= enums(2,:)) )
 		error('lcaGetEnumStrings() SCAN enums of two PVs mismatch!')
 	end
-	if ( enums(1,:) ~= ['Passive',  'Event', 'I/O Intr', '10 second',...
+	if ( or(enums(1,:) ~= ['Passive',  'Event', 'I/O Intr', '10 second',...
 	                   '5 second', '2 second', '1 second', '.5 second',...
-						'', '', '', '',...
-						'', '', '', ''] )
+						'.2 second', '.1 second', '', '',...
+						'', '', '', '']) )
 		error('lcaGetEnumStrings() SCAN enums mismatch')
 	end
-	if ( enums(3,:) ~= [ '', '', '', '',...
+	if ( or(enums(3,:) ~= [ '', '', '', '',...
 						'', '', '', '',...
 						'', '', '', '',...
-						'', '', '', ''] )
+						'', '', '', '']) )
 		error('lcaGetEnumStrings() on non-enum PV mismatch')
 	end
 	// test a single PV
 	try
-		enums=lcaGetEnumStrings(["lca:scl0.SCAN"])
+		enums=lcaGetEnumStrings(['lca:scl0.SCAN'])
 	catch
 		error('lcaGetEnumStrings() on single PV FAILED')
 	end
-	if ( enums(1,:) ~= ['Passive',  'Event', 'I/O Intr', '10 second',...
+	if ( or(enums(1,:) ~= ['Passive',  'Event', 'I/O Intr', '10 second',...
 	                   '5 second', '2 second', '1 second', '.5 second',...
-						'', '', '', '',...
-						'', '', '', ''] )
+						'.2 second', '.1 second', '', '',...
+						'', '', '', '']) )
 		error('lcaGetEnumStrings() SCAN enum mismatches')
 	end
 	try
-		enums=lcaGetEnumStrings(["lca:scl0"])
+		enums=lcaGetEnumStrings(['lca:scl0'])
 	catch
 		error('lcaGetEnumStrings() on single PV FAILED')
 	end
-	if ( enums(1,:) ~= [ '', '', '', '',...
+	if ( or(enums(1,:) ~= [ '', '', '', '',...
 						'', '', '', '',...
 						'', '', '', '',...
-						'', '', '', ''] )
+						'', '', '', '']) )
 		error('lcaGetEnumStrings() SCAN enum mismatches')
 	end
 end
