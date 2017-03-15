@@ -16,8 +16,9 @@
 
 ##########################################
 ## Tell us where EPICS base is installed
-
-EPICS_BASE=/home/till/epics/base/base-3-14-12
+-include $(TOP)/RELEASE_SITE
+EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
+#EPICS_BASE=/home/till/epics/base/base-3-14-12
 
 ##########################################
 # For the following definitions
