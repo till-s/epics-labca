@@ -1,0 +1,200 @@
+% see if we should actually do anything
+\message{Including htmltex ...}
+\expandafter\ifx\csname dohtml\endcsname\relax
+\message{dohtml undefined; skipping ...}
+\else
+\message{dohtml defined; it is \dohtml}
+%%%%%%%%%%%%%%%% BEGIN HTML TEX STUFF %%%%%%%%%%%%%%
+
+% get tex to output the output boxes
+\tracingoutput=1
+\showboxbreadth=10000000
+\showboxdepth=10000000
+\hbadness=10000
+\vbadness=10000
+%\setlength{\textheight}{200in} % one page so footnotes go at the bottom.
+\pretolerance=10000
+
+\makeatletter
+\def\@htmlwrite#1{\special{HTML:#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% Paragraphs and things %%%%%%%%%%%%%%
+\iftrue
+\message{paragraphs ...}
+\let\@@@par\@@par
+\def\@@par{\@htmlwrite{<p>}\@@@par}
+\@restorepar
+\let\@@@newline\newline
+\def\newline{\@htmlwrite{<br>}\@@@newline}
+\let\@@@cr\cr
+\def\cr{\@htmlwrite{<br>}\@@@cr}
+\let\@@@dblslsh\\
+\def\\{\@htmlwrite{<br>}\@@@dblslsh}
+%\def\discretionary#1#2#3{#3} % didn't work very well
+\def\-{}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%% Pages %%%%%%%%%%%%%%%%%%%%%%%%%
+% For TeX
+%\footline={\@htmlwrite{<HR>}}    % Does nothing in LaTeX
+
+% For LaTeX
+\message{pages ...}
+\def\ps@html{
+  \def\@oddfoot{\@htmlwrite{<HR></A>}}
+  \let\@evenfoot\@oddfoot
+  \def\@oddhead{\@htmlwrite{<CENTER><A NAME=PAGE\thepage>\thepage</CENTER><HR>}}
+%  \def\@oddhead{\@htmlwrite{<A NAME=PAGE\thepage>}}
+  \let\@evenhead\@oddhead
+}
+
+\pagestyle{html}
+\onecolumn
+\def\twocolumn{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% MATH MODE %%%%%%%%%%%%%%%%%%%
+\message{math ...}
+\iffalse
+\let\@dollar=$
+\catcode`\$=13
+\let\@inmath=0
+\def${\ifx\@inmath0\@htmlwrite{<I>}\let\@inmath=1\@dollar\else\@dollar\@htmlwrite{</I>}\let\@inmath=0\fi}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% figures %%%%%%%%%%%%%%%%%%%
+\def\fps@figure{h}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Footnotes %%%%%%%%%%%%%%%%%
+\iffalse
+\def\footnote#1{}
+\def\footnotetext[#1]#2{}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%% All kinds of lists %%%%%%%%%%%%%%
+\message{lists ...}
+\iftrue
+\newcount\@indef
+\@indef=0
+\def\description{
+  \@htmlwrite{<DL>}
+  \advance\@indef by 1
+  \ifnum\@indef=1
+  \let\@item=\item
+  \def\item[##1]{\@htmlwrite{<DT>}##1\@htmlwrite{<DD>}}
+  \fi
+  }
+\def\enddescription{
+  \@htmlwrite{</DL>}
+  \advance\@indef by -1
+  \ifnum\@indef=0
+  \let\item\@item
+  \fi}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%% centering %%%%%%%%%%%%%%%%%%%%%%
+\iftrue
+\let\@htmlcenterline\centerline
+\def\centerline#1{
+  \@htmlwrite{<CENTER>}
+  \@htmlcenterline{#1}
+  \@htmlwrite{</CENTER>}}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%% labels %%%%%%%%%%%%%%%%%%%%%%%%%%
+\let\@htmllabel\label
+\let\@htmlref\ref
+\catcode`\#=11
+\def\hash{#}
+\catcode`\#=6
+%\def\label#1{\@htmlwrite{<A NAME=#1></A>}\@htmllabel{#1}}
+
+\def\label#1{\@bsphack\if@filesw {\let\thepage\relax
+   \def\protect{\noexpand\noexpand\noexpand}%
+   \edef\@tempa{\write\@auxout{\string
+      \newlabel{#1}{{\labelname}{\thepage}}}}%
+   \expandafter}\@tempa
+   \if@nobreak \ifvmode\nobreak\fi\fi\fi\@esphack}
+
+%\def\ref#1{\@htmlwrite{<A HREF=\hash#1>}\@htmlref{#1}\@htmlwrite{</A>}}
+\let\@refstepcounter\refstepcounter
+\def\refstepcounter#1{
+  \@refstepcounter{#1}
+  \@htmlwrite{<A NAME=#1\@currentlabel></A>}
+  \def\labelname{
+    \special{HTML:<A HREF=HTMLHASH#1\@currentlabel>}
+    \@currentlabel\special{HTML:</A>}
+  }
+}
+
+\def\labelname{}
+
+% unfortunately eqnarray doesn't use refstepcounter so we'll have
+% to take care of it.
+
+%here's a better fix but it doesn't work
+
+%\let\@@eqnnum\@eqnnum
+%\def\@eqnnum{
+%  \@htmlwrite{<A NAME=equation\@currentlabel></A>}
+%  \def\labelname{
+%    \special{HTML:<A HREF=HTMLHASHequation\@currentlabel>}
+%    \@currentlabel\special{HTML:</A>}
+%  }
+%  \@@eqnnum
+%}
+
+\let\@eqnarray\eqnarray
+\def\eqnarray{
+  \@htmlwrite{<A NAME=equation\@currentlabel></A>}
+  \def\labelname{
+    \special{HTML:<A HREF=HTMLHASHequation\@currentlabel>}
+    \@currentlabel\special{HTML:</A>}
+  }
+  \let\cr\@@@cr
+  \@htmlwrite{<br>}
+  \@eqnarray
+}
+
+%\let\@endeqnarray\endeqnarray
+%\def\endeqnarray{
+%  \@htmlwrite{<A NAME=equation\@currentlabel></A>}
+%  \def\labelname{
+%    \special{HTML:<A HREF=HTMLHASHequation\@currentlabel>}
+%    \@currentlabel\special{HTML:</A>}
+%  }
+%  \@endeqnarray
+%  \def\cr{\@htmlwrite{<br>}\@@@cr}
+%}
+
+
+%\let\@@@eqncr\@@eqncr
+%\def\@@eqncr{
+%  \@htmlwrite{<A NAME=equation\@currentlabel></A>}
+%  \def\labelname{
+%    \special{HTML:<A HREF=HTMLHASHequation\@currentlabel>}
+%    \@currentlabel\special{HTML:</A>}
+%  }
+%  \@@@eqncr
+%}
+
+\def\@eqnnum{{
+  \@htmlwrite{<A NAME=equation\@currentlabel></A>}
+  \def\labelname{
+    \special{HTML:<A HREF=HTMLHASHequation\@currentlabel>}
+    \@currentlabel\special{HTML:</A>}}
+  \reset@font\rm (\theequation)
+  \@htmlwrite{<br>}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\makeatother
+
+%%%%%%%%%%%%%%% END HTML TEX STUFF %%%%%%%%%%%%%%%%%%%%%%
+\fi
