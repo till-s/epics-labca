@@ -1,0 +1,14 @@
+bin
+doc
+documentation/help
+documentation/manual.aux
+documentation/manual.log
+documentation/manual.out
+documentation/manual.pdf
+documentation/manual
+html
+lib
+*.log
+*.sci
+O.*
+testing/lcaTest.m
