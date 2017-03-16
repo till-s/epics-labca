@@ -44,12 +44,17 @@ EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
 # SCILABDIR_win32-x86 = C:\SCILAB           (use this on WIN32)
 # SCILABDIR_DEFAULT   = /usr/lib/scilab-4.1 (use for everything else)
 ##########################################
+MATLABDIR = /afs/slac/package/matlab/2014a
 
 ##########################################
 # Tell us where SCILAB is installed (only
 # needed if MAKEFOR != MATLAB [in CONFIG])
 
+ifneq '$(wildcard /usr/bin/scilab)' ''
 SCILABDIR=/usr
+else
+SCILABDIR=/afs/slac/g/lcls/package/scilab/scilab-6.0.0
+endif
 
 #you can also use EPICS_HOST_ARCH - specific
 #paths -- see above
