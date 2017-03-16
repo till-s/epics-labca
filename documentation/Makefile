@@ -13,6 +13,9 @@ TOP = ..
 T_A = cheat
 include $(TOP)/configure/CONFIG
 
+# Add HtmlTeX to path so we can use html.sty
+export PATH := $(PATH):$(TOP)/documentation/HtmlTeX
+
 # Broken: scilab 5 under windows executable is 'scilex' :-(
 # but we have no T_A/OS_CLASS to test here
 SCILAB=$(SCILABDIR)/bin/scilab
@@ -30,9 +33,11 @@ HELPS=$(patsubst %,help/%.html,$(HELP_AUTOGEN_CHAPTERS))
 
 MHELPS=$(HELPS:%.html=%.m)
 
+ifneq '$(wildcard $(SCILAB))' ''
 SCI5HELPS=$(patsubst %,xmlhelp/en_US/%.xml,$(HELP_AUTOGEN_CHAPTERS))
 SCI5HELPS+=xmlhelp/en_US/Common.xml
 SCI5HELPS+=xmlhelp/en_US/Error.xml
+endif
 
 DOCS+=manual.pdf
 MANHTMLS=$(wildcard manual/*)
@@ -50,8 +55,11 @@ $(INSTALL_DOC)/%:%
 
 install: buildInstall
 
-buildInstall: build $(INSTALL_DOCS) $(INSTALL_HTMLS) $(INSTALL_SCI5_HELPJAR)
+buildInstall: build $(INSTALL_DOCS) $(INSTALL_HTMLS)
 
+ifneq '$(wildcard $(SCILAB))' ''
+buildInstall: $(INSTALL_SCI5_HELPJAR)
+endif
 clean::
 
 $(sort manual/index.html $(wildcard manual/*.html)): manual.aux
