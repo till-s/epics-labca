@@ -1,6 +1,7 @@
 #####################################
-#  labca_3_6_0 (bhill, 2017/3/16):  #
+#  R3.6.0 (bhill, 2017/3/24):       #
 #####################################
+Added support for variable size array handling
 Added HtmlTeX files needed to rebuild laTeX documentation and updated build
 support for matlab 2016b compatibility, rhel6-x86_64 and rhel7-x86_64 EPICS_HOST_ARCH,
 and made scilab documentation build only when scilab is installed.
