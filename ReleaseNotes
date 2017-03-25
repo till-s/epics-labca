@@ -1,4 +1,31 @@
 #####################################
+#  labca_3_6_0 (bhill, 2017/3/16):  #
+#####################################
+Added HtmlTeX files needed to rebuild laTeX documentation and updated build
+support for matlab 2016b compatibility, rhel6-x86_64 and rhel7-x86_64 EPICS_HOST_ARCH,
+and made scilab documentation build only when scilab is installed.
+
+#####################################
+#  labca_3_5_0 (T.S, 2015/9/8):     #
+#####################################
+A few minor fixes to build under base-3.15 (thanks to S. Gierman for reporting).
+
+Also, there is now a new call:
+    'lcaGetEnumStrings' which allows you to retrieve the possible values of an enum-type PV.
+
+#####################################
+#  labca_3_4_2 (T.S, 2015/3/2):     #
+#####################################
+A few minor fixes required to build under matlab 2014a.
+Thanks to Matthew Furseman for contributing the respective patch. 
+
+#####################################
+#  labca_3_4_1 (T.S, 2013/6/25):    #
+#####################################
+Just a bugfix in the build system which only affects builds for scilab under windows.
+Thanks to Takashi Obina for reporting and suggesting a fix.
+
+#####################################
 #  labca_3_4 (T.S, 2010/6/4):       #
 #####################################
 
