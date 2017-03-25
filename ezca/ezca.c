@@ -5293,7 +5293,7 @@ int rc;
 		print_state();
 	} /* endif */
 
-	rc = ca_array_get_callback(wp->dbr_type, (unsigned long) wp->nelem,
+	rc = ca_array_get_callback(wp->dbr_type, ( wp->nelem == nElemMax ? 0 : wp->nelem ),
 		    cp->cid, my_get_callback, (void *) wp);
 
 	if (rc != ECA_NORMAL)
@@ -5777,6 +5777,8 @@ EZCA_LOCK();
     if (arg.status == ECA_NORMAL)
 	{
 		int				nbytes		= 0;
+		unsigned long	nbytesFill	= 0;
+		unsigned long	nElemMax	= ca_element_count( arg.chid );
 
 		/* checking that channel access gave us what we asked for */
 		if (arg.type != wp->dbr_type)
@@ -5824,9 +5826,11 @@ EZCA_LOCK();
 			if (	wp->worktype == GET 
 				||	wp->worktype == GETWITHSTATUS )
 			{
-				if ( arg.count == wp->nelem )
+				if ( wp->nelem == 0 || wp->nelem == arg.count || wp->nelem == nElemMax )
 				{
 					nbytes = arg.count*dbr_value_size[arg.type];
+					if ( wp->nelem > arg.count )
+						nbytesFill = (wp->nelem - arg.count) * dbr_value_size[arg.type]; 
 					if ( nbytes > 0 && (Trace || Debug) )
 					{
 						printf(	"my_get_callback() size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
@@ -5899,6 +5903,8 @@ EZCA_LOCK();
 					memcpy(	(char *) (wp->pval), 
 							(char *) &(((struct dbr_time_char *) arg.dbr)->value),
 							nbytes	);
+				if ( nbytesFill > 0 )
+					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
 				if (Trace || Debug)
 					printf("my_get_callback() just memcpy %d bytes to %p\n",
@@ -5940,6 +5946,8 @@ EZCA_LOCK();
 					memcpy(	(char *) (wp->pval), 
 							(char *) &(((struct dbr_time_string *) arg.dbr)->value),
 							nbytes	);
+				if ( nbytesFill > 0 )
+					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
 				if (Trace || Debug)
 					printf("my_get_callback() just memcpy %d bytes to %p\n",
@@ -5981,6 +5989,8 @@ EZCA_LOCK();
 					memcpy(	(char *) (wp->pval), 
 							(char *) &(((struct dbr_time_short *) arg.dbr)->value),
 							nbytes	);
+				if ( nbytesFill > 0 )
+					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
 				if (Trace || Debug)
 					printf("my_get_callback() just memcpy %d bytes to %p\n",
@@ -6022,6 +6032,8 @@ EZCA_LOCK();
 					memcpy(	(char *) (wp->pval), 
 							(char *) &(((struct dbr_time_long *) arg.dbr)->value),
 							nbytes	);
+				if ( nbytesFill > 0 )
+					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
 				if (Trace || Debug)
 					printf("my_get_callback() just memcpy %d bytes to %p\n",
@@ -6063,6 +6075,8 @@ EZCA_LOCK();
 					memcpy(	(char *) (wp->pval), 
 							(char *) &(((struct dbr_time_float *) arg.dbr)->value),
 							nbytes	);
+				if ( nbytesFill > 0 )
+					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
 				if (Trace || Debug)
 					printf("my_get_callback() just memcpy %d bytes to %p\n",
@@ -6105,6 +6119,8 @@ EZCA_LOCK();
 					memcpy(	(char *) (wp->pval),
 							(char *) &(((struct dbr_time_double *) arg.dbr)->value),
 							nbytes	);
+				if ( nbytesFill > 0 )
+					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
 				if (Trace || Debug)
 					printf("my_get_callback() just memcpy %d bytes to %p\n",
