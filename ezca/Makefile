@@ -13,7 +13,7 @@ include $(TOP)/configure/CONFIG
 CMPLR = STRICT
 
 # install header file
-#INC = ezca.h
+INC = ezca.h
 
 #
 #	Contents of library: generic, special and for all systems
