@@ -1,5 +1,6 @@
 /* #include <tsDefs.h> */
 #include <stdio.h>
+#include <string.h>
 #include <cadef.h>
 #include <cantProceed.h>
 #include <db_access.h>
@@ -11,14 +12,15 @@
 
 int main( int argc, char * argv[] )
 {
-	int			status;
-	char	*	pvName	= "mywaveform";
-	char		waveform_NELM[WV_NAME_MAX];
-	char		waveform_NORD[WV_NAME_MAX];
-	epicsInt32	count;
-	epicsInt32	nElemWaveform;
-	epicsInt32	nOrdWaveform;
-	double	*	pBufferWaveform	= NULL;
+	int				i;
+	int				status;
+	char		*	pvName	= "mywaveform";
+	char			waveform_NELM[WV_NAME_MAX];
+	char			waveform_NORD[WV_NAME_MAX];
+	epicsInt32		count;
+	epicsInt32		nElemWaveform;
+	epicsInt32		nOrdWaveform;
+	epicsInt32	*	pBufferWaveform	= NULL;
 
 	if ( argc < 2 )
 	{
@@ -56,6 +58,7 @@ int main( int argc, char * argv[] )
 	}
 
 	pBufferWaveform = callocMustSucceed( nElemWaveform, dbr_value_size[DBR_LONG], "Unable to allocate waveform buffer!" );
+	memset( pBufferWaveform, 255, nElemWaveform * dbr_value_size[DBR_LONG] );
 
 	count = nElemWaveform;
 	if ( argc >= 3 )
@@ -72,6 +75,25 @@ int main( int argc, char * argv[] )
 		printf( "Error %d: Unable to read %d elements from  waveform PV %s\n", status, count, pvName );
 		return -1;
 	}
+	printf( "waveform PV %s: NELM = %d, NORD = %d, nRead = %d\n", pvName, nElemWaveform, nOrdWaveform, count );
+	if ( count < 12 )
+		count = 12;
+	for ( i = 0; i < count; i++ )
+	{
+		/* Show the first 25 and the last 5 */
+		if ( i >= 25 )
+		{
+			if ( i == 25 )
+				printf( "...\n" );
+			if ( i < (count - 5) )
+				continue;
+		}
+
+		printf( "%d	", pBufferWaveform[i] );
+		if ( (i % 20) == 19 )
+			putchar( '\n' );
+	}
+	putchar( '\n' );
 	printf( "Done.\n" );
 
 	return 0;
