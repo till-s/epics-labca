@@ -27,7 +27,7 @@ SCILAB=$(SCILABDIR)/bin/scilab
 
 TEST_D=perl -MExtUtils::Command -e test_d
 
-HELP_AUTOGEN_CHAPTERS:=$(shell sed -n -e 's/\(.*[^b]subsection.*[{][ \t]*\)\(lca[a-zA-Z0-9]*\).*/\2/gp' manual.tex)
+HELP_AUTOGEN_CHAPTERS:=$(shell $(SED) -n -e 's/\(.*[^b]subsection.*[{][ \t]*\)\(lca[a-zA-Z0-9]*\).*/\2/gp' manual.tex)
 
 HELPS=$(patsubst %,help/%.html,$(HELP_AUTOGEN_CHAPTERS))
 
@@ -88,7 +88,7 @@ help/Contents.m: Contents.m
 # html->text, add leading '%' and remove long URLs, just leave filename
 %.m:%.html
 	$(RM) $@
-	lynx -dump $^ | sed -e 's/^/%/g'  -e 's/\([0-9]*[.][ ]*\)\(file:\([^/]*[/]\)*\)\(.*\)\([.]html.*\)/\4 \1\4/g' > $@
+	lynx -dump $^ | $(SED) -e 's/^/%/g'  -e 's/\([0-9]*[.][ ]*\)\(file:\([^/]*[/]\)*\)\(.*\)\([.]html.*\)/\4 \1\4/g' > $@
 
 build: manual/index.html $(MHELPS) help/Contents.m
 
@@ -99,7 +99,9 @@ build:
 endif
 
 xmlclean:
-	$(RM)    xmlhelp/en_US/lca*.xml xmlhelp/en_US/master_help.xml
+	$(RM)    xmlhelp/en_US/lca*.xml
+	$(RM)    xmlhelp/en_US/lca*.sci
+	$(RM)    xmlhelp/en_US/master_help.xml
 	$(RM) -r xmlhelp/en_US/scilab_en_US_help/
 	$(RM) -r jar
 
@@ -107,11 +109,11 @@ xmlclean:
 # to a xmlhelp/en_US/%.sci file which can be translated into xml by
 # help_from_sci()
 xmlhelp/en_US/%.sci: help/%.m
-	sed -e '1s/^%/function /' -e '1,$$s#^%#//#' -e 's/References/See also/' -e '$$a\
+	$(SED) -e '1s/^%/function /' -e '1,$$s#^%#//#' -e 's/References/See also/' -e '$$a\
 endfunction' $^ > $@	
 	# extract first sentence and insert into first line
 	# insert as second line
-	sed $@ -i -e "1a\// `sed $@ -e 's#^[/][/]##g' | tr '\n' ' ' | sed -e 's/\(.*Description[ \t]*\)\([^.]*[.]\)\(.*\)/\2/'`"
+	$(SED) $@ -i -e "1a\// `$(SED) $@ -e 's#^[/][/]##g' | tr '\n' ' ' | $(SED) -e 's/\(.*Description[ \t]*\)\([^.]*[.]\)\(.*\)/\2/'`"
 
 
 xmlhelp/en_US/lca%.xml: xmlhelp/en_US/lca%.sci
@@ -136,5 +138,6 @@ realclean:: clean xmlclean
 	$(RM) -r manual 
 	$(RM) *.aux *.dvi *.log *.pdf *.out *.ps
 	$(RM) *~
+
 test:
 	echo $(SCI5HELPS)

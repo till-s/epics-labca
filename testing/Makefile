@@ -21,23 +21,14 @@ install: buildInstall
 
 buildInstall: build
 
-ifneq '$(T_A)' ''
-build: ../lcaTest.m
+SCRIPTS_HOST += lcaTest.m lcaTest.sce
 
 #convert scilab test script to matlab
-../lcaTest.m:	../lcaTest.sce
-	@if ! sed -e 's$$//$$%$$' -e 's/\<sleep(1000[*]/pause(/g' -e's/mtlb_//g' -e"s/%nan/nan('double')/g" -e 's/%[ \t]*MATLABWARN/disp/' -e 's/\([ \t]then\)\([ \t]\|$$\)/\2/g' $< > $@ ;  then \
+lcaTest.m:	../lcaTest.sce
+	@if ! $(SED) -e 's$$//$$%$$' -e 's/\<sleep(1000[*]/pause(/g' -e's/mtlb_//g' -e"s/%nan/nan('double')/g" -e 's/%[ \t]*MATLABWARN/disp/' -e 's/\([ \t]then\)\([ \t]\|$$\)/\2/g' $< > $@ ;  then \
 		echo "*** WARNING: Unable to create test script for MATLAB" ;  \
 		echo "%*** WARNING: Unable to create test script for MATLAB" > $@ ;  \
 	fi
-
-clean: test_clean
-
-realclean: test_clean
-endif
-
-test_clean:
-	$(RM) ../lcaTest.m
 
 #test:	$(TOP)/bin/$(T_A)/ezcaVarArrayTest
 #	@ $*
