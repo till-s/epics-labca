@@ -1,4 +1,7 @@
+Changes since labca_3_5_2:
 Changes since labca_3_5_1:
+	2017/08/10 (TS):
+	 - use psed/sed everywhere (SED defined in configure/CONFIG)
 Changes since labca_3_5_0:
 	2017/08/08 (TS):
 	 - use sed on linux, psed on windows (perl 5.22 stopped shipping psed)

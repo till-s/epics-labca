@@ -21,12 +21,6 @@ USR_INCLUDES += -I../../ezca
 # build share library
 SHARED_LIBRARIES = YES
 
-ifeq ($(OS_CLASS),WIN32)
-SED=psed
-else
-SED=sed
-endif
-
 ifeq ($(MAKEFOR),MATLAB)
 #PROD_HOST += gnelm
 ifeq ($(OS_CLASS),WIN32)

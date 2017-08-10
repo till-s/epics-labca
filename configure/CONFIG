@@ -82,6 +82,12 @@ MEXEXT_SH=mexext
 MEXCXXFLAGS=-cxx
 endif
 
+ifeq ($(OS_CLASS),WIN32)
+SED=psed
+else
+SED=sed
+endif
+
 # create MAKEFOR-specific config includes; 
 # also verify that MAKEFOR is either MATLAB or SCILAB
 ifeq ($(MAKEFOR),MATLAB)
