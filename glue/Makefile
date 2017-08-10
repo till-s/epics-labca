@@ -21,6 +21,12 @@ USR_INCLUDES += -I../../ezca
 # build share library
 SHARED_LIBRARIES = YES
 
+ifeq ($(OS_CLASS),WIN32)
+SED=psed
+else
+SED=sed
+endif
+
 ifeq ($(MAKEFOR),MATLAB)
 #PROD_HOST += gnelm
 ifeq ($(OS_CLASS),WIN32)
@@ -188,14 +194,14 @@ include $(TOP)/configure/RULES
 #$($(LOADABLE_PREFIX)SHRLIBNAME): ../$($(LOADABLE_PREFIX)LIBRARY_HOST).def
 
 mkmezca.m: ../mkmezca.m.tmpl
-	psed -e "s/%%TARCH%%/$(T_A)/g" -e "s/%%ARCH%%/$(OS_CLASS)/g" -e "s$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g" < $^ >$@
+	$(SED) -e "s/%%TARCH%%/$(T_A)/g" -e "s/%%ARCH%%/$(OS_CLASS)/g" -e "s$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g" < $^ >$@
 
 %.sce: ../%.sce.in
 	$(RM) $@
-	psed -e "s=THELIB=$(LIBSUB)/$(T_A)/$($(LOADABLE_PREFIX)SHRLIBNAME)=g" -e "s/THEFILE/$@/g" <$^ >$@
+	$(SED) -e "s=THELIB=$(LIBSUB)/$(T_A)/$($(LOADABLE_PREFIX)SHRLIBNAME)=g" -e "s/THEFILE/$@/g" <$^ >$@
 
 ../%.def: ../%.def.in
-	$(CPP) $(CPPFLAGS) $(SCIINCS) $< | psed -n -e "/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p" > $@
+	$(CPP) $(CPPFLAGS) $(SCIINCS) $< | $(SED) -n -e "/LIBRARY[ ]*$($(notdir $@):%.def=%)/,$$p" > $@
 
 ifneq ($(OS_CLASS),WIN32)
 PRODNAME_LINKER=$(MATLABDIR)/bin/$(MEX) -f $(MATLABDIR)/bin/engopts.sh $(TARGET_LDFLAGS) $(USR_LDFLAGS) $(OP_SYS_LDFLAGS) -output $@

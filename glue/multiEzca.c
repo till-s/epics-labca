@@ -1,4 +1,4 @@
-/* $Id: multiEzca.c,v 1.42 2015/09/08 18:08:50 strauman Exp $ */
+/* $Id: multiEzca.c,v 1.43 2015/09/08 19:19:39 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 
@@ -52,6 +52,8 @@ static unsigned long mynan[2] = { 0xffffffff, 0x7fffffff };
 #define NAN (0./0.)
 #endif
 #endif
+
+#define DBL_NAN ((double)NAN)
 
 /* GLOBAL VARIABLES */
 static int ezcaSeverityWarnLevel   = INVALID_ALARM;
@@ -134,9 +136,9 @@ static float tstFlt[] = {
 
 static double tstDbl[] = {
 	.1, .2, .3,
-	-1., NAN, -1.,
+	-1., DBL_NAN, -1.,
 	-2., -3., -4.,
-	-5., -6., NAN
+	-5., -6., DBL_NAN
 };
 
 static char *tstChr[] = {
@@ -689,35 +691,35 @@ register char *bufp;
 			case ezcaByte:   CVTVEC( double,
 										(0),
 										epicsInt8,
-										*fpt= j>=dims[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? DBL_NAN : *cpt
 							  );
 							  break;
 
 			case ezcaShort:   CVTVEC( double,
 										(0),
 										epicsInt16,
-										*fpt= j>=dims[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? DBL_NAN : *cpt
 							  );
 							  break;
 
 			case ezcaLong :   CVTVEC( double,
 										(0),
 										epicsInt32,
-										*fpt= j>=dims[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? DBL_NAN : *cpt
 							  );
 							  break;
 
 			case ezcaFloat:   CVTVEC( double,
 										(0),
 										float,
-										*fpt= j>=dims[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? DBL_NAN : *cpt
 							  );
 							  break;
 
 			case ezcaDouble:  CVTVEC( double,
 										(0),
 										double,
-										*fpt= j>=dims[i] ? NAN : *cpt
+										*fpt= j>=dims[i] ? DBL_NAN : *cpt
 							  );
 							  break;
 

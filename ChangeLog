@@ -1,4 +1,14 @@
+Changes since labca_3_5_1:
 Changes since labca_3_5_0:
+	2017/08/08 (TS):
+	 - use sed on linux, psed on windows (perl 5.22 stopped shipping psed)
+	2017/08/08 (TS):
+	 - BUGFIX (thanks to Jesus Vasquez for reporting). When retrieving
+	   DBF_LONG in native format, result was inadvertently converted to float
+	   and then promoted to double which lead to a loss in precision.
+	2015/09/08 (TS):
+	 - fixed test script (didn't catch all partial enum string mismatch)
+	 - fixed test script (matlab compatibility)
 Changes since labca_3_4_2:
 	2015/09/08 (TS):
 	 - replaced #include <tsDefs.h> by <epicsTime.h>
