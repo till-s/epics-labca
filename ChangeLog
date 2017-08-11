@@ -1,4 +1,6 @@
 Changes since labca_3_5_3:
+	2017/08/11 (TS):
+	 - added test case for recent bugfix
 	2017/08/10 (TS):
 	 - merged changes from labca_3_5_branch
 Changes since labca_3_5_2:
