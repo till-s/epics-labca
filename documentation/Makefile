@@ -61,6 +61,7 @@ ifneq '$(wildcard $(SCILAB))' ''
 buildInstall: $(INSTALL_SCI5_HELPJAR)
 endif
 clean::
+	$(RM) gitstring.tex
 
 $(sort manual/index.html $(wildcard manual/*.html)): manual.aux
 	latex2html -no_footnode -split 5 -link 1 manual.tex
@@ -69,9 +70,13 @@ $(HELPS): manual.aux
 	$(TEST_D) help || $(MKDIR) help
 	latex2html -no_footnode -split 5 -link 0 -no_navigation -no_antialias_text -long_titles 1 -dir help manual.tex
 
-%.pdf %.aux: %.tex
-	pdflatex $^
-	pdflatex $^
+gitstring.tex: manual.tex Makefile
+	$(RM) $@
+	@echo '\\newcommand{\\gitstring}{$(GITSTRING)}' > $@
+
+%.pdf %.aux: %.tex gitstring.tex
+	pdflatex $<
+	pdflatex $<
 
 
 help/whatis.htm: whatis.htm

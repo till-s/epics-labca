@@ -6,6 +6,8 @@
 \usepackage{graphics}
 \usepackage{html, makeidx}
 
+\input{gitstring.tex}
+
 \newcommand{\sca}{\ita{labCA}}
 \newcommand{\scilab}{\ita{scilab}}
 \newcommand{\matlab}{\ita{matlab}}
@@ -17,7 +19,7 @@
 \newcommand{\NAN}{\mbox{NaN}}
 \newcommand{\pbrk}{\pagebreak[3]}
 \newcommand{\pbrkf}{\pagebreak}
-\newcommand{\comref}[2]{\hyperref[ref]{\com{#1}}{\com{#1} (see }{)}{#2}}
+\newcommand{\comref}[2]{\hyperref{\com{#1}}{\com{#1} (see }{)}{#2}}
 \newcommand{\MAXENUM}{16}
 
 \newcommand{\ita}[1]{\emph{#1}}
@@ -329,7 +331,7 @@ Consequently, \ita{INVALID} PVs are returned as \NAN{} only if
 they refer to a record's .VAL field.
 }. In addition, warning
 messages are printed to the console if a PV's alarm status exceeds
-a \hyperref[ref]{configurable threshold}{configurable threshold (see }{ )}{swarnlevel}.
+a \hyperref{configurable threshold}{configurable threshold (see }{ )}{swarnlevel}.
 The refusal to read PVs with \ita{INVALID} severity can be tuned using
 the \com{lcaSetSeverityWarnLevel} call as well.
 %
@@ -509,7 +511,7 @@ simply reestablishes a connection (but no monitors).
 \item[nmax]
 (\ita{optional argument}) Maximum number of elements
 (per PV) to monitor/retrieve. If set to 0 (default), all elements are fetched.
-See \hyperref[ref]{here}{(}{)}{nmaxarg} for more information.
+See \hyperref{here}{(}{)}{nmaxarg} for more information.
 
 Note that a subsequent \comref{lcaGet}{lcaget} must specify a \com{nmax}
 argument equal or less than the number given to \com{lcaSetMonitor} ---
@@ -520,7 +522,7 @@ be satisfied using the copy locally cached by the monitor-thread.
 (\ita{optional argument}) A string specifying the
 data type to be used for the channel access data transfer. The
 native type is used by default.
-See \hyperref[ref]{here}{(}{)}{typearg} for more information.
+See \hyperref{here}{(}{)}{typearg} for more information.
 
 The type specified for the subsequent \com{lcaGet} for retrieving
 the data should match the monitor's data type. Otherwise, \com{lcaGet}
@@ -556,7 +558,7 @@ Reading the actual data must be done using \comref{lcaGet}{lcaget}.
 (\ita{optional argument}) A string specifying the
 data type to be used for the channel access data transfer. The
 native type is used by default.
-See \hyperref[ref]{here}{(}{)}{typearg} for more information.
+See \hyperref{here}{(}{)}{typearg} for more information.
 
 Note that monitors are specific to a particular data type and therefore
 \com{lcaNewMonitorWait} will only report the status for a monitor that had been established
@@ -592,7 +594,7 @@ data must be done using \comref{lcaGet}{lcaget}.
 (\ita{optional argument}) A string specifying the
 data type to be used for the channel access data transfer. The
 native type is used by default.
-See \hyperref[ref]{here}{(}{)}{typearg} for more information.
+See \hyperref{here}{(}{)}{typearg} for more information.
 
 Note that monitors are specific to a particular data type and therefore
 \com{lcaNewMonitorValue} will only report the status for a monitor that had been established
@@ -788,7 +790,7 @@ with their timestamp.
 \item[severity] \mxl{} column vector of the alarm severities.
 \item[status] \mxl{} column vector of the alarm status.
 \item[timestamp] \mxl{} \ita{complex} column vector holding the
-PV \hyperref[ref]{timestamps}{timestamps (see }{ about the timestamp format)}{tsformat}.
+PV \hyperref{timestamps}{timestamps (see }{ about the timestamp format)}{tsformat}.
 \end{description}
 
 
@@ -862,7 +864,7 @@ lcaSetRetryCount(newRetryCount)
 \subsubsection{Description}
 Retrieve / set the \ezca{} library retryCount parameter (consult the \ezca{}
 documentation for more information). The retry count multiplied by the
-\hyperref[ref]{timeout parameter}{timeout parameter (see }{ )}{timeout}
+\hyperref{timeout parameter}{timeout parameter (see }{ )}{timeout}
 determines the maximum time the interface waits for connections and data
 transfers, respectively.
 
@@ -888,7 +890,7 @@ choose a value $<1$s.
 
 The {\em maximal} time spent waiting for connections and/or data equals the
 timeout multiplied by the
-\hyperref[ref]{retry count}{retry count (see }{ )}{retrycnt}.
+\hyperref{retry count}{retry count (see }{ )}{retrycnt}.
 
 \vspace*{\fill}
 \pbrk
@@ -1029,7 +1031,7 @@ or disable, respectively, code for handling ``Ctrl-C'' keystroke sequences.
 When enabled, \sca{} operations ({\em except for} \com{lcaDelay}) may be aborted
 by hitting ``Ctrl-C''.
 Note that \sca{} polls for an ``abort condition'' with a granularity of the
-\hyperref[ref]{\ezca{} timeout parameter}{timeout parameter (see }{ )}{timeout}.
+\hyperref{\ezca{} timeout parameter}{timeout parameter (see }{)}{timeout}.
 Unfortunately, neither \matlab{} nor \scilab{} feature a documented API for handling
 Ctrl-C events and therefore Ctrl-C support --- the implementation using undocumented
 features of \scilab{} and \matlab{} --- must be considered ``experimental''
