@@ -80,7 +80,7 @@ CTRLC_CFLAGS_NO = -DCTRLC_DISABLED
 
 CFLAGS += $(CTRLC_CFLAGS_$(CONFIG_USE_CTRLC))
 
-LIB_SRCS += ini.cc multiEzca.c $(CTRLC_SRC_$(CONFIG_USE_CTRLC))
+LIB_SRCS += ini.cc multiEzca.c $(CTRLC_SRC_$(CONFIG_USE_CTRLC)) gitstring.c
 
 ifeq ($(CONFIG_ECDRGET),YES)
 PROD_SRCS += ecget.c
@@ -187,6 +187,13 @@ include $(TOP)/configure/RULES
 # linker warnings!
 #$($(LOADABLE_PREFIX)SHRLIBNAME): ../$($(LOADABLE_PREFIX)LIBRARY_HOST).def
 
+gitstring.c:
+	$(RM) $@
+	echo 'const char *gitRevisionString = "$(GITSTRING)";' > $@
+
+build:
+	$(RM) gitstring.c
+
 mkmezca.m: ../mkmezca.m.tmpl
 	$(SED) -e "s/%%TARCH%%/$(T_A)/g" -e "s/%%ARCH%%/$(OS_CLASS)/g" -e "s$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g" < $^ >$@
 
@@ -206,3 +213,5 @@ check_name:
 	echo $($(LOADABLE_PREFIX)SHRLIBNAME)
 
 vpath sciclean.c ../sciclean
+
+.PHONY: .FORCE

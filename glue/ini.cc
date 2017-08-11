@@ -23,6 +23,8 @@ extern "C" int _getpid();
 #include <unistd.h>
 #endif
 
+extern "C" const char *gitRevisionString;
+
 #ifdef SCILAB_APP
 #include <signal.h>
 #include <errno.h>
@@ -265,7 +267,7 @@ CtrlCStateRec saved;
 /* don't print to stderr because that
  * doesn't go to scilab's main window...
  */
-mexPrintf((char*)"Initializing labCA Release '$Name:  $'...\n");
+mexPrintf((char*)"Initializing labCA Release '%s'...\n", gitRevisionString);
 mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 
 #ifdef MATLAB_APP
