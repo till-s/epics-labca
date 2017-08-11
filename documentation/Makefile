@@ -72,7 +72,7 @@ $(HELPS): manual.aux
 
 gitstring.tex: manual.tex Makefile
 	$(RM) $@
-	@echo '\\newcommand{\\gitstring}{$(GITSTRING)}' > $@
+	@echo '\\newcommand{\\gitstring}{\\lstinline|$(GITSTRING)|}' > $@
 
 %.pdf %.aux: %.tex gitstring.tex
 	pdflatex $<

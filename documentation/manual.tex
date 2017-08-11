@@ -1,12 +1,15 @@
 \documentclass{article}
 %\usepackage[T1]{fontenc}
 \usepackage{textcomp}
+\usepackage{listings}
 \usepackage{bookman}
 \usepackage{color}
 \usepackage{graphics}
 \usepackage{html, makeidx}
 
 \input{gitstring.tex}
+
+\lstset{basicstyle=\ttfamily}
 
 \newcommand{\sca}{\ita{labCA}}
 \newcommand{\scilab}{\ita{scilab}}
@@ -49,6 +52,8 @@
 \renewcommand{\inmath}[1]{\ita{#1}}
 \end{htmlonly}
 
+\newcommand{\vv}[2]{#1|#2|}
+
 
 \newcommand{\PVITEM}{
 \item[pvs] Column vector (in matlab: \mxl{} \ita{cell-} matrix)
@@ -62,7 +67,7 @@ of \mhack{} strings.
 
 \begin{document}
 \maketitle
-{\hspace*{\fill}{\small\verb$Id: manual.tex,v 1.44 2015/06/04 19:37:02 strauman Exp $}\hspace*{\fill}}
+{\hspace*{\fill}{\small\gitstring}\hspace*{\fill}}
 \section{Introduction}
 The \sca{} package provides an interface to the
 EPICS channel access client library which can be
