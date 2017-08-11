@@ -23,6 +23,8 @@ buildInstall: build
 
 SCRIPTS_HOST += lcaTest.m lcaTest.sce
 
+USR_CFLAGS   += -I$(TOP)/ezca/
+
 #convert scilab test script to matlab
 lcaTest.m:	../lcaTest.sce
 	@if ! $(SED) -e 's$$//$$%$$' -e 's/\<sleep(1000[*]/pause(/g' -e's/mtlb_//g' -e"s/%nan/nan('double')/g" -e 's/%[ \t]*MATLABWARN/disp/' -e 's/\([ \t]then\)\([ \t]\|$$\)/\2/g' $< > $@ ;  then \
