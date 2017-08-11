@@ -49,3 +49,10 @@ record(ai,      "lca:scl8") { }
 record(ai,      "lca:scl9") { }
 
 record(ao,      "lca:out")  { }
+
+# long integer must not be converted to intermediate
+# float (bug reported by J. Vasquez, 2017/08/01).
+record(longin,  "lca:li1") {
+	field("VAL", "2147400000")
+	field("PINI","YES")
+}

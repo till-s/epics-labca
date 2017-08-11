@@ -625,6 +625,19 @@ if ( labcaversion >= 3.5 )
 	disp('<<<OK')
 end
 
+// Verify that long integer is not converted to intermediate float
+// (bugfix)
+disp('CHECKING -- readback of long integer w/o loss of precision')
+try
+  if ( lcaGet('lca:li1') ~= 2147400000 )
+    error('Long integer readback caused loss of precision')
+  end
+  disp('<<<OK')
+catch
+  error('lcaGet(lca:li1) FAILED')
+end
+
+
 if ( labcaversion > 2 )
 //  NOTE NOTE This MUST be the last test until I know how to catch
 //  a Ctrl-C event under matlab
