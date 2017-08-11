@@ -1,6 +1,8 @@
 Changes since labca_3_5_3:
 Changes since labca_3_5_2:
 	2017/08/11 (TS):
+	 - fixed manual.tex (warnings due to new html.sty)
+	2017/08/11 (TS):
 	 - removed CVS $Id$ keywords
 	2017/08/11 (TS):
 	 - added test case for recent bugfix
