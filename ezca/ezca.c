@@ -340,7 +340,7 @@ typedef enum {
 
 struct monitor
 {
-    struct work    *waiter;	/* work struct waiting for this monitor */
+	struct work    *waiter;	/* work struct waiting for this monitor */
     struct monitor *left;
     struct monitor *right;
     struct channel *cp; /* for debugging printing only */
@@ -3036,7 +3036,7 @@ int rc;
 	    if (AutoErrorMessage)
 		print_error(wp);
 	} 
-	else if (wp->nelem < 0)
+	else if (wp->nelem <= 0)
 	{
 	    wp->rc = EZCA_INVALIDARG;
             wp->error_msg = ErrorMsgs[INVALID_NELEM_MSG_IDX];
@@ -3407,7 +3407,7 @@ int rc;
 	    if (AutoErrorMessage)
 		print_error(wp);
 	} 
-	else if (wp->nelem < 0)
+	else if (wp->nelem <= 0)
 	{
 	    wp->rc = EZCA_INVALIDARG;
 	    wp->error_msg = ErrorMsgs[INVALID_NELEM_MSG_IDX];
@@ -5282,8 +5282,6 @@ int rc;
 
     if (rc == ECA_NORMAL)
     {
-    	unsigned long	nElemMax = ca_element_count( cp->cid );
-
 	if (Trace || Debug)
 	{
 	    printf("ca_array_get_callback(dbrtype (%d) >%s<)\n", 
@@ -5293,7 +5291,7 @@ int rc;
 		print_state();
 	} /* endif */
 
-	rc = ca_array_get_callback(wp->dbr_type, ( wp->nelem == nElemMax ? 0 : wp->nelem ),
+	rc = ca_array_get_callback(wp->dbr_type, (unsigned long) wp->nelem,
 		    cp->cid, my_get_callback, (void *) wp);
 
 	if (rc != ECA_NORMAL)
@@ -5752,1029 +5750,1217 @@ static void my_get_callback(struct event_handler_args arg)
 {
 
 struct work *wp;
+int nbytes;
 
 EZCA_LOCK();
     if (Trace || Debug)
 	printf("entering my_get_callback()\n");
 
-    wp = (struct work *) arg.usr;
-    if ( wp == NULL )
+    if ((wp = (struct work *) arg.usr))
     {
-        fprintf(stderr, "EZCA FATAL ERROR: my_get_callback() got NULL wp\n");
-        exit(1);
-    } /* endif */
-
-    if (usable != wp->trashme)
-    {
-	if (Trace || Debug)
-	    printf("my_get_callback() inactive work node\n");
-	    recycle_work(wp);
-    } /* endif */
-
-    if (Trace || Debug)
+	if (usable == wp->trashme)
+	{
+	    if (Trace || Debug)
 		printf("my_get_callback() pvname >%s<\n", wp->pvname);
 
-    if (arg.status == ECA_NORMAL)
-	{
-		int				nbytes		= 0;
-		unsigned long	nbytesFill	= 0;
-		unsigned long	nElemMax	= ca_element_count( arg.chid );
-
+	    if (arg.status == ECA_NORMAL)
+	    {
 		/* checking that channel access gave us what we asked for */
-		if (arg.type != wp->dbr_type)
+		if (arg.type == wp->dbr_type)
 		{
-			fprintf(stderr, 
-					"EZCA FATAL ERROR: my_get_callback() got type %ld when asked for type %d\n",
-					arg.type, wp->dbr_type);
-			exit(1);
-		} /* endif */
+		    if (Trace || Debug)
+	printf("my_get_callback() ezcadatatype %d (arg.type %ld) worktype %d\n",
+			wp->ezcadatatype, arg.type, wp->worktype);
 
-		if (Trace || Debug)
-			printf("my_get_callback() ezcadatatype %d (arg.type %ld) worktype %d\n",
-					wp->ezcadatatype, arg.type, wp->worktype);
-
-		/* Check for valid varArray combinations of wp->nelem, arg.count, and ca_element_count() */
-		switch ( arg.type )
-		{
-		default:
-			/* Error handling for all other arg types gets handled below */
-			break;
-		case DBR_TIME_CHAR:   
-		case DBR_TIME_STRING: 
-		case DBR_TIME_SHORT:    
-		case DBR_TIME_LONG:      
-		case DBR_TIME_FLOAT:    
-		case DBR_TIME_DOUBLE:  
-			/* All these arg types get the same error checking */
-			if (	wp->worktype != GET 
-				&&	wp->worktype != GETWITHSTATUS 
-				&&	wp->worktype != GETSTATUS )
-			{
-				fprintf(stderr, 
-						"EZCA FATAL ERROR: my_get_callback() found arg.type %s %ld with wp->worktype %d\n",
-						dbr_type_to_text(arg.type), arg.type, wp->worktype);
-				exit(1);
-			} /* endif */
-
-			if ( wp->pval == NULL )
-			{
-				fprintf(stderr, 
-						"EZCA FATAL ERROR: my_get_callback() wp->worktype %d with NULL wp->pval\n",
-						wp->worktype);
-				exit(1);
-			} /* endif */
-			if (	wp->worktype == GET 
-				||	wp->worktype == GETWITHSTATUS )
-			{
-				if ( wp->nelem == 0 || wp->nelem == arg.count || wp->nelem == nElemMax )
-				{
-					nbytes = arg.count*dbr_value_size[arg.type];
-					if ( wp->nelem > arg.count )
-						nbytesFill = (wp->nelem - arg.count) * dbr_value_size[arg.type]; 
-					if ( nbytes > 0 && (Trace || Debug) )
-					{
-						printf(	"my_get_callback() size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
-								dbr_value_size[arg.type], arg.count,
-								nbytes, wp->ezcadatatype, wp->dbr_type );
-					}
-				}
-			}
-			else
-			{
-				fprintf(stderr, 
-						"EZCA FATAL ERROR: my_get_callback() got %ld nelem when asked for %d\n",
-						arg.count, wp->nelem);
-				exit(1);
-			} /* endif */
-			if ( nbytes > 0 )
-			{
-				if (Trace || Debug)
-					printf("my_get_callback() size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
-							dbr_value_size[arg.type], arg.count,
-							nbytes, wp->ezcadatatype, wp->dbr_type);
-			}
-			break;
-		}
-
-		switch (arg.type)
-		{
+		    switch (arg.type)
+		    {
 			/* GET, GETSTATUS, or GETWITHSTATUS */
 
-		case DBR_TIME_ENUM:   
-			/* only valid if worktype is GETSTATUS */
-			/* this is because a call to ezcaGetStatus() */
-			/* does not allow the user to specify an     */
-			/* ezcadatatype, so we use the native type.  */
-			/* the native data type might be enum and    */
-			/* there's nothing wrong with asking for the */
-			/* time, stat, and sev of an enum.           */
-			if (wp->worktype == GETSTATUS)
-			{
+			case DBR_TIME_ENUM:   
+			    /* only valid if worktype is GETSTATUS */
+			    /* this is because a call to ezcaGetStatus() */
+			    /* does not allow the user to specify an     */
+			    /* ezcadatatype, so we use the native type.  */
+			    /* the native data type might be enum and    */
+			    /* there's nothing wrong with asking for the */
+			    /* time, stat, and sev of an enum.           */
+			    if (wp->worktype == GETSTATUS)
+			    {
 				/* must copy status, severity, and time */
 				if (wp->status && wp->severity && wp->tsp)
 				{
-				*(wp->status) = 
+				    *(wp->status) = 
 					((struct dbr_time_enum *) arg.dbr)->status;
-				*(wp->severity) = 
-				((struct dbr_time_enum *) arg.dbr)->severity;
-				copy_time_stamp(wp->tsp, 
-				&(((struct dbr_time_enum *) arg.dbr)->stamp));
+				    *(wp->severity) = 
+				    ((struct dbr_time_enum *) arg.dbr)->severity;
+				    copy_time_stamp(wp->tsp, 
+				    &(((struct dbr_time_enum *) arg.dbr)->stamp));
 
-				if (Trace || Debug)
-		printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
+				    if (Trace || Debug)
+	printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
 				} 
 				else
 				{
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
+				    fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
 					wp->worktype, wp->status, wp->severity,
 					wp->tsp);
-				exit(1);
+				    exit(1);
 				} /* endif */
-			}
-			 /* endif */
-			break;
-		case DBR_TIME_CHAR:   
-			if (	wp->worktype == GET 
-				||	wp->worktype == GETWITHSTATUS )
-			{
-				/* copy value */
-				if ( nbytes > 0 )
-					memcpy(	(char *) (wp->pval), 
-							(char *) &(((struct dbr_time_char *) arg.dbr)->value),
-							nbytes	);
-				if ( nbytesFill > 0 )
-					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
+			    }
+			    else
+			    {
+				fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_TIME_ENUM %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				exit(1);
+			    } /* endif */
+			    break;
+			case DBR_TIME_CHAR:   
+			    if (wp->worktype == GET 
+				|| wp->worktype == GETWITHSTATUS 
+				|| wp->worktype == GETSTATUS)
+			    {
+				if (wp->worktype == GET 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy value */
+				    if (arg.count == wp->nelem)
+				    {
+					nbytes = arg.count*dbr_value_size[arg.type];
 
-				if (Trace || Debug)
-					printf("my_get_callback() just memcpy %d bytes to %p\n",
+					if (Trace || Debug)
+    printf("my_get_callback() size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
+						dbr_value_size[arg.type], arg.count,
+						nbytes, wp->ezcadatatype, 
+						wp->dbr_type);
+
+					if (wp->pval)
+					{
+					    memcpy((char *) (wp->pval), 
+			    (char *) &(((struct dbr_time_char *) arg.dbr)->value),
+						nbytes);
+
+					    if (Trace || Debug)
+			    printf("my_get_callback() just memcpy %d bytes to %p\n",
 						nbytes, wp->pval);
-			} /* endif */
-
-			if (	wp->worktype == GETSTATUS
-				||	wp->worktype == GETWITHSTATUS	)
-			{
-				/* must copy status, severity, and time */
-				if (wp->status && wp->severity && wp->tsp)
-				{
-				*(wp->status) = 
-				((struct dbr_time_char *) arg.dbr)->status;
-				*(wp->severity) = 
-				((struct dbr_time_char *) arg.dbr)->severity;
-				copy_time_stamp(wp->tsp, 
-				&(((struct dbr_time_char *) arg.dbr)->stamp));
-
-				if (Trace || Debug)
-		printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
-				} 
-				else
-				{
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
-					wp->worktype, wp->status, wp->severity,
-					wp->tsp);
-				exit(1);
+					}
+					else
+					{
+					    fprintf(stderr, 
+	"EZCA FATAL ERROR: my_get_callback() wp->worktype %d with NULL wp->pval\n",
+						wp->worktype);
+					    exit(1);
+					} /* endif */
+				    }
+				    else
+				    {
+					fprintf(stderr, 
+	    "EZCA FATAL ERROR: my_get_callback() got %ld nelem when asked for %d\n",
+					    arg.count, wp->nelem);
+					exit(1);
+				    } /* endif */
 				} /* endif */
-			} /* endif */
-			break;
+
+				if (wp->worktype == GETSTATUS 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy status, severity, and time */
+				    if (wp->status && wp->severity && wp->tsp)
+				    {
+					*(wp->status) = 
+					((struct dbr_time_char *) arg.dbr)->status;
+					*(wp->severity) = 
+				    ((struct dbr_time_char *) arg.dbr)->severity;
+					copy_time_stamp(wp->tsp, 
+				    &(((struct dbr_time_char *) arg.dbr)->stamp));
+
+					if (Trace || Debug)
+	printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
+					    wp->worktype, wp->status, wp->severity,
+					    wp->tsp);
+					exit(1);
+				    } /* endif */
+				} /* endif */
+			    }
+			    else
+			    {
+				fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_TIME_CHAR %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				exit(1);
+			    } /* endif */
+			    break;
 			case DBR_TIME_STRING:  
-			if (	wp->worktype == GET
-				||	wp->worktype == GETWITHSTATUS	)
-			{
-				/* copy value */
-				if ( nbytes > 0 )
-					memcpy(	(char *) (wp->pval), 
-							(char *) &(((struct dbr_time_string *) arg.dbr)->value),
-							nbytes	);
-				if ( nbytesFill > 0 )
-					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
+			    if (wp->worktype == GET 
+				|| wp->worktype == GETWITHSTATUS 
+				|| wp->worktype == GETSTATUS)
+			    {
+				if (wp->worktype == GET 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy value */
+				    if (arg.count == wp->nelem)
+				    {
+					nbytes = arg.count*dbr_value_size[arg.type];
 
-				if (Trace || Debug)
-					printf("my_get_callback() just memcpy %d bytes to %p\n",
+					if (Trace || Debug)
+    printf("my_get_callback() size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
+						dbr_value_size[arg.type], arg.count,
+						nbytes, wp->ezcadatatype, 
+						wp->dbr_type);
+
+					if (wp->pval)
+					{
+					    memcpy((char *) (wp->pval), 
+			    (char *) &(((struct dbr_time_string *) arg.dbr)->value),
+						nbytes);
+
+					    if (Trace || Debug)
+			    printf("my_get_callback() just memcpy %d bytes to %p\n",
 						nbytes, wp->pval);
-			} /* endif */
-
-			if (	wp->worktype == GETSTATUS 
-				||	wp->worktype == GETWITHSTATUS	)
-			{
-				/* must copy status, severity, and time */
-				if (wp->status && wp->severity && wp->tsp)
-				{
-				*(wp->status) = 
-				((struct dbr_time_string *) arg.dbr)->status;
-				*(wp->severity) = 
-				((struct dbr_time_string *) arg.dbr)->severity;
-				copy_time_stamp(wp->tsp, 
-				&(((struct dbr_time_string *) arg.dbr)->stamp));
-
-				if (Trace || Debug)
-		printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
-				} 
-				else
-				{
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
-					wp->worktype, wp->status, wp->severity,
-					wp->tsp);
-				exit(1);
+					}
+					else
+					{
+					    fprintf(stderr, 
+	"EZCA FATAL ERROR: my_get_callback() wp->worktype %d with NULL wp->pval\n",
+						wp->worktype);
+					    exit(1);
+					} /* endif */
+				    }
+				    else
+				    {
+					fprintf(stderr, 
+	    "EZCA FATAL ERROR: my_get_callback() got %ld nelem when asked for %d\n",
+					    arg.count, wp->nelem);
+					exit(1);
+				    } /* endif */
 				} /* endif */
-			} /* endif */
-			break;
-		case DBR_TIME_SHORT:    
-			if (	wp->worktype == GET
-				||	wp->worktype == GETWITHSTATUS	)
-			{
-				/* copy value */
-				if ( nbytes > 0 )
-					memcpy(	(char *) (wp->pval), 
-							(char *) &(((struct dbr_time_short *) arg.dbr)->value),
-							nbytes	);
-				if ( nbytesFill > 0 )
-					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
-				if (Trace || Debug)
-					printf("my_get_callback() just memcpy %d bytes to %p\n",
+				if (wp->worktype == GETSTATUS 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy status, severity, and time */
+				    if (wp->status && wp->severity && wp->tsp)
+				    {
+					*(wp->status) = 
+				    ((struct dbr_time_string *) arg.dbr)->status;
+					*(wp->severity) = 
+				    ((struct dbr_time_string *) arg.dbr)->severity;
+					copy_time_stamp(wp->tsp, 
+				    &(((struct dbr_time_string *) arg.dbr)->stamp));
+
+					if (Trace || Debug)
+	printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
+					    wp->worktype, wp->status, wp->severity,
+					    wp->tsp);
+					exit(1);
+				    } /* endif */
+				} /* endif */
+			    }
+			    else
+			    {
+				fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_TIME_STRING %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				exit(1);
+			    } /* endif */
+			    break;
+			case DBR_TIME_SHORT:    
+			    if (wp->worktype == GET 
+				|| wp->worktype == GETWITHSTATUS 
+				|| wp->worktype == GETSTATUS)
+			    {
+				if (wp->worktype == GET 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy value */
+				    if (arg.count == wp->nelem)
+				    {
+					nbytes = arg.count*dbr_value_size[arg.type];
+
+					if (Trace || Debug)
+    printf("my_get_callback() size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
+						dbr_value_size[arg.type], arg.count,
+						nbytes, wp->ezcadatatype, 
+						wp->dbr_type);
+
+					if (wp->pval)
+					{
+					    memcpy((char *) (wp->pval), 
+			    (char *) &(((struct dbr_time_short *) arg.dbr)->value),
+					    nbytes);
+
+					    if (Trace || Debug)
+			    printf("my_get_callback() just memcpy %d bytes to %p\n",
 						nbytes, wp->pval);
-			} /* endif */
-
-			if (	wp->worktype == GETSTATUS
-				||	wp->worktype == GETWITHSTATUS	)
-			{
-				/* must copy status, severity, and time */
-				if (wp->status && wp->severity && wp->tsp)
-				{
-				*(wp->status) = 
-				((struct dbr_time_short *) arg.dbr)->status;
-				*(wp->severity) = 
-				((struct dbr_time_short *) arg.dbr)->severity;
-				copy_time_stamp(wp->tsp, 
-				&(((struct dbr_time_short *) arg.dbr)->stamp));
-
-				if (Trace || Debug)
-		printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
-				} 
-				else
-				{
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
-					wp->worktype, wp->status, wp->severity,
-					wp->tsp);
-				exit(1);
+					}
+					else
+					{
+					    fprintf(stderr, 
+	"EZCA FATAL ERROR: my_get_callback() wp->worktype %d with NULL wp->pval\n",
+						wp->worktype);
+					    exit(1);
+					} /* endif */
+				    }
+				    else
+				    {
+					fprintf(stderr, 
+	    "EZCA FATAL ERROR: my_get_callback() got %ld nelem when asked for %d\n",
+					    arg.count, wp->nelem);
+					exit(1);
+				    } /* endif */
 				} /* endif */
-			} /* endif */
-			break;
-		case DBR_TIME_LONG:      
-			if (	wp->worktype == GET
-				||	wp->worktype == GETWITHSTATUS	)
-			{
-				/* copy value */
-				if ( nbytes > 0 )
-					memcpy(	(char *) (wp->pval), 
-							(char *) &(((struct dbr_time_long *) arg.dbr)->value),
-							nbytes	);
-				if ( nbytesFill > 0 )
-					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
-				if (Trace || Debug)
-					printf("my_get_callback() just memcpy %d bytes to %p\n",
+				if (wp->worktype == GETSTATUS 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy status, severity, and time */
+				    if (wp->status && wp->severity && wp->tsp)
+				    {
+					*(wp->status) = 
+				    ((struct dbr_time_short *) arg.dbr)->status;
+					*(wp->severity) = 
+				    ((struct dbr_time_short *) arg.dbr)->severity;
+					copy_time_stamp(wp->tsp, 
+				    &(((struct dbr_time_short *) arg.dbr)->stamp));
+
+					if (Trace || Debug)
+	printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
+					    wp->worktype, wp->status, wp->severity,
+					    wp->tsp);
+					exit(1);
+				    } /* endif */
+				} /* endif */
+			    }
+			    else
+			    {
+				fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_TIME_SHORT %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				exit(1);
+			    } /* endif */
+			    break;
+			case DBR_TIME_LONG:      
+			    if (wp->worktype == GET 
+				|| wp->worktype == GETWITHSTATUS 
+				|| wp->worktype == GETSTATUS)
+			    {
+				if (wp->worktype == GET 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy value */
+				    if (arg.count == wp->nelem)
+				    {
+					nbytes = arg.count*dbr_value_size[arg.type];
+
+					if (Trace || Debug)
+    printf("my_get_callback() size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
+						dbr_value_size[arg.type], arg.count,
+						nbytes, wp->ezcadatatype, 
+						wp->dbr_type);
+
+					if (wp->pval)
+					{
+					    memcpy((char *) (wp->pval), 
+			    (char *) &(((struct dbr_time_long *) arg.dbr)->value),
+					    nbytes);
+
+					    if (Trace || Debug)
+			    printf("my_get_callback() just memcpy %d bytes to %p\n",
 						nbytes, wp->pval);
-			} /* endif */
-
-			if (	wp->worktype == GETSTATUS
-				||	wp->worktype == GETWITHSTATUS	)
-			{
-				/* must copy status, severity, and time */
-				if (wp->status && wp->severity && wp->tsp)
-				{
-				*(wp->status) = 
-				((struct dbr_time_long *) arg.dbr)->status;
-				*(wp->severity) = 
-				((struct dbr_time_long *) arg.dbr)->severity;
-				copy_time_stamp(wp->tsp, 
-				&(((struct dbr_time_long *) arg.dbr)->stamp));
-
-				if (Trace || Debug)
-		printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
-				} 
-				else
-				{
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
-					wp->worktype, wp->status, wp->severity,
-					wp->tsp);
-				exit(1);
+					}
+					else
+					{
+					    fprintf(stderr, 
+	"EZCA FATAL ERROR: my_get_callback() wp->worktype %d with NULL wp->pval\n",
+						wp->worktype);
+					    exit(1);
+					} /* endif */
+				    }
+				    else
+				    {
+					fprintf(stderr, 
+	    "EZCA FATAL ERROR: my_get_callback() got %ld nelem when asked for %d\n",
+					    arg.count, wp->nelem);
+					exit(1);
+				    } /* endif */
 				} /* endif */
-			} /* endif */
-			break;
-		case DBR_TIME_FLOAT:    
-			if (	wp->worktype == GET
-				||	wp->worktype == GETWITHSTATUS	)
-			{
-				/* copy value */
-				if ( nbytes > 0 )
-					memcpy(	(char *) (wp->pval), 
-							(char *) &(((struct dbr_time_float *) arg.dbr)->value),
-							nbytes	);
-				if ( nbytesFill > 0 )
-					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
-				if (Trace || Debug)
-					printf("my_get_callback() just memcpy %d bytes to %p\n",
+				if (wp->worktype == GETSTATUS 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy status, severity, and time */
+				    if (wp->status && wp->severity && wp->tsp)
+				    {
+					*(wp->status) = 
+				    ((struct dbr_time_long *) arg.dbr)->status;
+					*(wp->severity) = 
+				    ((struct dbr_time_long *) arg.dbr)->severity;
+					copy_time_stamp(wp->tsp, 
+				    &(((struct dbr_time_long *) arg.dbr)->stamp));
+
+					if (Trace || Debug)
+	printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
+					    wp->worktype, wp->status, wp->severity,
+					    wp->tsp);
+					exit(1);
+				    } /* endif */
+				} /* endif */
+			    }
+			    else
+			    {
+				fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_TIME_LONG %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				exit(1);
+			    } /* endif */
+			    break;
+			case DBR_TIME_FLOAT:    
+			    if (wp->worktype == GET 
+				|| wp->worktype == GETWITHSTATUS 
+				|| wp->worktype == GETSTATUS)
+			    {
+				if (wp->worktype == GET 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy value */
+				    if (arg.count == wp->nelem)
+				    {
+					nbytes = arg.count*dbr_value_size[arg.type];
+
+					if (Trace || Debug)
+    printf("my_get_callback() size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
+						dbr_value_size[arg.type], arg.count,
+						nbytes, wp->ezcadatatype, 
+						wp->dbr_type);
+
+					if (wp->pval)
+					{
+					    memcpy((char *) (wp->pval), 
+			    (char *) &(((struct dbr_time_float *) arg.dbr)->value),
+					    nbytes);
+
+					    if (Trace || Debug)
+			    printf("my_get_callback() just memcpy %d bytes to %p\n",
 						nbytes, wp->pval);
-			} /* endif */
-
-			if (wp->worktype == GETSTATUS 
-				|| wp->worktype == GETWITHSTATUS)
-			{
-				/* must copy status, severity, and time */
-				if (wp->status && wp->severity && wp->tsp)
-				{
-				*(wp->status) = 
-				((struct dbr_time_float *) arg.dbr)->status;
-				*(wp->severity) = 
-				((struct dbr_time_float *) arg.dbr)->severity;
-				copy_time_stamp(wp->tsp, 
-				&(((struct dbr_time_float *) arg.dbr)->stamp));
-
-				if (Trace || Debug)
-		printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
-				} 
-				else
-				{
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
-					wp->worktype, wp->status, wp->severity,
-					wp->tsp);
-				exit(1);
+					}
+					else
+					{
+					    fprintf(stderr, 
+	"EZCA FATAL ERROR: my_get_callback() wp->worktype %d with NULL wp->pval\n",
+						wp->worktype);
+					    exit(1);
+					} /* endif */
+				    }
+				    else
+				    {
+					fprintf(stderr, 
+	    "EZCA FATAL ERROR: my_get_callback() got %ld nelem when asked for %d\n",
+					    arg.count, wp->nelem);
+					exit(1);
+				    } /* endif */
 				} /* endif */
-			} /* endif */
-			 /* endif */
-			break;
-		case DBR_TIME_DOUBLE:  
-			if (	wp->worktype == GET 
-				||	wp->worktype == GETWITHSTATUS)
-			{
-				/* copy value */
-				if ( nbytes > 0 )
-					memcpy(	(char *) (wp->pval),
-							(char *) &(((struct dbr_time_double *) arg.dbr)->value),
-							nbytes	);
-				if ( nbytesFill > 0 )
-					memset( (char *) (wp->pval) + nbytes, 0, nbytesFill );
 
-				if (Trace || Debug)
-					printf("my_get_callback() just memcpy %d bytes to %p\n",
+				if (wp->worktype == GETSTATUS 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy status, severity, and time */
+				    if (wp->status && wp->severity && wp->tsp)
+				    {
+					*(wp->status) = 
+				    ((struct dbr_time_float *) arg.dbr)->status;
+					*(wp->severity) = 
+				    ((struct dbr_time_float *) arg.dbr)->severity;
+					copy_time_stamp(wp->tsp, 
+				    &(((struct dbr_time_float *) arg.dbr)->stamp));
+
+					if (Trace || Debug)
+	printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
+					    wp->worktype, wp->status, wp->severity,
+					    wp->tsp);
+					exit(1);
+				    } /* endif */
+				} /* endif */
+			    }
+			    else
+			    {
+				fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_TIME_FLOAT %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				exit(1);
+			    } /* endif */
+			    break;
+			case DBR_TIME_DOUBLE:  
+			    if (wp->worktype == GET 
+				|| wp->worktype == GETWITHSTATUS 
+				|| wp->worktype == GETSTATUS)
+			    {
+				if (wp->worktype == GET 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy value */
+				    if (arg.count == wp->nelem)
+				    {
+					nbytes = arg.count*dbr_value_size[arg.type];
+
+					if (Trace || Debug)
+    printf("my_get_callback() size %d X count %ld = nbytes %d ezcadatatype %d -> dbrtype %d\n", 
+						dbr_value_size[arg.type], arg.count,
+						nbytes, wp->ezcadatatype, 
+						wp->dbr_type);
+
+					if (wp->pval)
+					{
+					    memcpy((char *) (wp->pval), 
+			    (char *) &(((struct dbr_time_double *) arg.dbr)->value),
+						nbytes);
+
+					    if (Trace || Debug)
+			    printf("my_get_callback() just memcpy %d bytes to %p\n",
 						nbytes, wp->pval);
-			} /* endif */
-
-			if (	wp->worktype == GETSTATUS
-				||	wp->worktype == GETWITHSTATUS	)
-			{
-				/* must copy status, severity, and time */
-				if (wp->status && wp->severity && wp->tsp)
-				{
-				*(wp->status) = 
-				((struct dbr_time_double *) arg.dbr)->status;
-				*(wp->severity) = 
-				((struct dbr_time_double *) arg.dbr)->severity;
-				copy_time_stamp(wp->tsp, 
-				&(((struct dbr_time_double *) arg.dbr)->stamp));
-
-				if (Trace || Debug)
-		printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
-				} 
-				else
-				{
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
-					wp->worktype, wp->status, wp->severity,
-					wp->tsp);
-				exit(1);
+					}
+					else
+					{
+					    fprintf(stderr, 
+	"EZCA FATAL ERROR: my_get_callback() wp->worktype %d with NULL wp->pval\n",
+						wp->worktype);
+					    exit(1);
+					} /* endif */
+				    }
+				    else
+				    {
+					fprintf(stderr, 
+	    "EZCA FATAL ERROR: my_get_callback() got %ld nelem when asked for %d\n",
+					    arg.count, wp->nelem);
+					exit(1);
+				    } /* endif */
 				} /* endif */
-			} /* endif */
-			 /* endif */
-			break;
+
+				if (wp->worktype == GETSTATUS 
+				    || wp->worktype == GETWITHSTATUS)
+				{
+				    /* must copy status, severity, and time */
+				    if (wp->status && wp->severity && wp->tsp)
+				    {
+					*(wp->status) = 
+				    ((struct dbr_time_double *) arg.dbr)->status;
+					*(wp->severity) = 
+				    ((struct dbr_time_double *) arg.dbr)->severity;
+					copy_time_stamp(wp->tsp, 
+				    &(((struct dbr_time_double *) arg.dbr)->stamp));
+
+					if (Trace || Debug)
+	printf("my_get_callback() just copied status %d, severity %d, and time\n", *(wp->status), *(wp->severity));
+				    } 
+				    else
+				    {
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() wp->worktype %d wp->status %p wp->severity %p wp->tsp %p\n",
+					    wp->worktype, wp->status, wp->severity,
+					    wp->tsp);
+					exit(1);
+				    } /* endif */
+				} /* endif */
+			    }
+			    else
+			    {
+				fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_TIME_DOUBLE %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				exit(1);
+			    } /* endif */
+			    break;
 
 			/* GETUNITS, GETPRECISION, GETGRAPHICLIMITS, */
 			/* GETWARNLIMITS, GETALARMLIMITS,            */
 			/* GETCONTROLLIMITS or GETENUMSTATES         */
 
-		/* case DBR_CTRL_INT = DBR_CTRL_SHORT: */
-		case DBR_CTRL_SHORT:
-			switch (wp->worktype)
-			{
+			/* case DBR_CTRL_INT = DBR_CTRL_SHORT: */
+			case DBR_CTRL_SHORT:
+			    switch (wp->worktype)
+			    {
 				case GETUNITS:
-				if (wp->strp)
-				{
+				    if (wp->strp)
+				    {
 					strncpy(wp->strp, 
 					((struct dbr_ctrl_short *) arg.dbr)->units,
 						EZCA_UNITS_SIZE);
 					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
-					if (Trace || Debug)
-				printf("my_get_callback() just copied units\n");
-				}
-				else
-				{
+					    if (Trace || Debug)
+				    printf("my_get_callback() just copied units\n");
+				    }
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
+    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
-				} /* endif */
-				break;
+				    } /* endif */
+				    break;
 				case GETPRECISION:
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() got worktype GETPRECISION with arg.dbr DBR_CTRL_SHORT\n");
-				exit(1);
-				break;
+				    fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() got worktype GETPRECISION with arg.dbr DBR_CTRL_SHORT\n");
+				    exit(1);
+				    break;
 				case GETGRAPHICLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_short *) arg.dbr)->lower_disp_limit;
+			    ((struct dbr_ctrl_short *) arg.dbr)->lower_disp_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_short *) arg.dbr)->upper_disp_limit;
+			    ((struct dbr_ctrl_short *) arg.dbr)->upper_disp_limit;
 
 					if (Trace || Debug)
 			printf("my_get_callback() just copied graphic limits\n");
-				} 
-				else
-				{
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
+				    } /* endif */
+				    break;
 				case GETCONTROLLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_short *) arg.dbr)->lower_ctrl_limit;
+			    ((struct dbr_ctrl_short *) arg.dbr)->lower_ctrl_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_short *) arg.dbr)->upper_ctrl_limit;
+			    ((struct dbr_ctrl_short *) arg.dbr)->upper_ctrl_limit;
 
 					if (Trace || Debug)
 			printf("my_get_callback() just copied control limits\n");
-				} 
-				else
-				{
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
+				    } /* endif */
+				    break;
 				case GETWARNLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_short *) arg.dbr)->lower_warning_limit;
+			    ((struct dbr_ctrl_short *) arg.dbr)->lower_warning_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_short *) arg.dbr)->upper_warning_limit;
+			    ((struct dbr_ctrl_short *) arg.dbr)->upper_warning_limit;
 
 					if (Trace || Debug)
 			printf("my_get_callback() just copied warning limits\n");
-				} 
-				else
-				{
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
+				    } /* endif */
+				    break;
 				case GETALARMLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_short *) arg.dbr)->lower_alarm_limit;
+			    ((struct dbr_ctrl_short *) arg.dbr)->lower_alarm_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_short *) arg.dbr)->upper_alarm_limit;
+			    ((struct dbr_ctrl_short *) arg.dbr)->upper_alarm_limit;
 
 					if (Trace || Debug)
 			printf("my_get_callback() just copied alarm limits\n");
-				} 
-				else
-				{
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
+				    } /* endif */
+				    break;
 				default:
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() found arg.type %s %ld with wp->worktype %d\n",
-				dbr_type_to_text(arg.type), arg.type, wp->worktype);
-				exit(1);
-				break;
-			} /* end switch() */
-			break;
-		case DBR_CTRL_FLOAT:
-			switch (wp->worktype)
-			{
-			case GETUNITS:
-				if (wp->strp)
-				{
+				    fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_CTRL_SHORT %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				    exit(1);
+				    break;
+			    } /* end switch() */
+			    break;
+			case DBR_CTRL_FLOAT:
+			    switch (wp->worktype)
+			    {
+				case GETUNITS:
+				    if (wp->strp)
+				    {
 					strncpy(wp->strp, 
 					((struct dbr_ctrl_float *) arg.dbr)->units,
 						EZCA_UNITS_SIZE);
 					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
-					if (Trace || Debug)
-				printf("my_get_callback() just copied units\n");
-				}
-				else
-				{
+					    if (Trace || Debug)
+				    printf("my_get_callback() just copied units\n");
+				    }
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
+    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
-				} /* endif */
-				break;
-			case GETPRECISION:
-				if (wp->s1p)
-				{
+				    } /* endif */
+				    break;
+				case GETPRECISION:
+				    if (wp->s1p)
+				    {
 					*(wp->s1p) = 
-				((struct dbr_ctrl_float *) arg.dbr)->precision;
+				    ((struct dbr_ctrl_float *) arg.dbr)->precision;
 
 					if (Trace || Debug)
 				printf("my_get_callback() just copied precision\n");
-				} 
-				else
-				{
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETPRECISION got NULL wp->s1p\n");
+    "EZCA FATAL ERROR: my_get_callback() worktype GETPRECISION got NULL wp->s1p\n");
 					exit(1);
-				} /* endif */
-				break;
-			case GETGRAPHICLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    } /* endif */
+				    break;
+				case GETGRAPHICLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_float *) arg.dbr)->lower_disp_limit;
+			    ((struct dbr_ctrl_float *) arg.dbr)->lower_disp_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_float *) arg.dbr)->upper_disp_limit;
+			    ((struct dbr_ctrl_float *) arg.dbr)->upper_disp_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied graphic limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied graphic limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-							wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETCONTROLLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    } /* endif */
+				    break;
+				case GETCONTROLLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_float *) arg.dbr)->lower_ctrl_limit;
+			    ((struct dbr_ctrl_float *) arg.dbr)->lower_ctrl_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_float *) arg.dbr)->upper_ctrl_limit;
+			    ((struct dbr_ctrl_float *) arg.dbr)->upper_ctrl_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied control limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied control limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETWARNLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    } /* endif */
+				    break;
+				case GETWARNLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_float *) arg.dbr)->lower_warning_limit;
+			    ((struct dbr_ctrl_float *) arg.dbr)->lower_warning_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_float *) arg.dbr)->upper_warning_limit;
+			    ((struct dbr_ctrl_float *) arg.dbr)->upper_warning_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied warning limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied warning limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETALARMLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    } /* endif */
+				    break;
+				case GETALARMLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_float *) arg.dbr)->lower_alarm_limit;
+			    ((struct dbr_ctrl_float *) arg.dbr)->lower_alarm_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_float *) arg.dbr)->upper_alarm_limit;
+			    ((struct dbr_ctrl_float *) arg.dbr)->upper_alarm_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied alarm limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied alarm limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-							wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			default:
-				fprintf(stderr, 
-						"EZCA FATAL ERROR: my_get_callback() found arg.type %s %ld with wp->worktype %d\n",
-						dbr_type_to_text(arg.type), arg.type, wp->worktype);
-				exit(1);
-				break;
-			} /* end switch() */
-			break;
-		case DBR_CTRL_CHAR:
-			switch (wp->worktype)
-			{
-			case GETUNITS:
-				if (wp->strp)
-				{
+				    } /* endif */
+				    break;
+				default:
+				    fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_CTRL_FLOAT %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				    exit(1);
+				    break;
+			    } /* end switch() */
+			    break;
+			case DBR_CTRL_CHAR:
+			    switch (wp->worktype)
+			    {
+				case GETUNITS:
+				    if (wp->strp)
+				    {
 					strncpy(wp->strp, 
 					((struct dbr_ctrl_char *) arg.dbr)->units,
 						EZCA_UNITS_SIZE);
 					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
-					if (Trace || Debug)
-						printf("my_get_callback() just copied units\n");
-				}
-				else
-				{
+					    if (Trace || Debug)
+				    printf("my_get_callback() just copied units\n");
+				    }
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
+    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
-				} /* endif */
-				break;
-			case GETPRECISION:
-				fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() got worktype GETPRECISION with arg.dbr DBR_CTRL_CHAR\n");
-				exit(1);
-				break;
-			case GETGRAPHICLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    } /* endif */
+				    break;
+				case GETPRECISION:
+				    fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() got worktype GETPRECISION with arg.dbr DBR_CTRL_CHAR\n");
+				    exit(1);
+				    break;
+				case GETGRAPHICLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_char *) arg.dbr)->lower_disp_limit;
+			    ((struct dbr_ctrl_char *) arg.dbr)->lower_disp_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_char *) arg.dbr)->upper_disp_limit;
+			    ((struct dbr_ctrl_char *) arg.dbr)->upper_disp_limit;
 
 					if (Trace || Debug)
 			printf("my_get_callback() just copied graphic limits\n");
-				} 
-				else
-				{
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETCONTROLLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    } /* endif */
+				    break;
+				case GETCONTROLLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_char *) arg.dbr)->lower_ctrl_limit;
+			    ((struct dbr_ctrl_char *) arg.dbr)->lower_ctrl_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_char *) arg.dbr)->upper_ctrl_limit;
+			    ((struct dbr_ctrl_char *) arg.dbr)->upper_ctrl_limit;
 
 					if (Trace || Debug)
 			printf("my_get_callback() just copied control limits\n");
-				} 
-				else
-				{
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETWARNLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    } /* endif */
+				    break;
+				case GETWARNLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_char *) arg.dbr)->lower_warning_limit;
+			    ((struct dbr_ctrl_char *) arg.dbr)->lower_warning_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_char *) arg.dbr)->upper_warning_limit;
+			    ((struct dbr_ctrl_char *) arg.dbr)->upper_warning_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied warning limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied warning limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETALARMLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
+				    } /* endif */
+				    break;
+				case GETALARMLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
 					*(wp->d1p) = 
-			((struct dbr_ctrl_char *) arg.dbr)->lower_alarm_limit;
+			    ((struct dbr_ctrl_char *) arg.dbr)->lower_alarm_limit;
 					*(wp->d2p) = 
-			((struct dbr_ctrl_char *) arg.dbr)->upper_alarm_limit;
+			    ((struct dbr_ctrl_char *) arg.dbr)->upper_alarm_limit;
 
 					if (Trace || Debug)
 			printf("my_get_callback() just copied alarm limits\n");
-				} 
-				else
-				{
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			default:
-				fprintf(stderr, 
-						"EZCA FATAL ERROR: my_get_callback() found arg.type %s %ld with wp->worktype %d\n",
-						dbr_type_to_text(arg.type), arg.type, wp->worktype);
-				exit(1);
-				break;
-			} /* end switch() */
-			break;
-		case DBR_CTRL_LONG:
-			switch (wp->worktype)
-			{
-			case GETUNITS:
-				if (wp->strp)
-				{
+				    } /* endif */
+				    break;
+				default:
+				    fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_CTRL_CHAR %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				    exit(1);
+				    break;
+			    } /* end switch() */
+			    break;
+			case DBR_CTRL_LONG:
+			    switch (wp->worktype)
+			    {
+				case GETUNITS:
+				    if (wp->strp)
+				    {
 					strncpy(wp->strp, 
-							((struct dbr_ctrl_long *) arg.dbr)->units,
-							EZCA_UNITS_SIZE);
+					((struct dbr_ctrl_long *) arg.dbr)->units,
+						EZCA_UNITS_SIZE);
 					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
-					if (Trace || Debug)
-						printf("my_get_callback() just copied units\n");
-				}
-				else
-				{
+					    if (Trace || Debug)
+				    printf("my_get_callback() just copied units\n");
+				    }
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
+    "EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
-				} /* endif */
-				break;
-			case GETPRECISION:
-				fprintf(stderr, 
-						"EZCA FATAL ERROR: my_get_callback() got worktype GETPRECISION with arg.dbr DBR_CTRL_LONG\n");
-				exit(1);
-				break;
-			case GETGRAPHICLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
-					*(wp->d1p) = ((struct dbr_ctrl_long *) arg.dbr)->lower_disp_limit;
-					*(wp->d2p) = ((struct dbr_ctrl_long *) arg.dbr)->upper_disp_limit;
+				    } /* endif */
+				    break;
+				case GETPRECISION:
+				    fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() got worktype GETPRECISION with arg.dbr DBR_CTRL_LONG\n");
+				    exit(1);
+				    break;
+				case GETGRAPHICLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->lower_disp_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->upper_disp_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied graphic limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied graphic limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-							wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETCONTROLLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
-					*(wp->d1p) = ((struct dbr_ctrl_long *) arg.dbr)->lower_ctrl_limit;
-					*(wp->d2p) = ((struct dbr_ctrl_long *) arg.dbr)->upper_ctrl_limit;
+				    } /* endif */
+				    break;
+				case GETCONTROLLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->lower_ctrl_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->upper_ctrl_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied control limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied control limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETWARNLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
-					*(wp->d1p) = ((struct dbr_ctrl_long *) arg.dbr)->lower_warning_limit;
-					*(wp->d2p) = ((struct dbr_ctrl_long *) arg.dbr)->upper_warning_limit;
+				    } /* endif */
+				    break;
+				case GETWARNLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->lower_warning_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->upper_warning_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied warning limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied warning limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-							wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETALARMLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
-					*(wp->d1p) = ((struct dbr_ctrl_long *) arg.dbr)->lower_alarm_limit;
-					*(wp->d2p) = ((struct dbr_ctrl_long *) arg.dbr)->upper_alarm_limit;
+				    } /* endif */
+				    break;
+				case GETALARMLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->lower_alarm_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_long *) arg.dbr)->upper_alarm_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied alarm limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied alarm limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-					wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			default:
-				fprintf(stderr, 
-						"EZCA FATAL ERROR: my_get_callback() found arg.type %s %ld with wp->worktype %d\n",
-						dbr_type_to_text(arg.type), arg.type, wp->worktype);
-						exit(1);
-				break;
-			} /* end switch() */
-			break;
-		case DBR_CTRL_DOUBLE:
-			switch (wp->worktype)
-			{
-			case GETUNITS:
-				if (wp->strp)
-				{
+				    } /* endif */
+				    break;
+				default:
+				    fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() found arg.type DBR_CTRL_LONG %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				    exit(1);
+				    break;
+			    } /* end switch() */
+			    break;
+			case DBR_CTRL_DOUBLE:
+			    switch (wp->worktype)
+			    {
+				case GETUNITS:
+				    if (wp->strp)
+				    {
 					strncpy(wp->strp, 
 					((struct dbr_ctrl_double *) arg.dbr)->units,
 						EZCA_UNITS_SIZE);
 					wp->strp[EZCA_UNITS_SIZE-1] = '\0';
 
-					if (Trace || Debug)
-						printf("my_get_callback() just copied units\n");
-				}
-				else
-				{
+					    if (Trace || Debug)
+				    printf("my_get_callback() just copied units\n");
+				    }
+				    else
+				    {
 					fprintf(stderr, 
-		"EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
+"EZCA FATAL ERROR: my_get_callback() worktype GETUNITS got NULL wp->strp\n");
 					exit(1);
-				} /* endif */
-				break;
-			case GETPRECISION:
-				if (wp->s1p)
-				{
+				    } /* endif */
+				    break;
+				case GETPRECISION:
+				    if (wp->s1p)
+				    {
 					*(wp->s1p) = 
 				((struct dbr_ctrl_double *) arg.dbr)->precision;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied precision\n");
-				} 
-				else
-				{
+			    printf("my_get_callback() just copied precision\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETPRECISION got NULL wp->s1p\n");
+"EZCA FATAL ERROR: my_get_callback() worktype GETPRECISION got NULL wp->s1p\n");
 					exit(1);
-				} /* endif */
-				break;
-			case GETGRAPHICLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
-					*(wp->d1p) = ((struct dbr_ctrl_double *) arg.dbr)->lower_disp_limit;
-					*(wp->d2p) = ((struct dbr_ctrl_double *) arg.dbr)->upper_disp_limit;
+				    } /* endif */
+				    break;
+				case GETGRAPHICLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			((struct dbr_ctrl_double *) arg.dbr)->lower_disp_limit;
+					*(wp->d2p) = 
+			((struct dbr_ctrl_double *) arg.dbr)->upper_disp_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied graphic limits\n");
-				} 
-				else
-				{
+		    printf("my_get_callback() just copied graphic limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-							wp->d1p, wp->d2p);
+"EZCA FATAL ERROR: my_get_callback() worktype GETGRAPHICLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETCONTROLLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
-					*(wp->d1p) = ((struct dbr_ctrl_double *) arg.dbr)->lower_ctrl_limit;
-					*(wp->d2p) = ((struct dbr_ctrl_double *) arg.dbr)->upper_ctrl_limit;
+				    } /* endif */
+				    break;
+				case GETCONTROLLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			((struct dbr_ctrl_double *) arg.dbr)->lower_ctrl_limit;
+					*(wp->d2p) = 
+			((struct dbr_ctrl_double *) arg.dbr)->upper_ctrl_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied control limits\n");
-				} 
-				else
-				{
+		    printf("my_get_callback() just copied control limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-							wp->d1p, wp->d2p);
+"EZCA FATAL ERROR: my_get_callback() worktype GETCONTROLLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETWARNLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
-					*(wp->d1p) = ((struct dbr_ctrl_double *) arg.dbr)->lower_warning_limit;
-					*(wp->d2p) = ((struct dbr_ctrl_double *) arg.dbr)->upper_warning_limit;
+				    } /* endif */
+				    break;
+				case GETWARNLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_double *) arg.dbr)->lower_warning_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_double *) arg.dbr)->upper_warning_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied warning limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied warning limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-							wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETWARNLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			case GETALARMLIMITS:
-				if (wp->d1p && wp->d2p)
-				{
-					*(wp->d1p) = ((struct dbr_ctrl_double *) arg.dbr)->lower_alarm_limit;
-					*(wp->d2p) = ((struct dbr_ctrl_double *) arg.dbr)->upper_alarm_limit;
+				    } /* endif */
+				    break;
+				case GETALARMLIMITS:
+				    if (wp->d1p && wp->d2p)
+				    {
+					*(wp->d1p) = 
+			    ((struct dbr_ctrl_double *) arg.dbr)->lower_alarm_limit;
+					*(wp->d2p) = 
+			    ((struct dbr_ctrl_double *) arg.dbr)->upper_alarm_limit;
 
 					if (Trace || Debug)
-						printf("my_get_callback() just copied alarm limits\n");
-				} 
-				else
-				{
+			printf("my_get_callback() just copied alarm limits\n");
+				    } 
+				    else
+				    {
 					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
-							wp->d1p, wp->d2p);
+    "EZCA FATAL ERROR: my_get_callback() worktype GETALARMLIMITS got NULL wp->d1p %p wp->d2p %p\n",
+					    wp->d1p, wp->d2p);
 					exit(1);
-				} /* endif */
-				break;
-			default:
-				fprintf(stderr, 
-						"EZCA FATAL ERROR: my_get_callback() found arg.type %s %ld with wp->worktype %d\n",
-						dbr_type_to_text(arg.type), arg.type, wp->worktype);
-				exit(1);
-				break;
-			} /* end switch() */
-			break;
+				    } /* endif */
+				    break;
+				default:
+				    fprintf(stderr, 
+"EZCA FATAL ERROR: my_get_callback() found arg.type DBR_CTRL_DOUBLE %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				    exit(1);
+				    break;
+			    } /* end switch() */
+			    break;
 
-		case DBR_CTRL_ENUM:
-			if ( GETENUMSTATES == wp->worktype )
-			{
+			case DBR_CTRL_ENUM:
+				if ( GETENUMSTATES == wp->worktype )
+				{
 				char *p;
 				int   i,m;
-				if ( (p = wp->strp) ) 
-				{
-					struct dbr_ctrl_enum *dbr = (struct dbr_ctrl_enum*)arg.dbr;
-					m = dbr->no_str;
-					if ( m > EZCA_ENUM_STATES )
-						m = EZCA_ENUM_STATES;
-					for ( i = 0; i < m; i++, p+=EZCA_ENUM_STRING_SIZE )
+					if ( (p = wp->strp) ) 
 					{
-						strncpy( p, dbr->strs[i], EZCA_ENUM_STRING_SIZE );
+					struct dbr_ctrl_enum *dbr = (struct dbr_ctrl_enum*)arg.dbr;
+						m = dbr->no_str;
+						if ( m > EZCA_ENUM_STATES )
+							m = EZCA_ENUM_STATES;
+						for ( i = 0; i < m; i++, p+=EZCA_ENUM_STRING_SIZE )
+						{
+							strncpy( p, dbr->strs[i], EZCA_ENUM_STRING_SIZE );
+						}
+						if ( i < EZCA_ENUM_STATES )
+							*p = 0;
 					}
-					if ( i < EZCA_ENUM_STATES )
-						*p = 0;
+					else
+					{
+					fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() worktype GETENUMSTATES got NULL wp->strp\n");
+					exit(1);
+					}
 				}
 				else
 				{
-					fprintf(stderr, 
-							"EZCA FATAL ERROR: my_get_callback() worktype GETENUMSTATES got NULL wp->strp\n");
-					exit(1);
+				    fprintf(stderr, 
+"EZCA FATAL ERROR: my_get_callback() found arg.type DBR_CTRL_ENUM %ld with wp->worktype %d\n",
+				    arg.type, wp->worktype);
+				    exit(1);
 				}
-			}
-			break;
-		default:
-			fprintf(stderr, 
-					"EZCA FATAL ERROR: my_get_callback() unknown arg.type %ld\n",
+				break;
+			default:
+			    fprintf(stderr, 
+		    "EZCA FATAL ERROR: my_get_callback() unknown arg.type %ld\n",
 				arg.type);
-			exit(1);
-			break;
-		} /* end switch() */
+			    exit(1);
+			    break;
+		    } /* end switch() */
+		}
+		else
+		{
+		    fprintf(stderr, 
+    "EZCA FATAL ERROR: my_get_callback() got type %ld when asked for type %d\n",
+			arg.type, wp->dbr_type);
+		    exit(1);
+		} /* endif */
+	    }
+	    else
+	    {
+		if (Trace || Debug)
+		    printf("my_get_callback() found bad arg.status %d\n", 
+			arg.status);
+
+		wp->rc = EZCA_CAFAILURE;
+		wp->error_msg = ErrorMsgs[CAARRAYGETCALLBACK_MSG_IDX];
+		wp->aux_error_msg = strdup(ca_message(arg.status));
+	    } /* endif */
+
+	    if (Trace || Debug)
+		printf("my_get_callback() setting reported\n");
+
+	    wp->reported = TRUE;
+#ifdef DEBUG
+		printf("TSILL my_get_callback POST (%i)\n", ezcaOutstanding);
+#endif
+		POST_DONE();
 	}
+	else
+	{
+	    if (Trace || Debug)
+		printf("my_get_callback() inactive work node\n");
+		recycle_work(wp);
+	} /* endif */
+    }
     else
     {
-	if (Trace || Debug)
-	    printf("my_get_callback() found bad arg.status %d\n", 
-				arg.status);
-
-	wp->rc = EZCA_CAFAILURE;
-	wp->error_msg = ErrorMsgs[CAARRAYGETCALLBACK_MSG_IDX];
-	wp->aux_error_msg = strdup(ca_message(arg.status));
+        fprintf(stderr, "EZCA FATAL ERROR: my_get_callback() got NULL wp\n");
+        exit(1);
     } /* endif */
 
     if (Trace || Debug)
-		printf("my_get_callback() setting reported\n");
+	printf("exiting my_get_callback()\n");
 
-    wp->reported = TRUE;
-#ifdef DEBUG
-    printf("TSILL my_get_callback POST (%i)\n", ezcaOutstanding);
-#endif
-    POST_DONE();
-
-    if (Trace || Debug)
-		printf("exiting my_get_callback()\n");
-
-	EZCA_UNLOCK();
+EZCA_UNLOCK();
 } /* end my_get_callback() */
 
 /****************************************************************
