@@ -1,12 +1,12 @@
 #####################################
-#  R3.5.3 (T.S., 2017/10/11):       #
+#  R3.5.3 (T.S., 2017/08/11):       #
 #####################################
 BUGFIX (thanks to Jesus Vasquez for reporting). When retrieving
 DBF_LONG in native format, result was inadvertently converted to float
 and then promoted to double which lead to a loss in precision.
 
 #####################################
-#  master (T.S., 2017/10/11):       #
+#  master (T.S., 2017/08/11):       #
 #####################################
 Rolled back the variable-length array support on
 the master branch due to bugs which broke the tests.
