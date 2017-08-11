@@ -1,4 +1,3 @@
-/* $Id: multiEzca.c,v 1.43 2015/09/08 19:19:39 strauman Exp $ */
 
 /* multi-PV EZCA calls */
 

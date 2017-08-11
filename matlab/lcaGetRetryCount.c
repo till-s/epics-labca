@@ -1,4 +1,3 @@
-/* $Id: lcaGetRetryCount.c,v 1.4 2007/05/23 02:50:21 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetRetryCount */
 

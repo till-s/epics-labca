@@ -1,4 +1,3 @@
-/* $Id: ezcaSciCint.c,v 1.33 2015/06/05 01:50:14 strauman Exp $ */
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>

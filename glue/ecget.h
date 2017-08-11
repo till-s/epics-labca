@@ -1,4 +1,3 @@
-/* $Id$ */
 
 /* Public header for 'ecdrget' */
 

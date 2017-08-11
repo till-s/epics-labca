@@ -1,4 +1,3 @@
-/* $Id: lcaGetUnits.c,v 1.2 2007/10/14 03:28:04 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetUnits */
 

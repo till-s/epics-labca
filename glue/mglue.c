@@ -1,4 +1,3 @@
-/* $Id: mglue.c,v 1.25 2012/01/11 20:47:55 strauman Exp $ */
 
 /* MATLAB - EZCA interface glue utilites */
 

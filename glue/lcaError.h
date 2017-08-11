@@ -1,6 +1,5 @@
 #ifndef LCA_ERROR_H
 #define LCA_ERROR_H
-/* $Id: lcaError.h,v 1.5 2010/06/04 21:40:11 till Exp $ */
 
 /* labca error interface */
 

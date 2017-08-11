@@ -1,4 +1,3 @@
-/* $Id: lcaSetTimeout.c,v 1.5 2007-05-31 21:16:46 till Exp $ */
 
 /* matlab wrapper for ezcaSetTimeout */
 

@@ -1,4 +1,3 @@
-/* $Id: ctrlC-def.c,v 1.4 2004/02/11 18:51:51 till Exp $ */
 
 /* default Ctrl-C handling (none) */
 

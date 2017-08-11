@@ -1,4 +1,3 @@
-/* $Id: lcaGetEnumStrings.c,v 1.1 2015/06/04 19:45:30 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetEnumStrings */
 

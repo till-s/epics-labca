@@ -1,4 +1,3 @@
-/* $Id: ecget.c,v 1.5 2007-05-31 21:16:44 till Exp $ */
 
 /* matlab wrapper for ecget */
 

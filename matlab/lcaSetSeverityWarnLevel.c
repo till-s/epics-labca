@@ -1,4 +1,3 @@
-/* $Id: lcaSetSeverityWarnLevel.c,v 1.4 2007/05/23 02:50:22 strauman Exp $ */
 
 /* matlab wrapper for ezcaSetSeverityWarnLevel */
 

@@ -1,4 +1,3 @@
-/* $Id: lcaDelay.c,v 1.7 2007/06/05 05:03:12 guest Exp $ */
 
 /* matlab wrapper for ezcaDelay */
 

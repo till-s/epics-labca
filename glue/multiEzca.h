@@ -1,6 +1,5 @@
 #ifndef MULTI_EZCA_WRAPPER_H
 #define MULTI_EZCA_WRAPPER_H
-/* $Id: multiEzca.h,v 1.26 2015/09/08 18:08:50 strauman Exp $ */
 
 /* interface to multi-PV EZCA calls */
 

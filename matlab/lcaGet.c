@@ -1,4 +1,3 @@
-/* $Id: lcaGet.c,v 1.12 2007/10/14 03:28:04 strauman Exp $ */
 
 /* matlab wrapper for ezcaGet */
 

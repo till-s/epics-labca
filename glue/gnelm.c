@@ -1,4 +1,3 @@
-/* $Id: gnelm.c,v 1.5 2004/03/31 00:32:45 till Exp $ */
 
 #include <cadef.h>
 #include <multiEzca.h>

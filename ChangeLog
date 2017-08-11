@@ -1,9 +1,11 @@
 Changes since labca_3_5_3:
+Changes since labca_3_5_2:
+	2017/08/11 (TS):
+	 - removed CVS $Id$ keywords
 	2017/08/11 (TS):
 	 - added test case for recent bugfix
 	2017/08/10 (TS):
 	 - merged changes from labca_3_5_branch
-Changes since labca_3_5_2:
 Changes since labca_3_5_1:
 	2017/08/10 (TS):
 	 - use psed/sed everywhere (SED defined in configure/CONFIG)

@@ -1,4 +1,3 @@
-/* $Id: lcaPut.c,v 1.9 2007-05-31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaPut */
 

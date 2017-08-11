@@ -1,4 +1,3 @@
-/* $Id: lcaLastError.c,v 1.4 2007/06/01 21:36:53 guest Exp $ */
 
 /* matlab wrapper for lcaGetLastError */
 

@@ -1,5 +1,3 @@
-/* $Id: ini.cc,v 1.31 2009/10/13 18:03:57 strauman Exp $ */
-
 /* xlabcaglue library initializer */
 
 #if defined(WIN32) || defined(_WIN32)

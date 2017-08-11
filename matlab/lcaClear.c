@@ -1,4 +1,3 @@
-/* $Id: lcaClear.c,v 1.5 2007/05/23 02:50:21 strauman Exp $ */
 
 /* matlab wrapper for ezcaClearChannel / ezcaPurge */
 

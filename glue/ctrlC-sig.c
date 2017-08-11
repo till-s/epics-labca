@@ -1,4 +1,3 @@
-/* $Id: ctrlC-sig.c,v 1.3 2004/06/23 01:23:56 till Exp $ */
 
 /* Ctrl-C handling for solaris and linux */
 

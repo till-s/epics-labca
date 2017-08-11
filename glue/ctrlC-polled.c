@@ -1,4 +1,3 @@
-/* $Id: ctrlC-polled.c,v 1.4 2009/10/13 18:03:57 strauman Exp $ */
 
 /* scilab Ctrl-C handling */
 

@@ -1,4 +1,3 @@
-/* $Id: lcaNewMonitorWait.c,v 1.2 2007-05-31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaNewMonitorWait */
 

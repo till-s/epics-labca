@@ -1,4 +1,3 @@
-/* $Id: lcaPutNoWait.c,v 1.4 2007-05-31 21:16:45 till Exp $ */
 
 /* matlab wrapper for ezcaPutOldCa */
 

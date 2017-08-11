@@ -1,4 +1,3 @@
-/* $Id: lcaNewMonitorValue.c,v 1.7 2012/01/12 18:38:19 strauman Exp $ */
 
 /* matlab wrapper for ezcaNewMonitorValue */
 

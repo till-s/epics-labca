@@ -1,4 +1,3 @@
-/* $Id: lcaSetRetryCount.c,v 1.6 2007/06/01 23:52:48 till Exp $ */
 
 /* matlab wrapper for ezcaSetRetryCount */
 

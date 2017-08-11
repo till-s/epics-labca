@@ -1,4 +1,3 @@
-/* $Id: lcaGetGraphicLimits.c,v 1.10 2007/10/14 03:28:04 strauman Exp $ */
 
 /* matlab wrapper for ezcaGetAlarmLimits */
 
