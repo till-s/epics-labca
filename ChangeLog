@@ -1,4 +1,7 @@
+Changes since labca_3_5_4:
 Changes since labca_3_5_3:
+	2017/08/18 (HS):
+	- Removed RELEASE_SITE file and added it to .gitignore.
 Changes since labca_3_5_2:
 	2017/08/11 (TS):
 	 - replaced CVS $Id$/$Name$ in manual.tex and glue/ini.cc by git description strings
