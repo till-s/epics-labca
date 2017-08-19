@@ -7,6 +7,9 @@ documentation/manual.log
 documentation/manual.out
 documentation/manual.pdf
 documentation/manual
+documentation/images.aux
+documentation/images.pdf
+documentation/gitstring.tex
 html
 lib
 *.log
