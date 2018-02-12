@@ -270,7 +270,69 @@ CtrlCStateRec saved;
 mexPrintf((char*)"Initializing labCA Release '%s'...\n", gitRevisionString);
 mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
 
-#ifdef MATLAB_APP
+#if defined( MATLAB_APP ) && 0
+  /* UPDATE: this mexLock() crashes matlab 2017 -- hence we remove
+   * it for now. Here's a relevant email (thanks to J. Sebek)
+   *
+   * 12/9/2017
+   *
+   * Hello Jim, 
+   *
+   * Thank you for your patience. I collaborated with my colleagues to work
+   * on this further and following are our observations.
+   *
+   * We were able to reproduce the crash on Windows with the sample
+   * application you provided and get the same crash error.  After
+   * speaking with the development team, it looks like this is probably
+   * a bug from a change in the code in R2017b.  The best guess we have
+   * as to why this started failing in R2017b is that there was probably
+   * a change in scoping of a variable or structure that is now initialized
+   * either when the MEX file is compiled or at run-time.  If mexLock is
+   * called in a library linked to the MEX file before the MEX file is run,
+   * the failure occurs.
+   *
+   * While we want to avoid any crashes and will investigate this issue,
+   * from talking with the development team, mexLock wasn't intended
+   * to be called at the shared library level.  While we don't specifically
+   * forbid it in our documentation, our examples there show how to use it
+   * in a MEX file. We tested the workflow by moving the mexLock command
+   * from the shared library object (libthelib.so through ini.o) to the
+   * calling MEX function (themex.cc), and the program ran successfully
+   * without crashing.  
+   *
+   * We then verified a workflow similar to what you mentioned, multiple
+   * MEX files accessing a shared library without the library being
+   * released until specifically unlock called.  We created a MEX file
+   * where we call a function from the shared library as well as MEX
+   * function calls mexLock.  When mexLock is called, the MEX can't
+   * be released from memory by typing clear <mexFile>.  This can be
+   * tested by trying to recompile the MEX file, which will explicitly say
+   * that it is locked. This still is same as the workflow you intended to
+   * have (even though mexLock is in the MEX file), as the MEX file is
+   * locked, the linked library is also locked as well, and this can be
+   * verified by duplicating the MEX file and calling it mexFile2.  Each
+   * MEX file can be locked or unlocked, but the library won't be freed
+   * unless all MEX files that load that library are unlocked.
+   *
+   * I'm not sure if this fulfills your exact workflow, perhaps if want
+   * to load the library once at the start of their program and never release
+   * it, no matter what happens to the MEX file.  In that case, you may want
+   * to add a dummy MEX file that calls a function in the shared
+   * library as well as mexLock.  You can then unlock the MEX file when
+   * exiting the application so that the MEX file and the library it loads
+   * remains throughout the lifetime of the application.
+   *
+   * Developers are already aware of this behavior (crash when mexLock
+   * called from shared library) and they may consider fixing this in one of
+   * the future releases of MATLAB.
+   *
+   * Please go through the above information and let me know if  the
+   * workaround satisfies your requirements or not. I look forward to hearing
+   * from you.
+   *
+   * Sincerely, 
+   * Manish Annappa
+   */
   /* Under matlab, always lock the library in memory - even though we
    * now do a pretty good job cleaning up (and as a matter of fact
    * I now can clear and reload scilabca and matlabca under unix [but
