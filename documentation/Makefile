@@ -18,7 +18,9 @@ export PATH := $(PATH):$(TOP)/documentation/HtmlTeX
 
 # Broken: scilab 5 under windows executable is 'scilex' :-(
 # but we have no T_A/OS_CLASS to test here
+ifeq ($(MAKEFOR),SCILAB)
 SCILAB=$(SCILABDIR)/bin/scilab
+endif
 
 # Only scilab 5 can return a nonzero 'exit' code
 #define scilab-lt-5
