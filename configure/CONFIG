@@ -7,7 +7,9 @@ USR_CFLAGS_DEFAULT=-g
 # Choose what interface to build. May be
 # 'MATLAB' or 'SCILAB'
 
+ifndef MAKEFOR
 MAKEFOR=MATLAB
+endif
 
 # Enable Ctrl-C handling so you can interrupt
 # lcaGet/lcaPut by hitting Ctrl-C.
@@ -17,7 +19,9 @@ MAKEFOR=MATLAB
 # You can try it -- if you run into problems (e.g.
 # crashes/aborts) disable this feature...
 # Set the following variable to YES or NO
+ifndef CONFIG_USE_CTRLC
 CONFIG_USE_CTRLC=YES
+endif
 
 # optionally, set installation top directory
 # *** DEPRECATED *** use INSTALL_LOCATION_APP in the
@@ -136,3 +140,5 @@ RUNTIME_LDFLAGS=
 CROSS_COMPILER_TARGET_ARCHS =
 
 GITSTRING=$(shell if ! git describe --always --dirty 2>/dev/null; then cat $(TOP)/gitstring.txt; fi)
+
+-include $(TOP)/configure/CONFIG.local

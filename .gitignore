@@ -10,6 +10,8 @@ documentation/manual
 documentation/images.aux
 documentation/images.pdf
 documentation/gitstring.tex
+configure/RELEASE.local
+configure/CONFIG.local
 html
 lib
 *.log
