@@ -1,5 +1,5 @@
 #####################################
-#  R3.5.6 (T.S., 2018/02/17):       #
+#  R3.7.0 (T.S., 2018/02/17):       #
 #####################################
 Removed mexLock() from library initialization. This triggered
 a bug in matlab 2017b; unloading labCA seems quite stable (and
@@ -7,6 +7,17 @@ is not normally attempted anyways).
 
 Allow override of some build variables from optional
 RELEASE.local, CONFIG.local (which are not git controlled)
+
+Bumped minor release number to get ahead of obsolete
+R3.6.0 (modifications were reversed).
+
+######################################
+#  R3.6 Note:
+######################################
+
+changes that went into R3.6 were rolled back; there
+is no 'official' 3.6 branch/release.
+
 
 #####################################
 #  R3.5.3 (T.S., 2017/08/11):       #

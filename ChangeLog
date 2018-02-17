@@ -1,8 +1,13 @@
-Changes since labca_3_5_6:
-Changes since labca_3_5_4:
+Changes since labca_3_7_0:
 	2018/02/12 (TS):
 	- removed mexLock from initialization code (breaks matlab 2017;
 	  see email thread with mathworks/J. Sebek, 12/9/2017)
+
+***
+Note: changes that went into R3.6 were rolled back; there
+is no 'official' 3.6 branch/release.
+***
+
 Changes since labca_3_5_3:
 	2017/08/18 (HS):
 	- Removed RELEASE_SITE file and added it to .gitignore.
