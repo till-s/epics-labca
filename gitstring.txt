@@ -1,1 +1,1 @@
-$Format:%D-%h$
+$Format:%d%h$

@@ -1,4 +1,9 @@
 #####################################
+#  R3.7.1 (T.S., 2018/02/17):       #
+#####################################
+Added Makefile rules to create released tarball
+
+#####################################
 #  R3.7.0 (T.S., 2018/02/17):       #
 #####################################
 Removed mexLock() from library initialization. This triggered

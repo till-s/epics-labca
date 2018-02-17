@@ -1,4 +1,10 @@
+Changes since labca_3_7_1:
 Changes since labca_3_7_0:
+	2018/02/12 (TS):
+	- Added Makefile rules to create released tarball
+
+Changes since labca_3_5_5:
+
 	2018/02/12 (TS):
 	- removed mexLock from initialization code (breaks matlab 2017;
 	  see email thread with mathworks/J. Sebek, 12/9/2017)
