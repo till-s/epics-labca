@@ -197,7 +197,7 @@ include $(TOP)/configure/RULES
 
 gitstring.c:
 	$(RM) $@
-	perl -e 'print("const char *gitRevisionString = \"$(GITSTRING)\";\n")' > $@
+	perl > $@ -e "print(\"const char *gitRevisionString = \\\"$(GITSTRING)\\\";\n\")" > $@
 
 build:
 	$(RM) gitstring.c
