@@ -144,7 +144,7 @@ GITSTRING:=$(shell perl -e 'my $$v=`git describe --always --dirty 2>/dev/null`; 
                      if ( $$? != 0 ) { \
                         open(F,"$(TOP)/gitstring.txt"); \
                         $$v=<F>; \
-                        $$v=~s/[ ]*[(]\(.*tag:[ ]*\)\([^,]\+\)\(\([,].*\)\|\(\)\)[)]/\2 - /; \
+                        $$v=~s/[ ]*[(](.*tag:[ ]*)([^,]+)(([,].*)|())[)]/\2 - /; \
                         $$v=~s/[ ]*[(].*[)]//; \
                      }; \
                      print($$v);')
