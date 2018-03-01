@@ -76,7 +76,7 @@ gitstring.tex: manual.tex Makefile
 	$(RM) $@
 	@echo '%newcommand{%gitstring}{%lstinline|$(GITSTRING)|}' | tr '%' '\\' > $@
 
-%.pdf %.aux: %.tex gitstring.tex
+manual.pdf manual.aux: manual.tex gitstring.tex
 	pdflatex $<
 	pdflatex $<
 

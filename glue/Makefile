@@ -53,17 +53,25 @@ USR_CPPFLAGS += -DFORDLL
 
 # Libraries changed in scilab 5.4 (windows only)
 ifeq ($(call VERS_CHECK,5,4),TRUE)
-TARGET_LDFLAGS += $(SCILABDIR)/bin/core.lib $(SCILABDIR)/bin/core_f.lib
+#TARGET_LDFLAGS += $(SCILABDIR)/bin/core.lib $(SCILABDIR)/bin/core_f.lib
+LIB_LIBS+=core
+core_DIR=$(SCILABDIR)/bin
+LIB_LIBS+=core_f
+core_f_DIR=$(SCILABDIR)/bin
 else
-TARGET_LDFLAGS += $(SCILABDIR)/bin/LibScilab.lib
+#TARGET_LDFLAGS += $(SCILABDIR)/bin/LibScilab.lib
+LIB_LIBS+=LibScilab
+LibScilab_DIR=$(SCILABDIR)/bin
 endif
 ifndef SCILAB_V4
 # these are required under scilab-5
 # we have no test available at 'make' time for now...
-#LIB_LIBS += output_stream
-TARGET_LDFLAGS += $(SCILABDIR)/bin/output_stream.lib
-#LIB_LIBS += intersci
-TARGET_LDFLAGS += $(SCILABDIR)/bin/intersci.lib
+#TARGET_LDFLAGS += $(SCILABDIR)/bin/output_stream.lib
+LIB_LIBS += output_stream
+output_stream_DIR=$(SCILABDIR)/bin
+#TARGET_LDFLAGS += $(SCILABDIR)/bin/intersci.lib
+LIB_LIBS += intersci
+intersci_DIR=$(SCILABDIR)/bin
 endif
 endif
 endif
@@ -189,7 +197,7 @@ include $(TOP)/configure/RULES
 
 gitstring.c:
 	$(RM) $@
-	echo 'const char *gitRevisionString = "$(GITSTRING)";' > $@
+	perl -e 'print("const char *gitRevisionString = \"$(GITSTRING)\";\n")' > $@
 
 build:
 	$(RM) gitstring.c

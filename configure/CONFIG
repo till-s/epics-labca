@@ -139,6 +139,6 @@ RUNTIME_LDFLAGS=
 
 CROSS_COMPILER_TARGET_ARCHS =
 
-GITSTRING:=$(shell if ! git describe --always --dirty 2>/dev/null; then cat $(TOP)/gitstring.txt | sed -e 's/[ ]*[(]\(.*tag:[ ]*\)\([^,]\+\)\(\([,].*\)\|\(\)\)[)]/\2 - /' -e 's/[ ]*[(].*[)]//'; fi)
+GITSTRING:=$(shell if ! git describe --always --dirty 2>/dev/null; then cat $(TOP)/gitstring.txt | $(SED) -e 's/[ ]*[(]\(.*tag:[ ]*\)\([^,]\+\)\(\([,].*\)\|\(\)\)[)]/\2 - /' -e 's/[ ]*[(].*[)]//'; fi)
 
 -include $(TOP)/configure/CONFIG.local
