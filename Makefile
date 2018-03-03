@@ -31,6 +31,7 @@ tar: images documentation
 		git submodule foreach 'git archive --prefix=$(TAG)/$$path/ --format=tar -o $$toplevel/images/tmp.tar $$sha1; tar Af $$toplevel/images/$(TAG).tar $$toplevel/images/tmp.tar; $(RM) $$toplevel/images/tmp.tar;'; \
 		tar cf images/tmp.tar '--xform=s%^%$(TAG)/%' documentation; \
 		tar Af images/$(TAG).tar images/tmp.tar; \
+		$(RM) images/tmp.tar; \
 	fi
 
 images:
