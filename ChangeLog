@@ -1,4 +1,9 @@
+Changes since labca_3_7_2:
 Changes since labca_3_7_1:
+	2018/03/02 (TS):
+	- tarball rules must include submodule (sciclean)
+	- fixes (perlification) for non-cygwin windows builds
+
 Changes since labca_3_7_0:
 	2018/02/12 (TS):
 	- Added Makefile rules to create released tarball
