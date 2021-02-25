@@ -49,9 +49,11 @@ MLBARCH_linux-x86_64=glnxa64
 
 MEXEXT_rhel6-x86_64=mexa64
 MLBARCH_rhel6-x86_64=glnxa64
+MLBARCH_RHEL6-x86_64=glnxa64
 
 MEXEXT_rhel7-x86_64=mexa64
 MLBARCH_rhel7-x86_64=glnxa64
+MLBARCH_RHEL7-x86_64=glnxa64
 
 MEXEXT_solaris-sparc=mexsol
 MLBARCH_solaris-sparc=sol2
