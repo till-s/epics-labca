@@ -1,4 +1,6 @@
 Changes since labca_3_7_2:
+	- move master repo to gitub.com/till-s/epics-labca
+
 Changes since labca_3_7_1:
 	2018/03/02 (TS):
 	- tarball rules must include submodule (sciclean)
