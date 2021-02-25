@@ -21,7 +21,7 @@ install: buildInstall
 
 buildInstall: build
 
-SCRIPTS_HOST_default  += lcaTest.m lcaTest.sce
+SCRIPTS_HOST_DEFAULT  += lcaTest.m lcaTest.sce
 SCRIPTS_HOST_WIN32    +=
 
 USR_CFLAGS   += -I$(TOP)/ezca/
