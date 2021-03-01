@@ -20,7 +20,7 @@ endif
 # crashes/aborts) disable this feature...
 # Set the following variable to YES or NO
 ifndef CONFIG_USE_CTRLC
-CONFIG_USE_CTRLC=YES
+CONFIG_USE_CTRLC=NO
 endif
 
 # optionally, set installation top directory

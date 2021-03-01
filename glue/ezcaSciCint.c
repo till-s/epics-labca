@@ -1,18 +1,30 @@
 
 /* SCILAB C-interface to ezca / multiEzca */
 #include <mex.h>
+#if 0
 #include "stack-c.h"
+#else
+#include <api_scilab.h>
+#endif
 #include <version.h>
 #include <string.h>
 #include <cadef.h>
 #include <ezca.h>
 
-#if SCI_VERSION_MAJOR >= 5
+#if SCI_VERSION_MAJOR == 5
 #if SCI_VERSION_MINOR < 2
 #include <output_stream/Scierror.h>
 #else
 #include <Scierror.h>
 #endif
+#endif
+#include <lcaSciApiHelpers.h>
+
+#if SCI_VERSION_MAJOR < 6
+/* Legacy; used to be 'fname_len' */
+typedef unsigned long PvApiCtxType;
+#else
+typedef void *        PvApiCtxType;
 #endif
 
 #include <sciclean.h>
@@ -82,46 +94,29 @@ char **strs = x;
 #define MAY_ALIAS
 #endif
 
-#if 0
-#define getRhsVar(n,ct,mx,nx,lx) \
-	( C2F(getrhsvar)((c_local=n,&c_local),ct,mx,nx,(integer *) lx,1L) )
-#define checkRhs(minrhs,maxrhs)  \
-	( C2F(checkrhs)(fname,(c_local = minrhs,&c_local),(c1_local=maxrhs,&c1_local),\
-              strlen(fname)) )
-#define checkLhs(minlhs,maxlhs)  \
-	( C2F(checklhs)(fname,(c_local = minlhs,&c_local),(c1_local=maxlhs,&c1_local),\
-              strlen(fname)) )
-#define checkRow(pos,m,n) \
-	( check_row(pos,m,n) )
-#define checkColumn(pos,m,n) \
-	( check_column(pos,m,n) )
-#endif
-
 /* there's a typo in the scilab header :-( */
 #define check_column check_col
 
-/* convert a short array into an int array */
-static void
-s2iInPlace(void *buf, int m)
-{
-int i;
-	for (i = m-1; i>=0; i--) {
-		((int*)buf)[i] = (int) ((short*)buf)[i];
-	}
-}
-
 static int
-arg2ezcaType(char *pt, int idx, LcaError *pe)
+arg2ezcaType(char *pt, int idx, LcaError *pe, PvApiCtxType pvApiCtx)
 {
-int m,n,s;
+int    m,n;
+char **strs;
+char   ch;
 
 	if ( Rhs < idx )
 		return 0;
 
-	GetRhsVar(idx, "c", &m, &n, &s);
-	CheckColumn(idx, m, n);
+	m = n = 1;
+	if ( ! (strs = lcaGetApiStringMatrix(pvApiCtx, pe, idx, &m, &n)) ) {
+		return 0;
+	}
 
-	switch ( toupper( *(cstk(s)) ) ) {
+	ch = toupper( strs[0][0] );
+
+	lcaFreeApiStringMatrix( strs );
+	
+	switch ( ch ) {
 			case 'D': *pt = ezcaDouble; break;
 			case 'F': *pt = ezcaFloat;  break;
 			case 'L': *pt = ezcaLong;   break;
@@ -153,33 +148,46 @@ LcaError *theErr = lcaMalloc(sizeof(*theErr));
 	return theErr;
 }
 
-static int intsezcaGet(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGet(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int mpvs, mtmp, ntmp, itmp, jtmp, status;
-char           **pvs MAY_ALIAS = 0;
-void            *buf MAY_ALIAS = 0;
-int	            n              = 0;
-char            type           = ezcaNative;
-epicsTimeStamp  *ts            = 0;
-LcaError        *theErr        = errCreate(sciclean);
+int             mpvs, mtmp, ntmp, status, itmp;
+double         *reptr = 0, *imptr = 0;
+char          **pvs MAY_ALIAS = 0;
+void           *buf MAY_ALIAS = 0;
+int	            n             = 0;
+int            *iptr;
+char            type          = ezcaNative;
+epicsTimeStamp *ts            = 0;
+LcaError       *theErr        = errCreate(sciclean);
+SciErr          sciErr;
 
-	CheckRhs(1,3);
-	CheckLhs(1,2);
+	CheckInputArgument(pvApiCtx,1,3);
+	CheckOutputArgument(pvApiCtx,1,2);
 
- 	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
+	mpvs = -1; ntmp = 1;
+	pvs  = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &mpvs, &ntmp);
+	if ( ! pvs ) {
+		goto bail;
+	}
 	SCICLEAN_SVAR(pvs);
- 	CheckColumn(1,mpvs,ntmp);
 
 	if ( Rhs > 1 ) {
-		GetRhsVar(2, "i", &mtmp, &ntmp, &itmp);
-		CheckScalar(2, mtmp, ntmp);
-		n = *istk(itmp);
-		if ( Rhs > 2 && !arg2ezcaType(&type,3, theErr) )
+		mtmp = ntmp = 1;
+		if ( ! (iptr = lcaGetApiIntMatrix( pvApiCtx, theErr, 2, &mtmp, &ntmp )) ) {
+			goto bail;
+		}
+		n = *iptr;
+		if ( Rhs > 2 && !arg2ezcaType(&type,3, theErr, pvApiCtx) )
 			goto bail;
 	}
 
-	ntmp = 1;
-	CreateCVar(Rhs + 1,"d",&ntmp,&mpvs,&ntmp,&itmp,&jtmp);
+	if ( Lhs >= 2 ) {
+		ntmp = 1;
+		sciErr = allocComplexMatrixOfDouble( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, mpvs, ntmp, &reptr, &imptr );
+		if ( lcaCheckSciError(theErr, &sciErr) ) {
+			goto bail;
+		}
+	}
 
 	/* we can't preallocate the result matrix -- n is unknown at this point */
 	status = multi_ezca_get( pvs, &type, &buf, mpvs, &n, &ts, theErr );
@@ -193,25 +201,26 @@ LcaError        *theErr        = errCreate(sciclean);
 	}
 
 	if ( !status ) {
-		for ( itmp = 1; itmp <= Lhs; itmp++ )
-			LhsVar(itmp) = 0; 
+		for ( itmp = 1; itmp <= Lhs; itmp++ ) {
+    		AssignOutputVariable(pvApiCtx, itmp) = 0;
+		}
 		goto bail;
 	}
 
-	/* NOTE: if CreateVarxxx fails, there is a memory leak
-	 *       (macro returns without chance to clean up)
-	 */
 	if ( Lhs >= 1 ) {
 		if ( ezcaString == type ) {
-			CreateVarFromPtr(Rhs + 2, "S", &mpvs, &n, buf);
+			sciErr = createMatrixOfString( pvApiCtx, nbInputArgument( pvApiCtx ) + 2, mpvs, n, (const char * const *)buf );
 		} else {
-			CreateVarFromPtr(Rhs + 2, "d", &mpvs, &n, &buf);
+			sciErr = createMatrixOfDouble( pvApiCtx, nbInputArgument( pvApiCtx ) + 2, mpvs, n, (double*)buf );
 		}
-		LhsVar(1)=Rhs + 2;
+		if ( lcaCheckSciError(theErr, &sciErr) ) {
+			goto bail;
+		}
+    	AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 2;
 
 		if ( Lhs >= 2 ) {
-			multi_ezca_ts_cvt( mpvs, ts, stk(itmp), stk(jtmp) );
-			LhsVar(2)=Rhs + 1;
+			multi_ezca_ts_cvt( mpvs, ts, reptr, imptr );
+    		AssignOutputVariable(pvApiCtx, 2) = nbInputArgument( pvApiCtx ) + 1;
 		}
 	}
 
@@ -220,33 +229,53 @@ bail:
 	return 0;
 }
 
-static int dosezcaPut(char *fname, int doWait, Sciclean sciclean)
+static int dosezcaPut(char *fname, int doWait, Sciclean sciclean, PvApiCtxType pvApiCtx)
 {
-int       mpvs, mval, ntmp, n, i;
+int       mpvs, mval, ntmp, n;
 void     *buf MAY_ALIAS;
 char    **pvs MAY_ALIAS;
 char      type   = ezcaNative;
 LcaError *theErr = errCreate(sciclean);
+SciErr    sciErr;
+int      *pia;
+int       sciType;
 
-	CheckRhs(2,3);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx,2,3);
+	CheckOutputArgument(pvApiCtx,1,1);
 
-	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
+	mpvs = -1;
+	ntmp =  1;
+	if ( ! (pvs = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &mpvs, &ntmp)) ) {
+		return 0;
+	}
 	SCICLEAN_SVAR(pvs);
-	CheckColumn(1,mpvs,ntmp);
 
-	if ( 10 == VarType(2) ) {
-		GetRhsVar(2,"S",&mval,&n,&buf);
+	sciErr = getVarAddressFromPosition( pvApiCtx, 2, &pia );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
+	
+	sciErr = getVarType( pvApiCtx, pia, &sciType );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
+
+	mval = n = -1;
+	if ( sci_strings == sciType ) {
+		if ( ! (buf = (void*)lcaGetApiStringMatrix(pvApiCtx, theErr, 2, &mval, &n)) ) {
+			return 0;
+		}
 		SCICLEAN_SVAR(buf);
 		type = ezcaString;
 	} else {
-		GetRhsVar(2,"d",&mval,&n,&i);
-		buf = stk(i);
+		if ( ! (buf = (void*)lcaGetApiDblMatrix(pvApiCtx, theErr, 2, &mval, &n)) ) {
+			return 0;
+		}
 	}
 
 	if ( Rhs > 2 ) {
 		char t;
-		if ( !arg2ezcaType( &t, 3, theErr ) )
+		if ( !arg2ezcaType( &t, 3, theErr , pvApiCtx) )
 			goto bail;
 		if ( (ezcaString == type) != (ezcaString == t) )  {
 			lcaSetError(theErr, EZCA_INVALIDARG, "string value type conversion not implemented, sorry");
@@ -270,111 +299,142 @@ bail:
 	return 0;
 }
 
-static int intsezcaPutNoWait(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaPutNoWait(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-	return dosezcaPut(fname, 0, sciclean);
+	return dosezcaPut(fname, 0, sciclean, pvApiCtx);
 }
 
-static int intsezcaPut(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaPut(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-	return dosezcaPut(fname, 1, sciclean);
+	return dosezcaPut(fname, 1, sciclean, pvApiCtx);
 }
 
 
-static int intsezcaGetNelem(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetNelem(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int       m,n,i;
+int       m,n,*iptr;
 char    **pvs MAY_ALIAS;
 LcaError *theErr = errCreate(sciclean);
+SciErr    sciErr;
 
-	CheckRhs(1,1);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,1);
 
-	GetRhsVar(1,"S",&m,&n,&pvs);
+	m = -1;
+	n =  1;
+	if ( ! (pvs = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
 	SCICLEAN_SVAR(pvs);
-	CheckColumn(1,m,n);
 
-	CreateVar(2,"i",&m,&n,&i);
+	sciErr = allocMatrixOfInteger32( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, m, n, &iptr );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
 
-	if ( !multi_ezca_get_nelem(pvs, m, istk(i), theErr) )
- 		LhsVar(1)=2;
+	if ( !multi_ezca_get_nelem(pvs, m, iptr, theErr) ) {
+    	AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 1;
+	}
 
  	return 0;
 }
 
-static int getLimits(char *fname, int namlen, Sciclean sciclean, MultiEzcaFunc f)
+static int getLimits(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean, MultiEzcaFunc f)
 {
-int m,n,d1,d2;
-char **pvs MAY_ALIAS;
+int         m,n;
+double     *dptr1,*dptr2;
+char      **pvs MAY_ALIAS;
 MultiArgRec args[2];
-LcaError *theErr = errCreate(sciclean);
+LcaError   *theErr = errCreate(sciclean);
+SciErr      sciErr;
 
-	CheckRhs(1,1);
-	CheckLhs(1,2);
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,2);
 
-	GetRhsVar(1,"S",&m,&n,&pvs);
+	m = -1;
+	n =  1;
+	if ( ! (pvs = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
 	SCICLEAN_SVAR(pvs);
-	CheckColumn(1,m,n);
 
-	CreateVar(2, "d", &m, &n, &d1);
-	CreateVar(3, "d", &m, &n, &d2);
+	sciErr = allocMatrixOfDouble( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, m, n, &dptr1 );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
 
-	MSetArg(args[0], sizeof(double), stk(d1), 0); 
-	MSetArg(args[1], sizeof(double), stk(d2), 0); 
+	sciErr = allocMatrixOfDouble( pvApiCtx, nbInputArgument( pvApiCtx ) + 2, m, n, &dptr2 );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
+
+	MSetArg(args[0], sizeof(double), dptr1, 0); 
+	MSetArg(args[1], sizeof(double), dptr2, 0); 
 
 	if ( multi_ezca_get_misc(pvs, m, f, NumberOf(args), args, theErr) ) {
-		for ( n=1; n<=Lhs; n++ )
-			LhsVar(n) = Rhs + n;
+		for ( n=1; n<=Lhs; n++ ) {
+	    	AssignOutputVariable(pvApiCtx, n) = nbInputArgument( pvApiCtx ) + n;
+		}
 	}
 	
 	return 0;
 }
 
-static int intsezcaGetControlLimits(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetControlLimits(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-	return getLimits(fname, namlen, sciclean, (MultiEzcaFunc)ezcaGetControlLimits);
+	return getLimits(fname, pvApiCtx, sciclean, (MultiEzcaFunc)ezcaGetControlLimits);
 }
 
-static int intsezcaGetGraphicLimits(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetGraphicLimits(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-	return getLimits(fname, namlen, sciclean, (MultiEzcaFunc)ezcaGetGraphicLimits);
+	return getLimits(fname, pvApiCtx, sciclean, (MultiEzcaFunc)ezcaGetGraphicLimits);
 }
 
-static int intsezcaGetWarnLimits(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetWarnLimits(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-	return getLimits(fname, namlen, sciclean, (MultiEzcaFunc)ezcaGetWarnLimits);
+	return getLimits(fname, pvApiCtx, sciclean, (MultiEzcaFunc)ezcaGetWarnLimits);
 }
 
-static int intsezcaGetAlarmLimits(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetAlarmLimits(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-	return getLimits(fname, namlen, sciclean, (MultiEzcaFunc)ezcaGetAlarmLimits);
+	return getLimits(fname, pvApiCtx, sciclean, (MultiEzcaFunc)ezcaGetAlarmLimits);
 }
 
-static int intsezcaGetStatus(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetStatus(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-epicsTimeStamp *ts MAY_ALIAS;
-int            hasImag, m,n,i,j, status;
+epicsTimeStamp *ts MAY_ALIAS = 0;
+int            m,n, status;
 char           **pvs MAY_ALIAS;
 LcaError       *theErr = errCreate(sciclean);
+short          *sptr;
+double         *reptr = 0, *imptr = 0;
+SciErr          sciErr;
+MultiArgRec     args[3];
 
-MultiArgRec args[3];
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,3);
 
-	CheckRhs(1,1);
-	CheckLhs(1,3);
-	GetRhsVar(1,"S",&m,&n,&pvs);
+	m = -1;
+	n =  1;
+	if ( ! (pvs = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
+
 	SCICLEAN_SVAR(pvs);
-	CheckColumn(1,m,n);
 
 	MSetArg(args[0], sizeof(epicsTimeStamp), 0,       &ts); /* timestamp */
 
- 	CreateVar(2,"i",&m,&n,&i);
-	MSetArg(args[1], sizeof(short),    istk(i), 0  ); /* status    */
+	sciErr = allocMatrixOfInteger16( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, m, n, &sptr );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
+	MSetArg(args[1], sizeof(short),    sptr, 0  ); /* status    */
 
- 	CreateVar(3,"i",&m,&n,&i);
-	MSetArg(args[2], sizeof(short),    istk(i), 0  ); /* severity  */
-
-	hasImag = 1;
- 	CreateCVar(4,"d",&hasImag,&m,&n,&i,&j);
+	sciErr = allocMatrixOfInteger16( pvApiCtx, nbInputArgument( pvApiCtx ) + 2, m, n, &sptr );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
+	MSetArg(args[2], sizeof(short),    sptr, 0  ); /* severity  */
 
 	status = multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetStatus, NumberOf(args), args, theErr);
 
@@ -383,16 +443,18 @@ MultiArgRec args[3];
 
 	if ( status ) {
 
-		s2iInPlace(args[2].buf, m);
- 		LhsVar(1)=3;
+	    AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 2;
 
 		if ( Lhs >= 2 ) {
-			s2iInPlace(args[1].buf, m);
- 			LhsVar(2)=2;
+	    	AssignOutputVariable(pvApiCtx, 2) = nbInputArgument( pvApiCtx ) + 1;
 			
 			if ( Lhs >= 3 ) {
-				LhsVar(3)=4;
-				multi_ezca_ts_cvt( m, ts, stk(i), stk(j) );
+				sciErr = allocComplexMatrixOfDouble( pvApiCtx, nbInputArgument( pvApiCtx ) + 3, m, n, &reptr, &imptr );
+				if ( lcaCheckSciError(theErr, &sciErr) ) {
+					return 0;
+				}
+				multi_ezca_ts_cvt( m, ts, reptr, imptr );
+	    		AssignOutputVariable(pvApiCtx, 3) = nbInputArgument( pvApiCtx ) + 3;
 			}
 		}
 	}
@@ -400,45 +462,59 @@ MultiArgRec args[3];
  	return 0;
 }
 
-static int intsezcaGetPrecision(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetPrecision(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int m,n,i;
-char  **pvs MAY_ALIAS;
+int         m,n;
+char      **pvs MAY_ALIAS;
 MultiArgRec	args[1];
-LcaError *theErr = errCreate(sciclean);
+LcaError   *theErr = errCreate(sciclean);
+SciErr      sciErr;
+short      *sptr;
 
-	CheckRhs(1,1);
-	CheckLhs(1,1);
-	GetRhsVar(1,"S",&m,&n,&pvs);
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,1);
+
+	m    = -1;
+	n    =  1;
+	if ( ! (pvs = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
+
 	SCICLEAN_SVAR(pvs);
-	CheckColumn(1,m,n);
 
-	CreateVar(2,"i",&m,&n,&i);
+	sciErr = allocMatrixOfInteger16( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, m, n, &sptr );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
 
-	MSetArg(args[0], sizeof(short), istk(i), 0);
+	MSetArg(args[0], sizeof(short), sptr, 0);
 
 	if ( multi_ezca_get_misc(pvs, m, (MultiEzcaFunc)ezcaGetPrecision, NumberOf(args), args, theErr) ) {
-		s2iInPlace(istk(i),m);
-		LhsVar(1) = 2;
+	    AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 1;
 	}
  	return 0;
 }
 
 typedef char units_string[EZCA_UNITS_SIZE];
 
-static int intsezcaGetUnits(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetUnits(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int  m,n,i,status;
-char **pvs MAY_ALIAS,**tmp;
-units_string *strbuf MAY_ALIAS = 0;
-MultiArgRec  args[1];
-LcaError *theErr = errCreate(sciclean);
+int            m,n,i,status;
+char         **pvs MAY_ALIAS,**tmp;
+units_string  *strbuf MAY_ALIAS = 0;
+MultiArgRec    args[1];
+LcaError      *theErr = errCreate(sciclean);
+SciErr         sciErr;
 
-	CheckRhs(1,1);
-	CheckLhs(1,1);
-	GetRhsVar(1,"S",&m,&n,&pvs);
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,1);
+
+	m = -1;
+	n =  1;
+	if ( ! (pvs = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
 	SCICLEAN_SVAR(pvs);
-	CheckColumn(1,m,n);
 
 	MSetArg(args[0], sizeof(units_string), 0, &strbuf);
 
@@ -455,8 +531,12 @@ LcaError *theErr = errCreate(sciclean);
 		}
 		tmp[m] = 0;
 		LCACLEAN(tmp); /* register cleanup; CreateVarFromPtr may fail and execute 'return 0' */
- 		CreateVarFromPtr(2, "S",&m,&n,tmp);
- 		LhsVar(1)= 2;
+
+		sciErr = createMatrixOfString( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, m, n, (const char * const *)tmp );
+		if ( lcaCheckSciError(theErr, &sciErr) ) {
+			return 0;
+		}
+		AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 1;
 	}
 
  	return 0;
@@ -464,19 +544,24 @@ LcaError *theErr = errCreate(sciclean);
 
 typedef char enum_strings[EZCA_ENUM_STATES][EZCA_ENUM_STRING_SIZE];
 
-static int intsezcaGetEnumStrings(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetEnumStrings(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int  m,n,i,j,ij,status;
-char **pvs MAY_ALIAS,**tmp;
+int           m,n,i,j,ij,status;
+char        **pvs MAY_ALIAS,**tmp;
 enum_strings *strbuf MAY_ALIAS = 0;
-MultiArgRec  args[1];
-LcaError *theErr = errCreate(sciclean);
+MultiArgRec   args[1];
+LcaError     *theErr = errCreate(sciclean);
+SciErr        sciErr;
 
-	CheckRhs(1,1);
-	CheckLhs(1,1);
-	GetRhsVar(1,"S",&m,&n,&pvs);
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,1);
+
+	m = -1;
+	n =  1;
+	if ( ! (pvs = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
 	SCICLEAN_SVAR(pvs);
-	CheckColumn(1,m,n);
 
 	MSetArg(args[0], sizeof(enum_strings), 0, &strbuf);
 
@@ -497,70 +582,96 @@ LcaError *theErr = errCreate(sciclean);
 		}
 		tmp[ij] = 0;
 		LCACLEAN(tmp); /* register cleanup; CreateVarFromPtr may fail and execute 'return 0' */
- 		CreateVarFromPtr(2, "S",&m,&n,tmp);
- 		LhsVar(1)= 2;
+
+		sciErr = createMatrixOfString( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, m, n, (const char * const *)tmp );
+		if ( lcaCheckSciError(theErr, &sciErr) ) {
+			return 0;
+		}
+		AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 1;
 	}
 
  	return 0;
 }
 
 
-static int intsezcaGetRetryCount(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetRetryCount(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int m=1,i;
+int       m=1,*iptr;
+SciErr    sciErr;
+LcaError *theErr = errCreate(sciclean);
 
-	CheckRhs(0,0);
-	CheckLhs(1,1);
-	CreateVar(1,"i",&m,&m,&i);
-	*istk(i) = ezcaGetRetryCount();
-	LhsVar(1)= 1;
+	CheckInputArgument(pvApiCtx,0,0);
+	CheckOutputArgument(pvApiCtx,1,1);
+
+	sciErr = allocMatrixOfInteger32( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, m, m, &iptr );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
+	*iptr = ezcaGetRetryCount();
+	AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 1;
 	return 0;
 }
 
-static int intsezcaSetRetryCount(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaSetRetryCount(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int m,n,i;
+int m,n,*iptr;
 LcaError *theErr = errCreate(sciclean);
 
-	CheckRhs(1,1);
-	CheckLhs(1,1);
-	GetRhsVar(1,"i",&m,&n,&i);
-	CheckScalar(1,m,n);
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,1);
 
-	if ( (int)*istk(i) < 1 ) {
+	m = n = 1;
+	if ( ! (iptr = lcaGetApiIntMatrix( pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
+
+	if ( (int)*iptr < 1 ) {
 		lcaSetError(theErr, EZCA_INVALIDARG, "lcaSetRetryCount(): arg >= 1 expected");
 		goto cleanup;
 	}
-	ezcaSetRetryCount(*istk(i));
+	ezcaSetRetryCount(*iptr);
 
 cleanup:
 	LhsVar(1)=0;
 	return 0;
 }
 
-static int intsezcaGetTimeout(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaGetTimeout(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int m=1,i;
+double   *dptr;
+SciErr    sciErr;
+LcaError *theErr = errCreate(sciclean);
 
-	CheckRhs(0,0);
-	CheckLhs(1,1);
-	CreateVar(1,"r",&m,&m,&i);/* named: res */
-	*sstk(i) = ezcaGetTimeout();
-	LhsVar(1)= 1;
+
+	CheckInputArgument(pvApiCtx,0,0);
+	CheckOutputArgument(pvApiCtx,1,1);
+
+	sciErr = allocMatrixOfDouble( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, 1, 1, &dptr );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		return 0;
+	}
+
+	*dptr = ezcaGetTimeout();
+	AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 1;
 	return 0;
 }
 
-static int intsezcaSetTimeout(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaSetTimeout(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int m,n,i;
+int       m,n;
+double   *dptr;
 LcaError *theErr = errCreate(sciclean);
-float timeout;
+float     timeout;
 
-	CheckRhs(1,1);
-	CheckLhs(1,1);
-	GetRhsVar(1,"r",&m,&n,&i);
-	CheckScalar(1,m,n);
-	timeout = *sstk(i);
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,1);
+
+	m = n = 1;
+	if ( ! (dptr = lcaGetApiDblMatrix( pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
+
+	timeout = (float)*dptr;
 
 	if ( timeout < 0.001 ) {
 		lcaSetError(theErr, EZCA_INVALIDARG, "Timeout arg must be >= 0.001");
@@ -573,14 +684,21 @@ cleanup:
 	return 0;
 }
 
-static int intsezcaDelay(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaDelay(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int m,n,i,rc;
-	CheckRhs(1,1);
-	CheckLhs(1,1);
-	GetRhsVar(1,"r",&m,&n,&i);
-	CheckScalar(1,m,n);
-	if ( (rc = ezcaDelay(*sstk(i))) ) {
+int      m,n,rc;
+double   *dptr;
+LcaError *theErr = errCreate(sciclean);
+
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,1);
+
+	m = n = 1;
+	if ( ! (dptr = lcaGetApiDblMatrix( pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
+
+	if ( (rc = ezcaDelay(*dptr)) ) {
 		char *msg="lcaDelay";
 		LcaError *theErr = errCreate(sciclean);
 		switch ( rc ) {
@@ -598,13 +716,14 @@ int m,n,i,rc;
 }
 
 
-static int intsezcaLastError(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaLastError(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int m, ntmp, i, *src;
+int m, ntmp, *i, *src;
 LcaError *ple = lcaGetLastError();
+SciErr    sciErr;
 
-	CheckRhs(0,0);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx,0,0);
+	CheckOutputArgument(pvApiCtx,1,1);
 
 	ntmp = 1;
 
@@ -615,48 +734,57 @@ LcaError *ple = lcaGetLastError();
 	} else {
 		m   = ple->nerrs;
 	}
-	CreateVar(1,"i",&m,&ntmp,&i);
 
-	if ( sizeof(*istk(i)) != sizeof(*src) ) {
+	sciErr = allocMatrixOfInteger32( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, m, ntmp, &i );
+	if ( lcaCheckSciError(ple, &sciErr) ) {
+		return 0;
+	}
+ 	
+	if ( sizeof(*i) != sizeof(*src) ) {
 		mexPrintf("FATAL ERROR -- type size mismatch: %s - %i",__FILE__, __LINE__);
 	}
-	memcpy(istk(i), src, m*sizeof(*istk(i)));
+	memcpy(i, src, m*sizeof(*i));
 
-	LhsVar(1) = 1;
+	AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 1;
 
 	return 0;
 }
 
-static int intsezcaDebugOn(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaDebugOn(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-	CheckRhs(0,0);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx,0,0);
+	CheckOutputArgument(pvApiCtx,1,1);
 	ezcaDebugOn();
 	LhsVar(1)=0;
 	return 0;
 }
 
-static int intsezcaDebugOff(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaDebugOff(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-	CheckRhs(0,0);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx,0,0);
+	CheckOutputArgument(pvApiCtx,1,1);
 	ezcaDebugOff();
 	LhsVar(1)=0;
 	return 0;
 }
 
-static int intsezcaClearChannels(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaClearChannels(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
 int m,n;
 char **s MAY_ALIAS;
 LcaError *theErr = errCreate(sciclean);
 
-	CheckRhs(0,1);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx,0,1);
+	CheckOutputArgument(pvApiCtx,1,1);
 	if ( Rhs > 0 ) {
-		GetRhsVar(1, "S", &m, &n, &s);
+
+		m = -1;
+		n =  1;
+		if ( ! (s = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &m, &n)) ) {
+			return 0;
+		}
 		SCICLEAN_SVAR(s);
-		CheckColumn(1,m,n);
+
 		if ( 1 == m && 0 == *s[0] ) {
 			s = 0;
 			m = 0;
@@ -674,38 +802,47 @@ LcaError *theErr = errCreate(sciclean);
 	return 0;
 }
 
-static int intsezcaSetSeverityWarnLevel(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaSetSeverityWarnLevel(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int m,n,i;
-	CheckRhs(1,1);
-	CheckLhs(1,1);
-	GetRhsVar(1,"i",&m,&n,&i);
-	CheckScalar(1,m,n);
-	ezcaSetSeverityWarnLevel(*istk(i));
+int       m,n,*iptr;
+LcaError *theErr = errCreate(sciclean);
+	CheckInputArgument(pvApiCtx,1,1);
+	CheckOutputArgument(pvApiCtx,1,1);
+
+	m = n = 1;
+	if ( ! (iptr = lcaGetApiIntMatrix( pvApiCtx, theErr, 1, &m, &n)) ) {
+		return 0;
+	}
+
+	ezcaSetSeverityWarnLevel(*iptr);
 	LhsVar(1)=0;
 	return 0;
 }
 
-static int intsezcaSetMonitor(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaSetMonitor(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int mpvs, mtmp, ntmp, itmp, n = 0;
+int mpvs, mtmp, ntmp, *iptr, n = 0;
 char     **pvs MAY_ALIAS;
 char      type  = ezcaNative;
 LcaError *theErr = errCreate(sciclean);
 
-	CheckRhs(1,3);
-	CheckLhs(1,1);
-	LhsVar(1) = 0;
+	CheckInputArgument(pvApiCtx,1,3);
+	CheckOutputArgument(pvApiCtx,1,1);
 
- 	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
+	mpvs = -1;
+	ntmp =  1;
+	if ( ! (pvs = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &mpvs, &ntmp)) ) {
+		return 0;
+	}
 	SCICLEAN_SVAR(pvs);
- 	CheckColumn(1,mpvs,ntmp);
 
 	if ( Rhs > 1 ) {
-		GetRhsVar(2, "i", &mtmp, &ntmp, &itmp);
-		CheckScalar(2, mtmp, ntmp);
-		n = *istk(itmp);
-		if ( Rhs > 2 && !arg2ezcaType(&type,3, theErr) )
+		mtmp = ntmp = 1;
+		if ( ! (iptr = lcaGetApiIntMatrix( pvApiCtx, theErr, 2, &mtmp, &ntmp )) ) {
+			goto cleanup;
+		}
+		n = *iptr;
+		if ( Rhs > 2 && !arg2ezcaType(&type,3, theErr, pvApiCtx) )
 			goto cleanup;
 	}
 
@@ -715,49 +852,59 @@ cleanup:
 	return 0;
 }
 
-static int intsezcaNewMonitorValue(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaNewMonitorValue(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
-int mpvs, ntmp, i;
+int mpvs, ntmp, *i;
 char     **pvs MAY_ALIAS;
 char      type  = ezcaNative;
 LcaError *theErr = errCreate(sciclean);
+SciErr    sciErr;
 
-	CheckRhs(1,2);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx,1,2);
+	CheckOutputArgument(pvApiCtx,1,1);
 
- 	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
+	mpvs = -1;
+	ntmp =  1;
+	if ( ! (pvs = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &mpvs, &ntmp)) ) {
+		return 0;
+	}
 	SCICLEAN_SVAR(pvs);
- 	CheckColumn(1,mpvs,ntmp);
 
-	if ( Rhs > 1 && !arg2ezcaType(&type,2,theErr) )
+	if ( Rhs > 1 && !arg2ezcaType(&type,2,theErr,pvApiCtx) )
 		goto cleanup;
 
 	ntmp = 1;
-	CreateVar(Rhs+1,"i",&mpvs,&ntmp,&i);
+	sciErr = allocMatrixOfInteger32( pvApiCtx, nbInputArgument( pvApiCtx ) + 1, mpvs, ntmp, &i );
+	if ( lcaCheckSciError(theErr, &sciErr) ) {
+		goto cleanup;
+	}
  		
-	(void) multi_ezca_check_mon(pvs, mpvs, type, istk(i), theErr);
+	(void) multi_ezca_check_mon(pvs, mpvs, type, i, theErr);
 
-	LhsVar(1) = Rhs+1;
+	AssignOutputVariable(pvApiCtx, 1) = nbInputArgument( pvApiCtx ) + 1;
 
 cleanup:
 	return 0;
 }
 
-static int intsezcaNewMonitorWait(char *fname, int namlen, Sciclean sciclean)
+static int intsezcaNewMonitorWait(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 {
 int mpvs, ntmp;
 char     **pvs MAY_ALIAS;
 char      type  = ezcaNative;
 LcaError *theErr = errCreate(sciclean);
 
-	CheckRhs(1,2);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx,1,2);
+	CheckOutputArgument(pvApiCtx,1,1);
 
- 	GetRhsVar(1,"S",&mpvs,&ntmp,&pvs);
+	mpvs = -1; ntmp = 1;
+	pvs  = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &mpvs, &ntmp);
+	if ( ! pvs ) {
+		goto cleanup;
+	}
 	SCICLEAN_SVAR(pvs);
- 	CheckColumn(1,mpvs,ntmp);
 
-	if ( Rhs > 1 && !arg2ezcaType(&type,2,theErr) )
+	if ( Rhs > 1 && !arg2ezcaType(&type,2,theErr, pvApiCtx) )
 		goto cleanup;
 
 	(void) multi_ezca_wait_mon(pvs, mpvs, type, theErr);
@@ -766,37 +913,9 @@ cleanup:
 	return 0;
 }
 
-#ifdef WITH_ECDRGET
-#include <ecget.h>
+typedef int (*Myinterfun)(char*, ScicleanGatefunc);
 
-static int intsecdrGet(char *fname, int namlen, Sciclean sciclean)
-{
-long *buf;
-
-int m,n,nord;
-char **s;
-
-	CheckRhs(1,1);
-	CheckLhs(1,1);
-	GetRhsVar(1, "S", &m, &n, &s);
-	SCICLEAN_SVAR(s);
-#if 0 /* storage of a string -> matrix is strange:
-       * I get 'blah' m:1/n:4...
-	   */
-	GetRhsVar(1,"c",&m,&n,&i);
-#endif
-	CheckRow(1,m,n);
-	ecdrget(s[0], &n,&buf,&nord);
-	LCACLEAN(buf);
-	CreateVarFromPtr(2,"i",&m,&nord,&buf);
-	if (buf) {
- 		LhsVar(1)=2;
-	}
- return 0;
-}
-#endif
-
-static GenericTable Tab[]={
+static struct { Myinterfun f ; int (*F)(char *, PvApiCtxType, Sciclean); char *name; } Tab[]={
   {(Myinterfun)sciclean_gateway, intsezcaGet,					"lcaGet"},
   {(Myinterfun)sciclean_gateway, intsezcaPut,					"lcaPut"},
   {(Myinterfun)sciclean_gateway, intsezcaPutNoWait,				"lcaPutNoWait"},
@@ -822,13 +941,10 @@ static GenericTable Tab[]={
   {(Myinterfun)sciclean_gateway, intsezcaNewMonitorWait,	    "lcaNewMonitorWait"},
   {(Myinterfun)sciclean_gateway, intsezcaDelay,	    			"lcaDelay"},
   {(Myinterfun)sciclean_gateway, intsezcaLastError,    			"lcaLastError"},
-#ifdef WITH_ECDRGET
-  {(Myinterfun)sciclean_gateway, intsecdrGet,					"lecdrGet"},
-#endif
 };
 
 void 
-C2F(labCA)()
+C2F(labCA)(PvApiCtxType pvApiCtx /*FIXME*/, int Fin /* FIXME */)
 {
 CtrlCStateRec save;
 

@@ -123,6 +123,7 @@ endif
 
 USR_INCLUDES += $(SCIINCS) -I../sciclean
 LIB_SRCS+= ezcaSciCint.c
+LIB_SRCS+= lcaSciApiHelpers.c
 LIB_SRCS+= sciclean.c
 $(LOADABLE_PREFIX)LIBRARY_HOST := sezcaglue
 SCRIPTS+=labca.sce
