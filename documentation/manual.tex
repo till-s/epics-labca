@@ -104,8 +104,16 @@ of PV names.
 \sca{} has been tested with EPICS 3.13%
 \footnote{Support for 3.13 has been dropped as of \sca{} version 3}%
 ,
-3.14, \scilab-2.7 .. \scilab-5.3,
-\matlab-6.5, \matlab-7 (R2010a) on \ita{linux}, \ita{solaris} and
+3.14, 3.15, \scilab-2.7 .. \scilab-6.1,
+\matlab-6.5, \matlab-7 (R2010a), \matlab-2017b, \matlab-2020b%
+\footnote{A problem has been reported with \matlab-2020b where \matlab
+deadlocks during the initialization of \sca{} (under RHEL7). Know work-
+arounds are either building EPICS-base with thread-preemption disabled
+or using {\tt LD\_PRELOAD} to load EPICS {\tt libCom.so} prior to starting
+\matlab. Apparently, the deadlock caused by library initialization code
+calling {\tt pthread\_join()}.
+}
+on \ita{linux}, \ita{solaris} and
 \windoze. Note that while some of these combinations have been
 tested and been known working in the past, only the latest
 versions of the respective components have been tested
@@ -113,6 +121,9 @@ and verified to build and run successfully with the
 current version of \sca{} under \ita{linux}.
 Modifications to the \com{Makefile}s might be necessary to
 build older versions.
+
+The current release of \sca{} supports the new \scilab API and
+requires \scilab-5.3 or newer.
 
 \vspace*{\fill}
 \pbrk
