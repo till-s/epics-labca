@@ -1,0 +1,156 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>lcaNewMonitorValue</TITLE>
+<META NAME="description" CONTENT="lcaNewMonitorValue">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node12.html">
+<LINK REL="previous" HREF="node10.html">
+<LINK REL="next" HREF="node12.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node12.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node10.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node12.html">lcaClear</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node10.html">lcaNewMonitorWait</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A ID="tex2html69"
+  HREF="node11.html#SECTION00029100000000000000">Calling Sequence</A>
+<LI><A ID="tex2html70"
+  HREF="node11.html#SECTION00029200000000000000">Description</A>
+<LI><A ID="tex2html71"
+  HREF="node11.html#SECTION00029300000000000000">Parameters</A>
+<LI><A ID="tex2html72"
+  HREF="node11.html#SECTION00029400000000000000">Examples</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H2><A ID="SECTION00029000000000000000"></A>
+<A ID="lcanewmonitorvalue"></A>
+<BR>
+lcaNewMonitorValue
+</H2>
+
+<H3><A ID="SECTION00029100000000000000">
+Calling Sequence</A>
+</H3>
+<PRE>
+[flags] = lcaNewMonitorValue(pvs, type)
+</PRE>
+<H3><A ID="SECTION00029200000000000000">
+Description</A>
+</H3>
+Check if monitored PVs need to be read, i.e, if fresh data are available (e.g., due to
+initial connection or changes in value and/or severity status). Reading the actual
+data must be done using <A HREF="node5.html#lcaget"><SPAN style="font-family:monospace">lcaGet</SPAN></A>.
+
+<H3><A ID="SECTION00029300000000000000">
+Parameters</A>
+</H3>
+<DL>
+<DT><STRONG>pvs</STRONG></DT>
+<DD>Column vector (in matlab: <SPAN  CLASS="textit">m x 1</SPAN> <SPAN  CLASS="textit">cell-</SPAN> matrix)
+of <SPAN  CLASS="textit">m</SPAN> strings.
+
+</DD>
+<DT><STRONG>type</STRONG></DT>
+<DD>(<SPAN  CLASS="textit">optional argument</SPAN>) A string specifying the
+data type to be used for the channel access data transfer. The
+native type is used by default.
+See <A HREF="node5.html#typearg">here</A> for more information.
+
+<P>
+Note that monitors are specific to a particular data type and therefore
+<SPAN style="font-family:monospace">lcaNewMonitorValue</SPAN> will only report the status for a monitor that had been established
+(by <A HREF="node9.html#lcasetmonitor"><SPAN style="font-family:monospace">lcaSetMonitor</SPAN></A>) with a matching type.
+Using the &ldquo;native&rdquo; type, which is the default, for both calls
+satisfies this condition.
+</DD>
+<DT><STRONG>flags</STRONG></DT>
+<DD>Column vector of flag values. A value of zero indicates that no new data are available &ndash;
+the monitored PV has not changed since it was last read (the data, that is, <EM>not the flag</EM>).
+A value of one indicates that new data are available for reading (<SPAN style="font-family:monospace">lcaGet</SPAN>).
+
+<P>
+<EM>NOTE: As of <SPAN  CLASS="textit">labCA</SPAN> version 3 the <SPAN style="font-family:monospace">flags</SPAN> no longer report error conditions.
+Errors are now reported in the 
+<A HREF="node4.html#errorhandling">standard way</A>,
+i.e., by aborting the <SPAN  CLASS="textit">labCA</SPAN> call.
+Errors can be caught by the standard <SPAN  CLASS="textit">scilab</SPAN> <SPAN style="font-family:monospace">try</SPAN>-<SPAN style="font-family:monospace">catch</SPAN>-<SPAN style="font-family:monospace">end</SPAN>
+construct. The <A HREF="node13.html#lcalasterror"><SPAN style="font-family:monospace">lcaLastError</SPAN></A> routine can be used to obtain
+status information for individual channels if <SPAN style="font-family:monospace">lcaNewMonitorValue</SPAN> fails on
+a vector of PVs.</EM>
+
+<P>
+See also <A HREF="node10.html#lcanewmonitorwait"><SPAN style="font-family:monospace">lcaNewMonitorWait</SPAN></A>.
+</DD>
+</DL>
+<H3><A ID="SECTION00029400000000000000">
+Examples</A>
+</H3>
+<PRE>
+try and(lcaNewMonitorValue(pvvec))
+	vals = lcaGet(pvvec)
+catch
+    errs = lcaLastError()
+	handleErrs(errs)
+end
+</PRE>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A
+ HREF="node12.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node10.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node12.html">lcaClear</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node10.html">lcaNewMonitorWait</A></DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

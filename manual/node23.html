@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>lcaGetTimeout, lcaSetTimeout</TITLE>
+<META NAME="description" CONTENT="lcaGetTimeout, lcaSetTimeout">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node24.html">
+<LINK REL="previous" HREF="node22.html">
+<LINK REL="next" HREF="node24.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node24.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node22.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node24.html">lcaDebugOn</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node22.html">lcaGetRetryCount, lcaSetRetryCount</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A ID="tex2html107"
+  HREF="node23.html#SECTION000221100000000000000">Calling Sequence</A>
+<LI><A ID="tex2html108"
+  HREF="node23.html#SECTION000221200000000000000">Description</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H2><A ID="SECTION000221000000000000000"></A>
+<A ID="timeout"></A>
+<BR>
+lcaGetTimeout, lcaSetTimeout
+</H2>
+
+<H3><A ID="SECTION000221100000000000000">
+Calling Sequence</A>
+</H3>
+<PRE>
+currentTimeout = lcaGetTimeout()
+lcaSetTimeout(newTimeout)
+</PRE>
+<H3><A ID="SECTION000221200000000000000">
+Description</A>
+</H3>
+Retrieve / set the <SPAN  CLASS="textbf">ezca</SPAN> library timeout parameter (consult the <SPAN  CLASS="textbf">ezca</SPAN>
+documentation for more information). Note that the semantics of the
+timeout parameter has changed with <SPAN  CLASS="textbf">labCA</SPAN> version 3. The library no longer
+pends for CA activity in multiples of this timeout value but returns
+control to <SPAN  CLASS="textbf">scilab</SPAN> as soon as the underlying CA request completes.
+
+<P>
+However, <SPAN  CLASS="textbf">labCA</SPAN> checks for &ldquo;Ctrl-C&rdquo; key events every time
+(and only when) the timeout expires. Hence, it is convenient to
+choose a value <SPAN CLASS="MATH"><IMG STYLE="height: 1.61ex; vertical-align: -0.18ex; " SRC="img3.svg"
+ ALT="$&lt;1$"></SPAN>s.
+
+<P>
+The <EM>maximal</EM> time spent waiting for connections and/or data equals the
+timeout multiplied by the
+<A HREF="node22.html#retrycnt">retry count</A>.
+
+<P>
+<BR>
+<BR><HR>
+
+</BODY>
+</HTML>

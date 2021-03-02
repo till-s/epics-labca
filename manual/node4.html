@@ -1,0 +1,183 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>Error Handling</TITLE>
+<META NAME="description" CONTENT="Error Handling">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node5.html">
+<LINK REL="previous" HREF="node3.html">
+<LINK REL="next" HREF="node5.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node5.html">lcaGet</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node3.html">Common Arguments and Return</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A ID="SECTION00022000000000000000"></A>
+<A ID="errorhandling"></A>
+<BR>
+Error Handling
+</H2>
+All errors<A ID="tex2html8"
+  HREF="#foot875"><SUP><SPAN CLASS="arabic">8</SPAN></SUP></A>encountered during execution of <SPAN  CLASS="textit">labCA</SPAN> calls result in the
+call being aborted, a message being printed to the console
+and an error status being recorded which
+can be retrieved using <SPAN  CLASS="textit">scilab</SPAN>'s <SPAN style="font-family:monospace">lasterror</SPAN> command.
+The recommended method for handling errors is <SPAN  CLASS="textit">scilab</SPAN>'s
+<SPAN style="font-family:monospace">try &ndash; catch &ndash; end</SPAN> construct:
+<PRE>
+	try
+		val = lcaGet(pvvector)
+	catch
+		err   = lasterror()
+		// additional information is provided
+		// by the 'lcaLastError' routine
+		stats = lcaLastError()
+		// handle error here
+	end
+</PRE>
+Many <SPAN  CLASS="textit">labCA</SPAN> calls can handle multiple PVs at once
+and underlying CA operations may fail for a subset of PVs only.
+However, <SPAN style="font-family:monospace">lasterror</SPAN> only supports reporting a single error
+status. Therefore the <A HREF="node13.html#lcalasterror"><SPAN style="font-family:monospace">lcaLastError</SPAN></A> routine
+was implemented: if a <SPAN  CLASS="textit">labCA</SPAN> call fails for a subset of PVs then
+a subsequent call to <SPAN style="font-family:monospace">lcaLastError</SPAN> returns a column vector
+of status values for the individual PVs.
+The error codes are shown in
+<A HREF="#tbl:errors">Table&nbsp;</A><A HREF="#tbl:errors">1</A>.
+
+<P>
+<BR><P></P>
+<DIV class="CENTER"><A ID="878"></A>
+<TABLE>
+<CAPTION><STRONG>Table 1:</STRONG>
+&nbsp;<SPAN  CLASS="textit">labCA</SPAN> error codes. Numerical codes (<SPAN  CLASS="textit">scilab</SPAN> <SPAN style="font-family:monospace">lasterror</SPAN> and
+<SPAN style="font-family:monospace">lcaLastError()</SPAN>) and corresponding <SPAN  CLASS="textit">matlab</SPAN> error &ldquo;ID&rdquo;s
+(as returned by <SPAN  CLASS="textit">matlab</SPAN> <SPAN style="font-family:monospace">lasterror</SPAN>).</CAPTION>
+<TR><TD><TABLE class="PAD  BORDER" style="">
+<TR><TD CLASS="RIGHT">#</TD>
+<TD CLASS="LEFT">Matlab Error ID</TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>Comment</TD>
+</TR>
+<TR><TD CLASS="RIGHT">0</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:unexpectedOK</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>No error</TD>
+</TR>
+<TR><TD CLASS="RIGHT">1</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:invalidArg</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>Invalid argument</TD>
+</TR>
+<TR><TD CLASS="RIGHT">2</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:noMemory</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>Not enough memory</TD>
+</TR>
+<TR><TD CLASS="RIGHT">3</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:channelAccessFail</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>Underlying CA operation failed</TD>
+</TR>
+<TR><TD CLASS="RIGHT">4</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:udfCaReq</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>Item(s) requested undefined for its/their native data type</TD>
+</TR>
+<TR><TD CLASS="RIGHT">5</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:notConnected</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>Channel currently disconnected</TD>
+</TR>
+<TR><TD CLASS="RIGHT">6</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:timedOut</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>No response in time</TD>
+</TR>
+<TR><TD CLASS="RIGHT">7</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:inGroup</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>Currently in a EZCA group</TD>
+</TR>
+<TR><TD CLASS="RIGHT">8</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:notInGroup</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>Currently not in a EZCA group</TD>
+</TR>
+<TR><TD CLASS="RIGHT">9</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:usrAbort</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>EZCA call aborted by user (Ctrl-C)</TD>
+</TR>
+<TR><TD CLASS="RIGHT">20</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:noMonitor</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>No monitor for PV/type found</TD>
+</TR>
+<TR><TD CLASS="RIGHT">21</TD>
+<TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:noChannel</SPAN></TD>
+<TD CLASS="LEFT TOP"  WIDTH=156>No channel for PV name found</TD>
+</TR>
+</TABLE>
+
+<A ID="tbl:errors"></A></TD></TR>
+</TABLE>
+</DIV><P></P>
+<BR>
+
+<P>
+<BR>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A ID="foot875">... errors</A><A
+ HREF="node4.html#tex2html8"><SUP><SPAN CLASS="arabic">8</SPAN></SUP></A></DT>
+<DD>As of version 3; earlier versions didn't consistently
+&ldquo;throw&rdquo; all errors so that they could be caught by the
+<SPAN style="font-family:monospace">try-catch-end</SPAN> mechanism but would merely print messages
+when encountering some minor errors. Also, versions earlier than 3
+would not report error IDs/messages to <SPAN style="font-family:monospace">lasterror</SPAN> nor
+implement the <A HREF="node13.html#lcalasterror"><SPAN style="font-family:monospace">lcaLastError</SPAN></A> routine.
+
+</DD>
+</DL>
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A
+ HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node5.html">lcaGet</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node3.html">Common Arguments and Return</A></DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

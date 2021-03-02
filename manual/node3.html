@@ -1,0 +1,157 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>Common Arguments and Return Values</TITLE>
+<META NAME="description" CONTENT="Common Arguments and Return Values">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node4.html">
+<LINK REL="previous" HREF="node2.html">
+<LINK REL="next" HREF="node4.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node4.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node4.html">Error Handling</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A ID="tex2html45"
+  HREF="node3.html#SECTION00021100000000000000">PV Argument</A>
+<LI><A ID="tex2html46"
+  HREF="node3.html#SECTION00021200000000000000">Timestamp Format</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H2><A ID="SECTION00021000000000000000">
+Common Arguments and Return Values</A>
+</H2>
+
+<H3><A ID="SECTION00021100000000000000">
+PV Argument</A>
+</H3>
+All <SPAN  CLASS="textit">labCA</SPAN> calls take a <SPAN  CLASS="textit">PV</SPAN> argument identifying
+the EPICS process variables the user wants to connect to.
+PVs are plain ASCII strings. <SPAN  CLASS="textit">labCA</SPAN> is capable of handling
+multiple PVs in a single call; they are simply passed as a
+column vector:
+<PRE>
+pvs = [ 'PVa'; 'b'; 'anotherone' ]
+</PRE>
+Because <SPAN  CLASS="textit">matlab</SPAN> doesn't allow the rows of
+a string vector to be of different size, the <SPAN  CLASS="textit">matlab</SPAN>
+wrapper expects a <SPAN  CLASS="textit">cell-</SPAN> array of strings:
+<PRE>
+pvs = { 'PVa'; 'b'; 'anotherone' }
+</PRE>
+
+<P>
+All channel access activities for the PVs
+passed to a single <SPAN  CLASS="textit">labCA</SPAN> call are batched together and
+completion of the batch is awaited before returning from
+the <SPAN  CLASS="textit">labCA</SPAN> call. Consider the following example:<A ID="tex2html6"
+  HREF="#foot874"><SUP><SPAN CLASS="arabic">6</SPAN></SUP></A><PRE>
+lcaPut( 'trigger', 1 ) \\
+data=lcaGet( ['sensor1' ; 'sens2'] );
+</PRE>
+
+<UL>
+<LI>It is guaranteed that writing the &ldquo;trigger&rdquo;
+completes (on the CA server) prior to reading the
+sensors.<A ID="tex2html7"
+  HREF="#foot159"><SUP><SPAN CLASS="arabic">7</SPAN></SUP></A>
+</LI>
+<LI>Reading the two sensors is done in &ldquo;parallel&rdquo; &mdash;
+the exact order is unspecified. After the command sequence
+(successfully) completes, all the data are valid.
+</LI>
+</UL>
+
+<P>
+
+<H3><A ID="SECTION00021200000000000000"></A>
+<A ID="tsformat"></A>
+<BR>
+Timestamp Format
+</H3>
+Channel access timestamps are &ldquo;POSIX struct timespec&rdquo;
+compliant, i.e. they provide the number of nanoseconds
+expired since 00:00:00 UTC, January 1, 1970. <SPAN  CLASS="textit">labCA</SPAN> 
+translates the timestamps into <SPAN  CLASS="textit">complex numbers</SPAN>
+with the seconds (<SPAN style="font-family:monospace">tv_sec</SPAN> member) and nanoseconds
+(<SPAN style="font-family:monospace">tv_nsec</SPAN>) in the real and imaginary parts, respectively.
+This makes it easy to extract the seconds while still maintaining
+full accuracy.
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A ID="foot874">...</A><A
+ HREF="node3.html#tex2html6"><SUP><SPAN CLASS="arabic">6</SPAN></SUP></A></DT>
+<DD>
+In <SPAN  CLASS="textit">matlab</SPAN>, the square brackets (&ldquo;[]&rdquo;) must be replaced
+by curly braces (&ldquo;{}&rdquo;).
+
+</DD>
+<DT><A ID="foot159">...</A><A
+ HREF="node3.html#tex2html7"><SUP><SPAN CLASS="arabic">7</SPAN></SUP></A></DT>
+<DD>If the remote sensors have finite
+processing time, the subsequent CA read may still
+get old data &mdash; depending on the device support
+etc.; this is beyond the scope of channel access, however.
+
+</DD>
+</DL>
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A
+ HREF="node4.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node4.html">Error Handling</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A></DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

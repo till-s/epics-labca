@@ -1,0 +1,233 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>lcaGet</TITLE>
+<META NAME="description" CONTENT="lcaGet">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node6.html">
+<LINK REL="previous" HREF="node4.html">
+<LINK REL="next" HREF="node6.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node6.html">lcaPut</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node4.html">Error Handling</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A ID="tex2html47"
+  HREF="node5.html#SECTION00023100000000000000">Calling Sequence</A>
+<LI><A ID="tex2html48"
+  HREF="node5.html#SECTION00023200000000000000">Description</A>
+<LI><A ID="tex2html49"
+  HREF="node5.html#SECTION00023300000000000000">Parameters</A>
+<LI><A ID="tex2html50"
+  HREF="node5.html#SECTION00023400000000000000">Examples</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H2><A ID="SECTION00023000000000000000"></A>
+<A ID="lcaget"></A>
+<BR>
+lcaGet
+</H2>
+
+<H3><A ID="SECTION00023100000000000000">
+Calling Sequence</A>
+</H3>
+<PRE>
+[value, timestamp] = lcaGet(pvs, nmax, type)
+</PRE>
+<H3><A ID="SECTION00023200000000000000">
+Description</A>
+</H3>
+Read a number of <SPAN  CLASS="textit">m</SPAN> PVs, which may be scalars or arrays of
+different dimensions. The result is converted into a <SPAN  CLASS="textit">m x n</SPAN>
+matrix. The number of columns, <SPAN  CLASS="textit">n</SPAN>, is automatically assigned
+to fit the largest array among the <SPAN  CLASS="textit">m</SPAN> PVs.  PVs with less than
+<SPAN  CLASS="textit">n</SPAN> elements have their excess elements in the result matrix
+filled with NaN.
+
+<P>
+If all PVs are of native type DBF_STRING or DBF_ENUM, the
+values are returned as character strings; otherwise,
+all values are converted into double precision numbers.
+Explicit type conversion into strings can be enforced by submitting
+the `type' argument described below.
+
+<P>
+
+<H3><A ID="SECTION00023300000000000000">
+Parameters</A>
+</H3>
+<DL>
+<DT><STRONG>pvs</STRONG></DT>
+<DD>Column vector (in matlab: <SPAN  CLASS="textit">m x 1</SPAN> <SPAN  CLASS="textit">cell-</SPAN> matrix)
+of <SPAN  CLASS="textit">m</SPAN> strings.
+
+</DD>
+<DT><STRONG>nmax</STRONG></DT>
+<DD><A ID="nmaxarg"></A>(<SPAN  CLASS="textit">optional argument</SPAN>) Maximum number of elements
+(per PV) to retrieve (i.e. limit the number of columns of <SPAN style="font-family:monospace">value</SPAN> to
+<SPAN  CLASS="textit">nmax</SPAN>).
+If set to 0 (default), all elements are fetched
+and the number of columns, <SPAN  CLASS="textit">n</SPAN>, in the result matrix is set to the
+maximum number of elements among the PVs. The option is useful
+to limit the transfer time of large waveforms (unfortunately,
+CA does not return the valid elements (&ldquo;NORD&rdquo;) of
+an array only &mdash; it always ships <SPAN  CLASS="textit">all</SPAN> elements).
+</DD>
+<DT><STRONG>type</STRONG></DT>
+<DD><A ID="typearg"></A>(<SPAN  CLASS="textit">optional argument</SPAN>) A string specifying the
+data type to be used for the channel access data transfer. Note
+that unless the PVs are of native &ldquo;string&rdquo; type or conversion to
+&ldquo;string&rdquo; is enforced explicitly (type = <SPAN style="font-family:monospace">char</SPAN>), <SPAN  CLASS="textit">labCA</SPAN>
+always converts the data to &ldquo;double&rdquo; locally.
+
+<P>
+It can be desirable, however, to use a different data type for the
+transfer because by default CA transfers are limited to ~ 16kB.
+Legal values for <SPAN style="font-family:monospace">type</SPAN> are <SPAN style="font-family:monospace">byte</SPAN>, <SPAN style="font-family:monospace">short</SPAN>, <SPAN style="font-family:monospace">long</SPAN>,
+<SPAN style="font-family:monospace">float</SPAN>, <SPAN style="font-family:monospace">double</SPAN>, <SPAN style="font-family:monospace">native</SPAN> or <SPAN style="font-family:monospace">char</SPAN> (strings).
+There should rarely be a need for using anything other than <SPAN style="font-family:monospace">native</SPAN>,
+the default, which directs CA to use the same type for transfer as the
+data are stored on the server.
+
+<P>
+Occasionally, conversion to <SPAN style="font-family:monospace">char</SPAN> can be useful: retrieve a number
+of PVs as strings, i.e. let the CA server convert them to strings
+(if the PVs are not native strings already) and transfer them.
+
+<P>
+If multiple PVs are requested, either none or all must be of native
+DBF_STRING or DBF_ENUM type unless explicit conversion to <SPAN style="font-family:monospace">char</SPAN>
+is enforced by specifying this argument.
+
+<P>
+Note that while <SPAN style="font-family:monospace">native</SPAN> might result in different types
+being used for different PVs, it is currently not possible to
+explicitly request different types for individual PVs (i.e.
+<SPAN style="font-family:monospace">type</SPAN> can't be a vector).
+</DD>
+<DT><STRONG>value</STRONG></DT>
+<DD>The <SPAN  CLASS="textit">m x n</SPAN> result matrix. <SPAN  CLASS="textit">n</SPAN> is automatically
+assigned to accomodate the PV with the most elements. If the <SPAN style="font-family:monospace">nmax</SPAN>
+argument is given and is nonzero but less than the automatically
+determined <SPAN  CLASS="textit">n</SPAN>, then <SPAN  CLASS="textit">n</SPAN> is clipped to <SPAN style="font-family:monospace">nmax</SPAN>.
+Excess elements of PVs with less than <SPAN  CLASS="textit">n</SPAN> elements are filled with
+NaN values.
+
+<P>
+The result is either a `double' or a (<SPAN  CLASS="textit">matlab</SPAN>: <SPAN  CLASS="textit">cell-</SPAN>) `string'
+matrix (if all PVs are of native string type or explicit conversion
+was requested by setting the `type' argument to `<SPAN style="font-family:monospace">char</SPAN>').
+
+<P>
+<SPAN  CLASS="textit">labCA</SPAN> checks the channel access severity of the retrieved PVs and
+fills the rows corresponding to <SPAN  CLASS="textit">INVALID</SPAN> PVs with NaN<A ID="tex2html10"
+  HREF="#foot879"><SUP><SPAN CLASS="arabic">9</SPAN></SUP></A>. In addition, warning
+messages are printed to the console if a PV's alarm status exceeds
+a <A HREF="node26.html#swarnlevel">configurable threshold</A>.
+The refusal to read PVs with <SPAN  CLASS="textit">INVALID</SPAN> severity can be tuned using
+the <SPAN style="font-family:monospace">lcaSetSeverityWarnLevel</SPAN> call as well.
+</DD>
+<DT><STRONG>timestamp</STRONG></DT>
+<DD>(<SPAN  CLASS="textit">optional result</SPAN>) A <SPAN  CLASS="textit">m x 1</SPAN>
+column vector of <SPAN  CLASS="textit">complex</SPAN> numbers holding the CA timestamps of
+the requested PVs. The timestamps count the number of seconds (real part)
+and fractional nanoseconds (imaginary part) elapsed since
+00:00:00 UTC, Jan. 1, 1970.
+</DD>
+</DL>
+<H3><A ID="SECTION00023400000000000000">
+Examples</A>
+</H3>
+<PRE>
+// read a PV
+    lcaGet( 'thepv' )
+// read multiple PVs along with their EPICS timestamps
+    [ vals, tstamps] = lcaGet( [ 'aPV' ; 'anotherPV' ] )
+// read an 'ENUM/STRING'
+    lcaGet( 'thepv.SCAN' )
+// read an 'ENUM/STRING' as a number (server converts)
+    lcaGet( 'thepv.SCAN', 0, 'float' )
+// enforce reading all PVs as strings (server converts)
+// NOTE: necessary if native num/nonnum types are mixed
+    lcaGet( [ 'apv.SCAN'; 'numericalPV' ] , 0, 'char' )
+// limit reading a waveform to its NORD elements
+    nord = lcaGet( 'waveform.NORD' )
+	if nord &gt; 0 then
+      lcaGet( 'waveform', nord )
+	end
+</PRE>
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A ID="foot879">...NaN</A><A
+ HREF="node5.html#tex2html10"><SUP><SPAN CLASS="arabic">9</SPAN></SUP></A></DT>
+<DD>
+Actually, all fields of an EPICS database record share a common
+severity, (which itself is a field/PV &mdash; the .SEVR field). However,
+the <SPAN  CLASS="textit">INVALID</SPAN> status actually only applies to the .VAL field
+of a record &mdash; other fields (e.g. .EGU) may still hold meaningful data.
+Consequently, <SPAN  CLASS="textit">INVALID</SPAN> PVs are returned as NaN only if
+they refer to a record's .VAL field.
+
+
+</DD>
+</DL>
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node6.html">lcaPut</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node4.html">Error Handling</A></DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

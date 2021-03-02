@@ -1,0 +1,98 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>lcaSetSeverityWarnLevel</TITLE>
+<META NAME="description" CONTENT="lcaSetSeverityWarnLevel">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node27.html">
+<LINK REL="previous" HREF="node25.html">
+<LINK REL="next" HREF="node27.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node27.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node25.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node27.html">lcaDelay</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node25.html">lcaDebugOff</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A ID="tex2html113"
+  HREF="node26.html#SECTION000224100000000000000">Calling Sequence</A>
+<LI><A ID="tex2html114"
+  HREF="node26.html#SECTION000224200000000000000">Description</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H2><A ID="SECTION000224000000000000000"></A>
+<A ID="swarnlevel"></A>
+<BR>
+lcaSetSeverityWarnLevel
+</H2>
+
+<H3><A ID="SECTION000224100000000000000">
+Calling Sequence</A>
+</H3>
+<PRE>
+lcaSetSeverityWarnLevel(newlevel)
+</PRE>
+<H3><A ID="SECTION000224200000000000000">
+Description</A>
+</H3>
+Set the warning threshold for <SPAN style="font-family:monospace">lcaGet()</SPAN> operations.
+A warning message is printed when retrieving a PV with a severity bigger
+or equal to the warning level. Supported values are 0..3 (No alarm,
+minor alarm, major alarm, invalid alarm). The initial/default value is 3.
+
+<P>
+If a value <SPAN CLASS="MATH"><IMG STYLE="height: 1.61ex; vertical-align: -0.18ex; " SRC="img4.svg"
+ ALT="$&gt;=10$"></SPAN> is passed, the threshold for refusing to read the <SPAN style="font-family:monospace">.VAL</SPAN>
+field of PVs with an <SPAN  CLASS="textbf">INVALID</SPAN> severity can be changed. The rejection
+can be switched off completely by passing 14 (<!-- MATH
+ $= 10 + INVALID\_ALARM + 1$
+ -->
+<SPAN CLASS="MATH"><IMG STYLE="height: 1.78ex; vertical-align: -0.28ex; " SRC="img5.svg"
+ ALT="$= 10 + INVALID\_ALARM + 1$"></SPAN>)
+or made more sensitive by passing a value of less than 13 (<!-- MATH
+ $=10 + INVALID\_ALARM$
+ -->
+<SPAN CLASS="MATH"><IMG STYLE="height: 1.78ex; vertical-align: -0.28ex; " SRC="img6.svg"
+ ALT="$=10 + INVALID\_ALARM$"></SPAN>),
+the default.
+
+<P>
+<BR>
+<BR><HR>
+
+</BODY>
+</HTML>

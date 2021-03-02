@@ -1,0 +1,99 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>lcaDelay</TITLE>
+<META NAME="description" CONTENT="lcaDelay">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="previous" HREF="node26.html">
+<LINK REL="next" HREF="node28.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node28.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node26.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node28.html">Building and Using labCA</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node26.html">lcaSetSeverityWarnLevel</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A ID="tex2html115"
+  HREF="node27.html#SECTION000225100000000000000">Calling Sequence</A>
+<LI><A ID="tex2html116"
+  HREF="node27.html#SECTION000225200000000000000">Description</A>
+<LI><A ID="tex2html117"
+  HREF="node27.html#SECTION000225300000000000000">Parameters</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H2><A ID="SECTION000225000000000000000"></A>
+<A ID="lcadelay"></A>
+<BR>
+lcaDelay
+</H2>
+
+<H3><A ID="SECTION000225100000000000000">
+Calling Sequence</A>
+</H3>
+<PRE>
+lcaDelay(timeout)
+</PRE>
+<H3><A ID="SECTION000225200000000000000">
+Description</A>
+</H3>
+Delay execution of <SPAN  CLASS="textbf">scilab</SPAN> or <SPAN  CLASS="textbf">matlab</SPAN> for the specified time
+to handle channel access activity (monitors). 
+<EM>Using this call is not needed under EPICS-3.14</EM> since monitors
+are transparently handled by separate threads. These &ldquo;worker threads&rdquo;
+receive data from CA on monitored channels &ldquo;in the background&rdquo; while
+<SPAN  CLASS="textbf">scilab</SPAN>/<SPAN  CLASS="textbf">matlab</SPAN> are processing arbitrary calculations.
+You only need to either poll the library for the data being ready using the
+<A HREF="node11.html#lcanewmonitorvalue"><SPAN style="font-family:monospace">lcaNewMonitorValue()</SPAN></A>) routine
+or block for data becoming available using
+<A HREF="node10.html#lcanewmonitorwait"><SPAN style="font-family:monospace">lcaNewMonitorWait</SPAN></A>.
+
+<P>
+
+<H3><A ID="SECTION000225300000000000000">
+Parameters</A>
+</H3>
+<DL>
+<DT><STRONG>timeout</STRONG></DT>
+<DD>A timeout value in seconds.
+</DD>
+</DL>
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

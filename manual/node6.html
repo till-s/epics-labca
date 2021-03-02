@@ -1,0 +1,173 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>lcaPut</TITLE>
+<META NAME="description" CONTENT="lcaPut">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node7.html">
+<LINK REL="previous" HREF="node5.html">
+<LINK REL="next" HREF="node7.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node7.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node5.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node7.html">lcaPutNoWait</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node5.html">lcaGet</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A ID="tex2html51"
+  HREF="node6.html#SECTION00024100000000000000">Calling Sequence</A>
+<LI><A ID="tex2html52"
+  HREF="node6.html#SECTION00024200000000000000">Description</A>
+<LI><A ID="tex2html53"
+  HREF="node6.html#SECTION00024300000000000000">Parameters</A>
+<LI><A ID="tex2html54"
+  HREF="node6.html#SECTION00024400000000000000">Examples</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H2><A ID="SECTION00024000000000000000"></A>
+<A ID="lcaput"></A>
+<BR>
+lcaPut
+</H2>
+
+<H3><A ID="SECTION00024100000000000000">
+Calling Sequence</A>
+</H3>
+<PRE>
+lcaPut(pvs, value, type)
+</PRE>
+<H3><A ID="SECTION00024200000000000000">
+Description</A>
+</H3>
+Write to a number of PVs which may be scalars or arrays of different
+dimensions. It is possible to write the same value to a collection of PVs.
+
+<H3><A ID="SECTION00024300000000000000">
+Parameters</A>
+</H3>
+<DL>
+<DT><STRONG>pvs</STRONG></DT>
+<DD>Column vector (in matlab: <SPAN  CLASS="textit">m x 1</SPAN> <SPAN  CLASS="textit">cell-</SPAN> matrix)
+of <SPAN  CLASS="textit">m</SPAN> strings.
+
+</DD>
+<DT><STRONG>value</STRONG></DT>
+<DD><SPAN  CLASS="textit">m x n</SPAN> matrix or <SPAN  CLASS="textit">1 x n</SPAN> row vector of values
+to be written to the PVs. If there is only a single row in <SPAN style="font-family:monospace">value</SPAN>
+it is written to all <SPAN  CLASS="textit">m</SPAN> PVs. <SPAN style="font-family:monospace">value</SPAN> may be a matrix of &ldquo;double&rdquo;
+precision numbers or  a (<SPAN  CLASS="textit">matlab</SPAN>: <SPAN  CLASS="textit">cell-</SPAN>) matrix of strings (in
+which case the values are transferred as strings and converted by the
+CA server to the native type &mdash; this is particularly useful for
+DBF_ENUM / &ldquo;menu&rdquo; type PVs).
+
+<P>
+It is possible to write less than <SPAN  CLASS="textit">n</SPAN> elements &mdash; <SPAN  CLASS="textit">labCA</SPAN> scans all rows
+for NaN values and only transfers up to the last non-NaN element in each
+row.
+</DD>
+<DT><STRONG>type</STRONG></DT>
+<DD>(<SPAN  CLASS="textit">optional argument</SPAN>) A string specifying the
+data type to be used for the channel access data transfer. Note
+that <SPAN  CLASS="textit">labCA</SPAN> always converts numerical data from &ldquo;double&rdquo; locally.
+
+<P>
+It can be desirable, to use a different data type for the
+transfer because by default CA transfers are limited to ~ 16kB.
+Legal values for <SPAN style="font-family:monospace">type</SPAN> are <SPAN style="font-family:monospace">byte</SPAN>, <SPAN style="font-family:monospace">short</SPAN>, <SPAN style="font-family:monospace">long</SPAN>,
+<SPAN style="font-family:monospace">float</SPAN>, <SPAN style="font-family:monospace">double</SPAN>, <SPAN style="font-family:monospace">char</SPAN> or <SPAN style="font-family:monospace">native</SPAN>. There should rarely
+be a need for using anything other than <SPAN style="font-family:monospace">native</SPAN>, the default,
+which directs CA to use the same type for transfer as the data are
+stored on the server. If <SPAN style="font-family:monospace">value</SPAN> is a string matrix, <SPAN style="font-family:monospace">type</SPAN>
+is automatically set to <SPAN style="font-family:monospace">char</SPAN>.
+
+<P>
+Note that while <SPAN style="font-family:monospace">native</SPAN> might result in different types
+being used for different PVs, it is currently not possible to
+explicitly request different types for individual PVs (i.e. 
+<SPAN style="font-family:monospace">type</SPAN> cannot be a vector).
+</DD>
+</DL>
+
+<P>
+
+<H3><A ID="SECTION00024400000000000000">
+Examples</A>
+</H3>
+<PRE>
+// write a PV
+    lcaPut( 'thepv', 1.234 )
+// write as a string (server converts)
+    lcaPut( 'thepv', '1.234' )
+// write/transfer as a short integer (server converts)
+    lcaPut( 'thepv', 12, 'short' )
+// write multiple PVs (use { } on matlab)
+    lcaPut( [ 'pvA'; 'pvB' ], [ 'a'; 'b' ] );
+// write array PV
+    lcaPut( 'thepv' , [ 1, 2, 3, 4 ] )
+// write same value to a group of PVs (string
+// concatenation differs on matlab)
+    lcaPut( [ 'pvA'; 'pvB' ] + '.SCAN', '1 second' )
+// write array and scalar PV (using NaN as a delimiter)
+    tab = [ 1, 2, 3, 4 ;   5, %nan, 0, 0 ]
+	lcaPut( [ 'arrayPV'; 'scalarPV' ], tab )
+</PRE>
+
+<P>
+<BR>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A
+ HREF="node7.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node5.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node7.html">lcaPutNoWait</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node5.html">lcaGet</A></DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>lcaGetStatus</TITLE>
+<META NAME="description" CONTENT="lcaGetStatus">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node19.html">
+<LINK REL="previous" HREF="node17.html">
+<LINK REL="next" HREF="node19.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node19.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node17.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node19.html">lcaGetPrecision</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node17.html">lcaGetAlarmLimits</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A ID="tex2html93"
+  HREF="node18.html#SECTION000216100000000000000">Calling Sequence</A>
+<LI><A ID="tex2html94"
+  HREF="node18.html#SECTION000216200000000000000">Description</A>
+<LI><A ID="tex2html95"
+  HREF="node18.html#SECTION000216300000000000000">Parameters</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H2><A ID="SECTION000216000000000000000">
+lcaGetStatus</A>
+</H2>
+
+<H3><A ID="SECTION000216100000000000000">
+Calling Sequence</A>
+</H3>
+<PRE>
+[severity, status, timestamp] = lcaGetStatus(pvs)
+</PRE>
+<H3><A ID="SECTION000216200000000000000">
+Description</A>
+</H3>
+Retrieve the alarm severity and status of a number of PVs along
+with their timestamp.
+
+<H3><A ID="SECTION000216300000000000000">
+Parameters</A>
+</H3>
+<DL>
+<DT><STRONG>pvs</STRONG></DT>
+<DD>Column vector (in matlab: <SPAN  CLASS="textbf">m x 1</SPAN> <SPAN  CLASS="textbf">cell-</SPAN> matrix)
+of <SPAN  CLASS="textbf">m</SPAN> strings.
+
+</DD>
+<DT><STRONG>severity</STRONG></DT>
+<DD><SPAN  CLASS="textbf">m x 1</SPAN> column vector of the alarm severities.
+</DD>
+<DT><STRONG>status</STRONG></DT>
+<DD><SPAN  CLASS="textbf">m x 1</SPAN> column vector of the alarm status.
+</DD>
+<DT><STRONG>timestamp</STRONG></DT>
+<DD><SPAN  CLASS="textbf">m x 1</SPAN> <SPAN  CLASS="textbf">complex</SPAN> column vector holding the
+PV <A HREF="node3.html#tsformat">timestamps</A>.
+</DD>
+</DL>
+
+<P>
+<BR>
+<BR><HR>
+
+</BODY>
+</HTML>
