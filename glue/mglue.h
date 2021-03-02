@@ -68,7 +68,8 @@ flagError(int nlhs, mxArray *plhs[]);
 
 /* mexErrMsgTxt() should be called only from a routine
  * that was compiled with the mex compiler in order to
- * reduce C++ problems (mexErrMsgTxt throws a C++ exception)
+ * reduce C++ problems (mexErrMsgTxt throws a C++ exception).
+ * For this reason we define a macro.
  */
 #define ERR_CHECK(nlhs, plhs, perr) \
 	do { if (flagError((nlhs),(plhs))) { \

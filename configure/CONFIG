@@ -6,6 +6,7 @@ USR_CFLAGS_DEFAULT=-g
 
 # Choose what interface to build. May be
 # 'MATLAB' or 'SCILAB'
+MAKEFOR=SCILAB
 
 ifndef MAKEFOR
 MAKEFOR=MATLAB

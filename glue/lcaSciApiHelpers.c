@@ -1,5 +1,6 @@
 #include <api_scilab.h>
 #include <lcaSciApiHelpers.h>
+#include <lcaError.h>
 #include <multiEzca.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -10,7 +11,8 @@ int
 lcaCheckSciError(LcaError *pe, SciErr *sciErr)
 {
 	if ( sciErr->iErr ) {
-		printError(sciErr, 0);
+//		printError( sciErr, 0 );
+		lcaSetError(pe, EZCA_SCIERR, "%s", getErrorMessage( *sciErr ));
 		return 1;
 	}
 	return 0;
@@ -55,6 +57,14 @@ char **rval = 0;
 
 	sciErr = getMatrixOfString( pvApiCtx, pia, &m, &n, NULL, NULL );
 	if ( lcaCheckSciError(pe, &sciErr) ) {
+		int type;
+		mexPrintf("getMatrixOfString failed; deterining type");
+		sciErr = getVarType( pvApiCtx, pia, &type );
+		if ( sciErr.iErr ) {
+			mexPrintf("yet ANOTER error\n");
+		} else {
+			mexPrintf("Type %i\n", type);
+		}
 		return 0;
 	}
 
@@ -122,6 +132,10 @@ int   *p    = 0;
 		goto bail;
 	}
 
+	if ( ! checkDim( pe, mp, m, np, n ) ) {
+		return 0;
+	}
+
 	rval = p;
 	p    = 0;
 
@@ -147,6 +161,10 @@ double *p    = 0;
 	sciErr = getMatrixOfDouble( pvApiCtx, pia, &m, &n, &p );
 	if ( lcaCheckSciError(pe, &sciErr) ) {
 		goto bail;
+	}
+
+	if ( ! checkDim( pe, mp, m, np, n ) ) {
+		return 0;
 	}
 
 	rval = p;

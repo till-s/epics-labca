@@ -4,6 +4,10 @@
 #include <api_scilab.h>
 #include <lcaError.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void *PvApiCtxType;
 
 int
@@ -23,6 +27,7 @@ lcaGetApiDblMatrix(PvApiCtxType pvApiCtx, LcaError *pe, int idx, int *mp, int *n
 
 void
 lcaFreeApiStringMatrix(char **sm);
+
 #ifdef __cplusplus
 };
 #endif

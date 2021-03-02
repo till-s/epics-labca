@@ -27,10 +27,16 @@ SCRIPTS_HOST_WIN32    +=
 USR_CFLAGS   += -I$(TOP)/ezca/
 
 #convert scilab test script to matlab
-lcaTest.m:	../lcaTest.sce
-	@if ! $(SED) -e 's$$//$$%$$' -e 's/\<sleep(1000[*]/pause(/g' -e's/mtlb_//g' -e"s/%nan/nan('double')/g" -e 's/%[ \t]*MATLABWARN/disp/' -e 's/\([ \t]then\)\([ \t]\|$$\)/\2/g' $< > $@ ;  then \
+lcaTest.m:	../lcaTest.in
+	@if ! $(SED) -e 's$$//$$%$$' -e 's/[{][{]/{/g' -e 's/[}][}]/}/g' -e 's/\<sleep(1000[*]/pause(/g' -e's/mtlb_//g' -e"s/%nan/nan('double')/g" -e 's/%[ \t]*MATLABWARN/disp/' -e 's/\([ \t]then\)\([ \t]\|$$\)/\2/g' $< > $@ ;  then \
 		echo "*** WARNING: Unable to create test script for MATLAB" ;  \
 		echo "%*** WARNING: Unable to create test script for MATLAB" > $@ ;  \
+	fi
+
+lcaTest.sce: ../lcaTest.in
+	@if ! $(SED) -e 's/[{][{]/[/g' -e 's/[}][}]/]/g'  $< > $@ ;  then \
+		echo "*** WARNING: Unable to create test script for SCILAB" ;  \
+		echo "%*** WARNING: Unable to create test script for SCILAB" > $@ ;  \
 	fi
 
 #test:	$(TOP)/bin/$(T_A)/ezcaVarArrayTest

@@ -8,15 +8,13 @@
 
 #ifdef SCILAB_APP
 #include <version.h>
-
-#if SCI_VERSION_MAJOR > 5 || (SCI_VERSION_MAJOR == 5 && SCI_VERSION_MINOR >= 2)
 #include <Scierror.h>
-#endif
+#include <api_scilab.h>
 #endif
 
 typedef struct LcaError_ {
 	int  err;
-	char msg[100];
+	char msg[512];
 	int  nerrs;  /* optional error vector */
 	int  *errs;  /* optional error vector; must be FREEd when object goes out of scope */
 } LcaError;
@@ -57,6 +55,11 @@ lcaGetLastError();
 		    (theError)->nerrs = 0; \
 		} \
 	} while (0)
+
+#define EZCA_SCIERR 100
+
+int
+lcaCheckSciError(LcaError *pe, SciErr *sciErr);
 #endif
 
 #ifdef __cplusplus
