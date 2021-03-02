@@ -1,18 +1,17 @@
-Documentation and build/install instructions
-can be found in the manual (documentation/manual.pdf).
+# Basic Information
+
+Further information, documentation and build/install instructions
+can be found [here](https://till-s.github.io/epics-labca)
 
 Quick instructions:
 
-RUN BINARY DISTRIBUTION
+RUN INSTRUCTIONS
 
  - point your PATH to bin/<arch>
  - point your LD_LIBRARY_PATH to lib/<arch> (linux/solaris only)
- - note that the binary distribution has
-       * channel-access linked into labca (linux/solaris)
-       * channel-access DLLs in bin/win32-x86 (win32)
-   if you build from source then the environment variable
-   PATH (win32) / LD_LIBRARY_PATH (linux, solaris) must also
-   point to your EPICS base bin/<arch> (win32) or
+ - the environment variable 
+   PATH (win32) / LD_LIBRARY_PATH (linux, solaris) may also
+   have to point to your EPICS base bin/<arch> (win32) or
    lib/<arch> (linux, solaris)
  MATLAB:
   - start matlab; 

@@ -42,7 +42,7 @@ SCI5HELPS+=xmlhelp/en_US/Error.xml
 endif
 
 DOCS+=manual.pdf
-MANHTMLS=$(wildcard manual/*)
+MANHTMLS=$(wildcard $(addprefix manual/*,.html .css .png .svg))
 HTMLS+=$(HELPS) help/whatis.htm $(MANHTMLS)
 
 GH_PAGES_DOCS=$(DOCS) $(MANHTMLS)
@@ -57,15 +57,14 @@ $(INSTALL_DOC)/%:%
 	@echo "Installing PDF Documentation $@"
 	@$(INSTALL) -d -m 644 $< $(@D)
 
-INSTALL_GH_PAGES=$(addprefix $(TOP)/gh-pages/,$(GH_DOCS))
+INSTALL_GH_PAGES=$(addprefix $(TOP)/gh-pages/,$(GH_PAGES_DOCS))
 
 $(TOP)/gh-pages/%: %
-	@if [ ! -d $(TOP)/gh-pages ]; then \
-		echo "No $(TOP)/gh-pages/ directory; skipping installation"; \
-	else \
-		echo "Installing github Help/Documentation $@"; \
-		@$(INSTALL) -d -m 644 $< $(@D) ; \
-	fi
+	@( $(TEST_D) && \
+		echo "No $(TOP)/gh-pages/ directory; skipping installation";) \
+	||   \
+		( echo "Installing github Help/Documentation $@"; \
+		$(INSTALL) -d -m 644 $< $(@D) ; )
 
 install: buildInstall
 
@@ -84,9 +83,9 @@ $(HELPS): manual.aux
 	$(TEST_D) help || $(MKDIR) help
 	latex2html -no_footnode -split 5 -link 0 -no_navigation -no_antialias_text -long_titles 1 -dir help manual.tex
 
-gitstring.tex: manual.tex Makefile
-	$(RM) $@
-	@echo '%newcommand{%gitstring}{%lstinline|$(GITSTRING)|}' | tr '%' '\\' > $@
+#gitstring.tex: manual.tex Makefile
+#	$(RM) $@
+#	@echo '%newcommand{%gitstring}{%lstinline|$(GITSTRING)|}' | tr '%' '\\' > $@
 
 manual.pdf manual.aux: manual.tex gitstring.tex
 	pdflatex $<
