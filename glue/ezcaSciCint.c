@@ -1,31 +1,12 @@
 
 /* SCILAB C-interface to ezca / multiEzca */
-#include <mex.h>
-#if 0
-#include "stack-c.h"
-#else
-#include <api_scilab.h>
-#endif
 #include <version.h>
+#include <api_scilab.h>
+#include <sciprint.h>
 #include <string.h>
 #include <cadef.h>
 #include <ezca.h>
-
-#if SCI_VERSION_MAJOR == 5
-#if SCI_VERSION_MINOR < 2
-#include <output_stream/Scierror.h>
-#else
-#include <Scierror.h>
-#endif
-#endif
 #include <lcaSciApiHelpers.h>
-
-#if SCI_VERSION_MAJOR < 6
-/* Legacy; used to be 'fname_len' */
-typedef unsigned long PvApiCtxType;
-#else
-typedef void *        PvApiCtxType;
-#endif
 
 #include <sciclean.h>
 
@@ -34,15 +15,6 @@ typedef void *        PvApiCtxType;
 
 #include <multiEzca.h>
 #include <multiEzcaCtrlC.h>
-
-/* WIN:
- * epicsShareAPI causes leading underscore which is not expected by 
- * scilab 'addinter()'.  However, if a function has varargs then 
- * the non __stdcall API seems to be enforced...
- * Thus we must not use epicsShareAPI for C2F(ezca) -- but it seems
- * deprecated anyways (see shareLib.h).
- */
-epicsShareFunc void C2F(labCA)();
 
 /* Note about cleanup and errors:
  *
@@ -94,9 +66,6 @@ char **strs = x;
 #else
 #define MAY_ALIAS
 #endif
-
-/* there's a typo in the scilab header :-( */
-#define check_column check_col
 
 static int
 arg2ezcaType(char *pt, int idx, LcaError *pe, PvApiCtxType pvApiCtx)
@@ -163,9 +132,7 @@ LcaError       *theErr        = errCreate(sciclean);
 SciErr          sciErr;
 
 	CheckInputArgument(pvApiCtx,1,3);
-	mexPrintf("intsezcaget: # output args: %i\n", nbOutputArgument( pvApiCtx ));
 	CheckOutputArgument(pvApiCtx,0,2);
-	mexPrintf("intsezcaget: # output args check passed\n");
 
 	mpvs = -1; ntmp = 1;
 	pvs  = lcaGetApiStringMatrix(pvApiCtx, theErr, 1, &mpvs, &ntmp);
@@ -244,9 +211,6 @@ int      *pia;
 int       sciType;
 
 	CheckInputArgument(pvApiCtx,2,3);
-
-	mexPrintf("intsezcaput(nowait %i): # output args: %i\n", !doWait, nbOutputArgument( pvApiCtx ));
-
 	CheckOutputArgument(pvApiCtx,0,
 #ifdef LCAPUT_RETURNS_VALUE
 		1
@@ -254,8 +218,6 @@ int       sciType;
 		0
 #endif
 	);
-
-	mexPrintf("intsezcaput(nowait %i): # output args check passed\n", !doWait);
 
 	mpvs = -1;
 	ntmp =  1;
@@ -659,7 +621,7 @@ LcaError *theErr = errCreate(sciclean);
 	ezcaSetRetryCount( cnt );
 
 cleanup:
-	LhsVar(1)=0;
+	AssignOutputVariable(pvApiCtx, 1) = 0;
 	return 0;
 }
 
@@ -707,7 +669,7 @@ float     timeout;
 	ezcaSetTimeout(timeout);
 
 cleanup:
-	LhsVar(1)=0;
+	AssignOutputVariable(pvApiCtx, 1) = 0;
 	return 0;
 }
 
@@ -738,7 +700,7 @@ LcaError *theErr = errCreate(sciclean);
 		}
 		lcaSetError(theErr, rc, msg);
 	}
-	LhsVar(1)=0;
+	AssignOutputVariable(pvApiCtx, 1) = 0;
 	return 0;
 }
 
@@ -768,7 +730,7 @@ SciErr    sciErr;
 	}
  	
 	if ( sizeof(*i) != sizeof(*src) ) {
-		mexPrintf("FATAL ERROR -- type size mismatch: %s - %i",__FILE__, __LINE__);
+		sciprint("FATAL ERROR -- type size mismatch: %s - %i",__FILE__, __LINE__);
 	}
 	memcpy(i, src, m*sizeof(*i));
 
@@ -782,7 +744,7 @@ int intsezcaDebugOn(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 	CheckInputArgument(pvApiCtx,0,0);
 	CheckOutputArgument(pvApiCtx,0,1);
 	ezcaDebugOn();
-	LhsVar(1)=0;
+	AssignOutputVariable(pvApiCtx, 1) = 0;
 	return 0;
 }
 
@@ -791,7 +753,7 @@ int intsezcaDebugOff(char *fname, PvApiCtxType pvApiCtx, Sciclean sciclean)
 	CheckInputArgument(pvApiCtx,0,0);
 	CheckOutputArgument(pvApiCtx,0,1);
 	ezcaDebugOff();
-	LhsVar(1)=0;
+	AssignOutputVariable(pvApiCtx, 1) = 0;
 	return 0;
 }
 
@@ -843,7 +805,7 @@ LcaError *theErr = errCreate(sciclean);
 	}
 
 	ezcaSetSeverityWarnLevel((int)round(*dptr));
-	LhsVar(1)=0;
+	AssignOutputVariable(pvApiCtx, 1) = 0;
 	return 0;
 }
 

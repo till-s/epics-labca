@@ -61,6 +61,15 @@ struct { Myinterfun f ;  const wchar_t *name; } Tab[]={
 	{labca_gateway<intsezcaLastError>,    			L"lcaLastError"},
 };
 
+/* WIN:
+ * epicsShareAPI causes leading underscore which is not expected by 
+ * scilab 'addinter()'.  However, if a function has varargs then 
+ * the non __stdcall API seems to be enforced...
+ * Thus we must not use epicsShareAPI for C2F(ezca) -- but it seems
+ * deprecated anyways (see shareLib.h).
+ */
+epicsShareFunc void C2F(labCA)();
+
 int
 labCA(wchar_t *funcName)
 {
