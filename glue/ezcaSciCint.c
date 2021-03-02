@@ -77,6 +77,7 @@ char **strs = x;
 	}
 }
 #define LCACLEAN_SVAR(var) sciclean_push(sciclean, (var), lca_free_strings)
+#define SCICLEAN_SVAR(var) SCICLEAN_CLNF( (var), (void (*)(void*))lcaFreeApiStringMatrix )
 
 /* We get a lot of 'type-punned' pointer warnings, mostly
  * because the scilab header doesn't properly declare things
@@ -912,36 +913,6 @@ LcaError *theErr = errCreate(sciclean);
 cleanup:
 	return 0;
 }
-
-typedef int (*Myinterfun)(char*, ScicleanGatefunc);
-
-static struct { Myinterfun f ; int (*F)(char *, PvApiCtxType, Sciclean); char *name; } Tab[]={
-  {(Myinterfun)sciclean_gateway, intsezcaGet,					"lcaGet"},
-  {(Myinterfun)sciclean_gateway, intsezcaPut,					"lcaPut"},
-  {(Myinterfun)sciclean_gateway, intsezcaPutNoWait,				"lcaPutNoWait"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetNelem,				"lcaGetNelem"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetControlLimits,		"lcaGetControlLimits"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetGraphicLimits,		"lcaGetGraphicLimits"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetWarnLimits,		    "lcaGetWarnLimits"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetAlarmLimits,		"lcaGetAlarmLimits"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetStatus,				"lcaGetStatus"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetPrecision,			"lcaGetPrecision"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetUnits,				"lcaGetUnits"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetEnumStrings,			"lcaGetEnumStrings"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetRetryCount,			"lcaGetRetryCount"},
-  {(Myinterfun)sciclean_gateway, intsezcaSetRetryCount,			"lcaSetRetryCount"},
-  {(Myinterfun)sciclean_gateway, intsezcaGetTimeout,			"lcaGetTimeout"},
-  {(Myinterfun)sciclean_gateway, intsezcaSetTimeout,			"lcaSetTimeout"},
-  {(Myinterfun)sciclean_gateway, intsezcaDebugOn,				"lcaDebugOn"},
-  {(Myinterfun)sciclean_gateway, intsezcaDebugOff,				"lcaDebugOff"},
-  {(Myinterfun)sciclean_gateway, intsezcaSetSeverityWarnLevel,	"lcaSetSeverityWarnLevel"},
-  {(Myinterfun)sciclean_gateway, intsezcaClearChannels,			"lcaClear"},
-  {(Myinterfun)sciclean_gateway, intsezcaSetMonitor,		    "lcaSetMonitor"},
-  {(Myinterfun)sciclean_gateway, intsezcaNewMonitorValue,	    "lcaNewMonitorValue"},
-  {(Myinterfun)sciclean_gateway, intsezcaNewMonitorWait,	    "lcaNewMonitorWait"},
-  {(Myinterfun)sciclean_gateway, intsezcaDelay,	    			"lcaDelay"},
-  {(Myinterfun)sciclean_gateway, intsezcaLastError,    			"lcaLastError"},
-};
 
 void 
 C2F(labCA)(PvApiCtxType pvApiCtx /*FIXME*/, int Fin /* FIXME */)
