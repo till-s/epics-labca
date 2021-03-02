@@ -45,6 +45,8 @@ DOCS+=manual.pdf
 MANHTMLS=$(wildcard manual/*)
 HTMLS+=$(HELPS) help/whatis.htm $(MANHTMLS)
 
+GH_PAGES_DOCS=$(DOCS) $(MANHTMLS)
+
 INSTALL_SCI5_HELPJAR=$(INSTALL_LOCATION)/jar/scilab_en_US_help.jar
 
 $(INSTALL_HTML)/$(HTMLS_DIR)/%: %
@@ -55,9 +57,19 @@ $(INSTALL_DOC)/%:%
 	@echo "Installing PDF Documentation $@"
 	@$(INSTALL) -d -m 644 $< $(@D)
 
+INSTALL_GH_PAGES=$(addprefix $(TOP)/gh-pages/,$(GH_DOCS))
+
+$(TOP)/gh-pages/%: %
+	@if [ ! -d $(TOP)/gh-pages ]; then \
+		echo "No $(TOP)/gh-pages/ directory; skipping installation"; \
+	else \
+		echo "Installing github Help/Documentation $@"; \
+		@$(INSTALL) -d -m 644 $< $(@D) ; \
+	fi
+
 install: buildInstall
 
-buildInstall: build $(INSTALL_DOCS) $(INSTALL_HTMLS)
+buildInstall: build $(INSTALL_DOCS) $(INSTALL_HTMLS) $(INSTALL_GH_PAGES)
 
 ifneq '$(wildcard $(SCILAB))' ''
 buildInstall: $(INSTALL_SCI5_HELPJAR)
