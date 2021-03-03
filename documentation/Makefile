@@ -22,10 +22,31 @@ ifeq ($(MAKEFOR),SCILAB)
 SCILAB=$(SCILABDIR)/bin/scilab
 endif
 
-# Only scilab 5 can return a nonzero 'exit' code
-#define scilab-lt-5
-#	$(SCILAB) -nb -nw -e 'exit(sign(msscanf(getversion(),"scilab-%i")-5)+1)' >/dev/null 2>&1
-#endef
+# Check for tools
+FOUND_PDFLATEX:=$(shell (pdflatex -v > /dev/null 2>&1 && echo YES) || echo NO)
+FOUND_LATEX2HTML:=$(shell (latex2html -v > /dev/null 2>&1 && echo YES) || echo NO)
+FOUND_LYNX:=$(shell (lynx -version > /dev/null 2>&1 && echo YES) || echo NO)
+
+HAVE_PDFLATEX:=$(FOUND_PDFLATEX)
+HAVE_LATEX2HTML:=$(FOUND_LATEX2HTML)
+HAVE_LYNX:=$(FOUND_LYNX)
+
+FOUND_PDFLATEX_MSG_NO="WARNING: 'pdflatex' tool not found; no documentation of help files will be created"
+FOUND_LATEX2HTML_MSG_NO="WARNING: 'latex2html' tool not found; will skip creating HTML documentation and on-line help files"
+FOUND_LYNX_MSG_NO="WARNING: 'lynx' tool not found; will skip creating on-line help files"
+
+ifneq ($(FOUND_LYNX),YES)
+$(warning $(FOUND_PDFLATEX_MSG_NO))
+endif
+ifneq ($(FOUND_LATEX2HTML),YES)
+$(warning $(FOUND_LATEX2HTML_MSG_NO))
+HAVE_LYNX:=NO
+endif
+ifneq ($(FOUND_PDFLATEX),YES)
+$(warning $(FOUND_LYNX_MSG_NO))
+HAVE_LYNX:=NO
+HAVE_LATEX2HTML:=NO
+endif
 
 TEST_D=perl -MExtUtils::Command -e test_d
 
@@ -41,13 +62,18 @@ SCI5HELPS+=xmlhelp/en_US/Common.xml
 SCI5HELPS+=xmlhelp/en_US/Error.xml
 endif
 
-DOCS+=manual.pdf
-MANHTMLS=$(wildcard $(addprefix manual/*,.html .css .png .svg))
-HTMLS+=$(HELPS) help/whatis.htm $(MANHTMLS)
+DOCS_YES=manual.pdf
+MANHTMLS_YES=$(wildcard manual/*)
+HTMLS_YES=$(HELPS) help/whatis.htm $(MANHTMLS)
+
+DOCS+=$(DOCS_$(HAVE_PDFLATEX))
+MANHTMLS=$(MANHTMLS_$(HAVE_LATEX2HTML))
+HTMLS+=$(HTMLS_$(HAVE_LYNX))
 
 GH_PAGES_DOCS=$(DOCS) $(MANHTMLS)
 
-INSTALL_SCI5_HELPJAR=$(INSTALL_LOCATION)/jar/scilab_en_US_help.jar
+INSTALL_SCI5_HELPJAR_YES=$(INSTALL_LOCATION)/jar/scilab_en_US_help.jar
+INSTALL_SCI5_HELPJAR=$(INSTALL_SCI5_HELPJAR_$(HAVE_LYNX))
 
 $(INSTALL_HTML)/$(HTMLS_DIR)/%: %
 	@echo "Installing HTML Help/Documentation $@"
@@ -57,16 +83,23 @@ $(INSTALL_DOC)/%:%
 	@echo "Installing PDF Documentation $@"
 	@$(INSTALL) -d -m 644 $< $(@D)
 
-INSTALL_GH_PAGES=$(addprefix $(TOP)/gh-pages/,$(GH_PAGES_DOCS))
+INSTALL_GH_PAGES=$(addprefix $(TOP)/gh-pages/,$(GH_DOCS))
 
 $(TOP)/gh-pages/%: %
-	@( $(TEST_D) && \
-		echo "No $(TOP)/gh-pages/ directory; skipping installation";) \
-	||   \
-		( echo "Installing github Help/Documentation $@"; \
-		$(INSTALL) -d -m 644 $< $(@D) ; )
+	@if [ ! -d $(TOP)/gh-pages ]; then \
+		echo "No $(TOP)/gh-pages/ directory; skipping installation"; \
+	else \
+		echo "Installing github Help/Documentation $@"; \
+		@$(INSTALL) -d -m 644 $< $(@D) ; \
+	fi
+
+NULLSTRING:=
+SP:=$(NULLSTRING) #
 
 install: buildInstall
+	@$(subst @,$(SP),$(addprefix echo ,\"$(subst $(SP),@,$(FOUND_PDFLATEX_MSG_$(FOUND_PDFLATEX)))\"))
+	@$(subst @,$(SP),$(addprefix echo ,\"$(subst $(SP),@,$(FOUND_LATEX2HTML_MSG_$(FOUND_LATEX2HTML)))\"))
+	@$(subst @,$(SP),$(addprefix echo ,\"$(subst $(SP),@,$(FOUND_LYNX_MSG_$(FOUND_LYNX)))\"))
 
 buildInstall: build $(INSTALL_DOCS) $(INSTALL_HTMLS) $(INSTALL_GH_PAGES)
 
@@ -83,9 +116,9 @@ $(HELPS): manual.aux
 	$(TEST_D) help || $(MKDIR) help
 	latex2html -no_footnode -split 5 -link 0 -no_navigation -no_antialias_text -long_titles 1 -dir help manual.tex
 
-#gitstring.tex: manual.tex Makefile
-#	$(RM) $@
-#	@echo '%newcommand{%gitstring}{%lstinline|$(GITSTRING)|}' | tr '%' '\\' > $@
+gitstring.tex: manual.tex Makefile
+	$(RM) $@
+	@echo '%newcommand{%gitstring}{%lstinline|$(GITSTRING)|}' | tr '%' '\\' > $@
 
 manual.pdf manual.aux: manual.tex gitstring.tex
 	pdflatex $<
@@ -108,10 +141,18 @@ help/Contents.m: Contents.m
 	$(RM) $@
 	lynx -dump $^ | $(SED) -e 's/^/%/g'  -e 's/\([0-9]*[.][ ]*\)\(file:\([^/]*[/]\)*\)\(.*\)\([.]html.*\)/\4 \1\4/g' > $@
 
-build: manual/index.html $(MHELPS) help/Contents.m
+ifeq ($(HAVE_LATEX2HTML),YES)
+build: manual/index.html
+else
+build:
+endif
+
+ifeq ($(HAVE_LYNX),YES)
+build: $(MHELPS) help/Contents.m
+endif
 
 # make again for the HTMLS wildcard expansion to find the newly created files
-ifeq ($(MANHTMLS)xx,xx)
+ifeq ($(MANHTMLS)xx$(HAVE_LATEX2HTML),xxYES)
 build:
 	$(MAKE)
 endif
