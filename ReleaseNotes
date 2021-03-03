@@ -1,8 +1,27 @@
 #####################################
+#  R3.8.0 (T.S., 2021/03/03):       #
+#####################################
+This release is a port to the new SCILAB API (pre 5.3 scilab
+no longer supported). The MATLAB parts of the code are not
+affected (and equivalent to 3.7.2).
+
+The repository is now on github.
+
+MATLAB 2020b known issue (under RHEL7): loading labCA may
+hang (during execution of the first labCA function).
+Two work-arounds are available (either one is enough):
+ - rebuild EPICS base with posix priority scheduling *disabled*.
+ - Use LD_PRELOAD to load EPICS libCom.so before starting MATLAB.
+
+#####################################
 #  R3.7.2 (T.S., 2018/03/04):       #
 #####################################
 FIXES - released tarball was missing submodule;
       - windows (non-cygwin) build
+
+MATLAB2020b: the issue mentioned for the 3.8.0 release
+      also applies to 3.7.2 (which -- for matlab -- is
+      identical to 3.8.0)
 
 #####################################
 #  R3.7.1 (T.S., 2018/02/17):       #
