@@ -85,12 +85,12 @@ $(INSTALL_DOC)/%:%
 	@echo "Installing PDF Documentation $@"
 	@$(INSTALL) -d -m 644 $< $(@D)
 
-INSTALL_GH_PAGES=$(addprefix $(TOP)/gh-pages/,$(GH_DOCS))
+INSTALL_GH_PAGES=$(addprefix $(TOP)/gh-pages/,$(GH_PAGES_DOCS))
 
 $(TOP)/gh-pages/%: %
-	($(TEST_D) && \
+	($(TEST_D) $(@D) && \
 		echo "Installing github Help/Documentation $@"; \
-		@$(INSTALL) -d -m 644 $< $(@D) ) || \
+		$(INSTALL) -d -m 644 $< $(@D) ) || \
 		echo "No $(TOP)/gh-pages/ directory; skipping installation" 
 
 NULLSTRING:=
