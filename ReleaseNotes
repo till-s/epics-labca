@@ -13,6 +13,11 @@ Two work-arounds are available (either one is enough):
  - rebuild EPICS base with posix priority scheduling *disabled*.
  - Use LD_PRELOAD to load EPICS libCom.so before starting MATLAB.
 
+WINDOWS CAVEAT: I did not have a windows + matlab installation
+available for testing a build on windows. Hopefully I didn't
+break anything too seriously. Feedback/patches are certainly
+welcome!
+
 #####################################
 #  R3.7.2 (T.S., 2018/03/04):       #
 #####################################
