@@ -63,7 +63,7 @@ SCI5HELPS+=xmlhelp/en_US/Error.xml
 endif
 
 DOCS_YES=manual.pdf
-MANHTMLS_YES=$(wildcard manual/*)
+MANHTMLS_YES=$(wildcard $(addprefix manual/*,.html .png .css .svg))
 HTMLS_YES=$(HELPS) help/whatis.htm $(MANHTMLS)
 
 DOCS+=$(DOCS_$(HAVE_PDFLATEX))
