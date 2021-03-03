@@ -50,6 +50,8 @@ endif
 
 TEST_D=perl -MExtUtils::Command -e test_d
 
+DIFF_F=perl -MFile::Compare -e compare
+
 HELP_AUTOGEN_CHAPTERS:=$(shell $(SED) -n -e 's/\(.*[^b]subsection.*[{][ \t]*\)\(lca[a-zA-Z0-9]*\).*/\2/gp' manual.tex)
 
 HELPS=$(patsubst %,help/%.html,$(HELP_AUTOGEN_CHAPTERS))
@@ -86,20 +88,18 @@ $(INSTALL_DOC)/%:%
 INSTALL_GH_PAGES=$(addprefix $(TOP)/gh-pages/,$(GH_DOCS))
 
 $(TOP)/gh-pages/%: %
-	@if [ ! -d $(TOP)/gh-pages ]; then \
-		echo "No $(TOP)/gh-pages/ directory; skipping installation"; \
-	else \
+	($(TEST_D) && \
 		echo "Installing github Help/Documentation $@"; \
-		@$(INSTALL) -d -m 644 $< $(@D) ; \
-	fi
+		@$(INSTALL) -d -m 644 $< $(@D) ) || \
+		echo "No $(TOP)/gh-pages/ directory; skipping installation" 
 
 NULLSTRING:=
 SP:=$(NULLSTRING) #
 
 install: buildInstall
-	@$(subst @,$(SP),$(addprefix echo ,\"$(subst $(SP),@,$(FOUND_PDFLATEX_MSG_$(FOUND_PDFLATEX)))\"))
-	@$(subst @,$(SP),$(addprefix echo ,\"$(subst $(SP),@,$(FOUND_LATEX2HTML_MSG_$(FOUND_LATEX2HTML)))\"))
-	@$(subst @,$(SP),$(addprefix echo ,\"$(subst $(SP),@,$(FOUND_LYNX_MSG_$(FOUND_LYNX)))\"))
+	@$(subst @,$(SP),$(addprefix echo ,$(subst $(SP),@,$(FOUND_PDFLATEX_MSG_$(FOUND_PDFLATEX)))))
+	@$(subst @,$(SP),$(addprefix echo ,$(subst $(SP),@,$(FOUND_LATEX2HTML_MSG_$(FOUND_LATEX2HTML)))))
+	@$(subst @,$(SP),$(addprefix echo ,$(subst $(SP),@,$(FOUND_LYNX_MSG_$(FOUND_LYNX)))))
 
 buildInstall: build $(INSTALL_DOCS) $(INSTALL_HTMLS) $(INSTALL_GH_PAGES)
 
@@ -107,7 +107,7 @@ ifneq '$(wildcard $(SCILAB))' ''
 buildInstall: $(INSTALL_SCI5_HELPJAR)
 endif
 clean::
-	$(RM) gitstring.tex
+	$(RM) gitstring.tex gitstring.tex.new
 
 $(sort manual/index.html $(wildcard manual/*.html)): manual.aux
 	latex2html -no_footnode -split 5 -link 1 manual.tex
@@ -117,8 +117,10 @@ $(HELPS): manual.aux
 	latex2html -no_footnode -split 5 -link 0 -no_navigation -no_antialias_text -long_titles 1 -dir help manual.tex
 
 gitstring.tex: manual.tex Makefile
-	$(RM) $@
-	@echo '%newcommand{%gitstring}{%lstinline|$(GITSTRING)|}' | tr '%' '\\' > $@
+	@$(RM) $@.new
+	@echo '%newcommand{%gitstring}{%lstinline|$(GITSTRING)|}' | tr '%' '\\' > $@.new
+	@$(PERLDIFF) $@.new $@ || ($(RM) $@; perl -e 'rename("$@.new","$@")')
+	@$(RM) $@.new
 
 manual.pdf manual.aux: manual.tex gitstring.tex
 	pdflatex $<

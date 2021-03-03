@@ -198,11 +198,10 @@ include $(TOP)/configure/RULES
 #$($(LOADABLE_PREFIX)SHRLIBNAME): ../$($(LOADABLE_PREFIX)LIBRARY_HOST).def
 
 gitstring.c:
-	$(RM) $@
-	perl > $@ -e "print(\"const char *gitRevisionString = \\\"$(GITSTRING)\\\";\n\")" > $@
-
-build:
-	$(RM) gitstring.c
+	$(RM) $@.new
+	perl > $@.new -e "print(\"const char *gitRevisionString = \\\"$(GITSTRING)\\\";\n\")" > $@.new
+	$(PERLDIFF) $@.new $@ || ($(RM) $@; perl -e 'rename("$@.new","$@")')
+	$(RM) $@.new
 
 mkmezca.m: ../mkmezca.m.tmpl
 	$(SED) -e "s/%%TARCH%%/$(T_A)/g" -e "s/%%ARCH%%/$(OS_CLASS)/g" -e "s$$%%EPICS_BASE%%$$$(EPICS_BASE)$$g" < $^ >$@
