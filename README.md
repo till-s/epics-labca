@@ -9,7 +9,7 @@ This one builds on top of a modified (thread-safe) version of
 [libezca](http://www.aps.anl.gov/epics/extensions/ezca/index.php). This
 modified version comes with labCA.
 
-### Changes 
+### Recent Changes 
 
 2021/03/04:
 
@@ -36,6 +36,84 @@ modified version comes with labCA.
     Read the [ReleaseNotes](https://raw.githubusercontent.com/till-s/epics-labca/master/ReleaseNotes)
     regarding a problem with matlab 2020b hanging during labCA initialization.
 
+### The key features of labCA
+
+-   Supports [scilab](http://www.scilab.org/) and matlab.
+-   [EPICS](http://www.aps.anl.gov/epics/index.php) 3.14, 3.15 and 7 supported;
+    (works with 3.13, too *but 3.13 support is dropped from
+    labca version 3 on*).
+-   Read multiple PVs at once (pass column vector of PV names).
+-   On-line help available.
+-   Abort CA transfers by hitting Ctrl-C (experimental).
+-   Control over CA data type for transfer (native is default).
+-   Read and write enums / menues as strings or numerics.
+-   Automatic error handling; checks for CA severity when reading VAL
+    (prints message and returns NaN).
+-   Optionally, obtain EPICS timestamps along with data.
+-   Interface to most ezca calls implemented.
+-   Tuning of timout parameters possible.
+-   Uses EPICS makefile system.
+
+### Supported Versions / Platforms
+
+LabCA has been tested (note that not all combinations but usually the
+latest version of each component have been tested with the latest
+version of LabCA) with/on.
+
+#### Operating Systems
+
+-   linux-x86
+-   linux-x86\_64
+-   linux-ppc
+-   solaris-sparc-gnu
+-   solaris-sparc, solaris-sparc64
+-   win32-x86
+-   windows-x64
+
+#### EPICS Versions
+
+-   7.0.4.1
+-   3.15
+-   3.14 (latest version uses 3.14.12.3)
+-   3.13 (Note that 3.13 support is deprecated)
+
+#### Applications
+
+-   Scilab-2.7 (2.7.2 under windoze), scilab-3.0, scilab-3.1.1,
+    scilab-4.0, scilab-4.1, scilab-5.2, scilab-5.3.3 (note that the
+    documentation does not build under 5.3.3 - but it did under 5.2.2. A
+    bug report has been filed but you don't need to build documentation
+    anyways unless you change `manual.tex`), scilab-5.5.0 (docs built
+    again), scilab-6.1.
+-   Matlab 2020b requires work-arounds (see
+    [ReleaseNotes](https://raw.githubusercontent.com/till-s/epics-labca/master/ReleaseNotes))
+-   Matlab 2019b, 2020a
+-   Matlab 7 (beta), 7.0, 7.1, 7.2, 7.3, 7.4, 7.10 (R201a), 7.12
+    (R2011a).
+    Note that LabCA binaries built for 7.3 are not binary compatible
+    with earlier versions (but I have tried them on 7.4), R2012a,
+    R2014a.
+-   Matlab 6.5
+
+### Download
+
+-   Download from [github](https://www.github.com/till-s/epics-labca).
+-   Read the latest manual ([pdf](manual.pdf) or
+    [html](manual/index.html)) including examples and build
+    instructions.
+
+### Known Issues
+
+[This document](https://www.slac.stanford.edu/~strauman/labca/epicsInstall31482.pdf) by Jim Sebek describes problems
+encountered when building labca-3.1 on MS windows vista and how they
+were addressed.
+
+### License
+
+labCA is released under the
+[EPICS Open License](http://www.aps.anl.gov/epics/license/index.php).
+
+## Old ChangeLog
 2017/08/08:
 
 :   **labCA 3.5.1** released. lcaGet of DBF\_LONG in
@@ -182,86 +260,4 @@ modified version comes with labCA.
 :   **labca-1.4.beta released**; this release adds a matlab implementation
     to `lcaGetStatus()`. No other changes.
 
-### The key features of labCA
 
--   Supports [scilab](http://www.scilab.org/) and matlab.
--   [EPICS](http://www.aps.anl.gov/epics/index.php) 3.14, 3.15 and 7. ready (i.e.
-    supported); works with 3.13, too (*but 3.13 support is dropped from
-    labca version 3 on*).
--   Read multiple PVs at once (pass column vector of PV names).
--   On-line help available.
--   Abort CA transfers by hitting Ctrl-C (experimental).
--   Control over CA data type for transfer (native is default).
--   Read and write enums / menues as strings or numerics.
--   Automatic error handling; checks for CA severity when reading VAL
-    (prints message and returns NaN).
--   Optionally, obtain EPICS timestamps along with data.
--   Interface to most ezca calls implemented.
--   Tuning of timout parameters possible.
--   Uses EPICS makefile system.
-
-### Supported Versions / Platforms
-
-LabCA has been tested (note that not all combinations but usually the
-latest version of each component have been tested with the latest
-version of LabCA) with/on.
-
-#### Operating Systems
-
--   linux-x86 (2.4, 2.6)
--   linux-x86\_64 (2.6, 3.13)
--   linux-ppc (2.4, 2.6)
--   solaris-sparc-gnu
--   solaris-sparc, solaris-sparc64
--   win32-x86
--   windows-x64
-
-#### EPICS Versions
-
--   3.14 (latest version uses 3.14.12.3)
--   3.13 (Note that 3.13 support is deprecated)\
-
-#### Applications
-
--   Scilab-2.7 (2.7.2 under windoze), scilab-3.0, scilab-3.1.1,
-    scilab-4.0, scilab-4.1, scilab-5.2, scilab-5.3.3 (note that the
-    documentation does not build under 5.3.3 - but it did under 5.2.2. A
-    bug report has been filed but you don\'t need to build documentation
-    anyways unless you change \'manual.tex\'), scilab-5.5.0 (docs built
-    again).
--   Matlab 6.5
--   Matlab 7 (beta), 7.0, 7.1, 7.2, 7.3, 7.4, 7.10 (R201a), 7.12
-    (R2011a)\
-    Note that LabCA binaries built for 7.3 are not binary compatible
-    with earlier versions (but I have tried them on 7.4), R2012a,
-    R2014a.\
-
-### Download
-
--   Download [labca-3.7.2](labca_3_7_2.tgz){#L472}. This is a
-    source-code only release, sorry.
--   Read the latest manual ([pdf](labca.pdf) or
-    [html](manual/index.html)) including examples and build
-    instructions.
--   Download the older [labca-3.5.1](labca_3_5_1.tgz),
-    [labca-3.3](labca_3_3.tgz), [labca-3.0.beta](labca_3_0_beta.tgz),
-    [labca-2.1](labca_2_1.tgz), [labca-2.0.alpha](labca_2_0_alpha.tgz)
-    or [labca-1.6.alpha](labca_1_6_alpha.tgz) release ([note that the
-    PATH/LD\_LIBRARY\_PATH settings are slightly different for versions
-    earlier than 2.1 - consult the manual for
-    details]{style="font-style: italic;"}).
--   Get a [patch](labca_3_0_memleak.diff) to fix the lcaGetNoWait()
-    memory leak. Use this if you\'d like to remain on 3.0.beta or 2.1.
-    ***NOTE**: the binaries contained in the tarballs above do **not**
-    have this patch applied.*
-
-### Known Issues
-
-[This document](epicsInstall31482.pdf) by Jim Sebek describes problems
-encountered when building labca-3.1 on MS windows vista and how they
-were addressed.
-
-### License
-
-labCA is released under the [EPICS Open
-License](http://www.aps.anl.gov/epics/license/index.php).
