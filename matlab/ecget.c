@@ -18,6 +18,8 @@ mxArray  *mxa = 0;
 double   *dptr;
 LcaError theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

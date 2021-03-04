@@ -21,6 +21,8 @@ void	*pres[NumberOf(args)];
 int     i;
 LcaError theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

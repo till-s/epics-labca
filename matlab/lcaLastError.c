@@ -23,6 +23,8 @@ int      *dst;
 LcaError *ptheErr = lcaGetLastError();
 LcaError theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

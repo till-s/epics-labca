@@ -7,6 +7,9 @@
 #include <mex.h>
 #include <cadef.h>
 #include <ezca.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #if BASE_IS_MIN_VERSION(3,14,7)
 #include <stdlib.h>
@@ -31,10 +34,13 @@ extern "C" const char *gitRevisionString;
 #include <version.h>
 #endif
 
+#ifdef MATLAB_APP
+#include <mglue.h>
+#endif
+
 // Configurable Parameters
 #define DEBUG_FINA  1
 #undef  USE_DLOPEN           // Use dlopen to lock scilabca in memory
-#undef  USE_ATEXIT           // Class destructor now seems to work
 #undef  USE_SCIWINEXITHACK   // Special hack for scilab/win32 (read below)
 // End Of Configurable Parameters
 
@@ -67,39 +73,87 @@ extern "C" void C2F(xscion)(int*);
 #include <multiEzcaCtrlC.h>
 #include <multiEzca.h>
 
+class multiEzcaInitializer {
+private:
+	int         initDone;
+	int         inFiniFlag;
+	int         isMccFlag;
+	const char *matlabVersionString;
+
+	multiEzcaInitializer(const multiEzcaInitializer &);
+	multiEzcaInitializer &operator=(const multiEzcaInitializer &);
+
+	void msgPrintf(const char *fmt, ...);
+	
+public:
+	multiEzcaInitializer();
+
+	int initialize();
+
+	int inFini()
+	{
+		return inFiniFlag;
+	}
+
+	~multiEzcaInitializer();
+#ifdef MATLAB_APP
+	const char *getMatlabVersionString();
+	void mexInit();
+	int  is2020b();
+
+	int isMcc(int ini);
+#endif
+};
+
 /* Our PID -- distinguish ourself from a forked caRepeater */
 static	pid_t thepid;
 
 #ifdef MATLAB_APP
-static int isMcc(int ini)
+int
+multiEzcaInitializer::isMcc(int ini)
 {
-	/* Check if this is executed from an mcc run
-	 *
-	 * (Thanks to Jim Sebek who suggested this fix
-	 * on 4/10/07).
-	 */
-	mxArray *lhs = NULL;
+	/* Avoid execution of matlab code during finalization! */
 
-	if ( 0 == mexCallMATLAB(1, &lhs, 0, NULL, "ismcc") &&
-		 mxGetScalar(lhs) != 0. ) {
-		mexPrintf((char*)"skip execution of multiEzca%s in ini.cc during mcc compilation\n", ini ? "Initializer" : "Finalizer");
-		return -1;
+	if ( ! isMccFlag ) {
+		/* Check if this is executed from an mcc run
+		 *
+		 * (Thanks to Jim Sebek who suggested this fix
+		 * on 4/10/07).
+		 */
+		mxArray *lhs = NULL;
+
+		if ( 0 == mexCallMATLAB(1, &lhs, 0, NULL, "ismcc") && mxGetScalar(lhs) != 0. ) {
+			msgPrintf((char*)"skip execution of multiEzca%s in ini.cc during mcc compilation\n", ini ? "Initializer" : "Finalizer");
+			isMccFlag = 1;
+		} else {
+			isMccFlag = -1;
+		}
 	}
-	return 0;
+
+	return isMccFlag > 0 ? 1 : 0;
 }
 #endif
 
 // Getting this to work on all platforms was hard work...
-static void
-multiEzcaFinalizer()
+multiEzcaInitializer::~multiEzcaInitializer()
 {
+int skipCaContextDestroy = 0;
+
+	if ( ! initDone )
+		return;
+
+	inFiniFlag = 1;
+
 #ifdef MATLAB_APP
 	/* Skip execution of finalizer if this is a mcc compilation run
 	 * (J. Sebek, 6/2007)
 	 */
-	if ( isMcc(0) )
+	if ( isMcc(0) ) {
 		return;
+	}
 #endif
+
+	multi_ezca_ctrlC_finalize();
 
 #if (defined(WIN32) || defined(_WIN32)) && !defined(MATLAB_APP)
 	{
@@ -129,7 +183,7 @@ multiEzcaFinalizer()
 	//      Drawback: we don't really know how long to wait nor
 	//      how to synchronize.
 	//
-	// Another problem: mexPrintf()ing from an exiting wscilab.exe
+	// Another problem: msgPrintf()ing from an exiting wscilab.exe
 	// crashes (but a [nogui] scilab.exe works fine). We handle that
 	// here, too.
 	int           dontPrint;
@@ -158,7 +212,7 @@ multiEzcaFinalizer()
 
 #if DEBUG_FINA > 0
 		if ( ! dontPrint ) {
-			mexPrintf((char*)"Errlog thread has ID 0x%08x\n", errlogid);
+			msgPrintf((char*)"Errlog thread has ID 0x%08x\n", errlogid);
 		}
 #endif
 		// win32 'IsSuspended' routine calls GetExitCodeThread and
@@ -166,7 +220,7 @@ multiEzcaFinalizer()
 		if ( !errlogid || epicsThreadIsSuspended(errlogid) ) {
 #if DEBUG_FINA > 0
 			if ( ! dontPrint )
-				mexPrintf((char*)"aborting cleanup; bailing out\n");
+				msgPrintf((char*)"aborting cleanup; bailing out\n");
 #endif
 			return; // don't attempt any cleanup
 		}
@@ -176,13 +230,13 @@ multiEzcaFinalizer()
 	// If we make it here, it's safe to print...
 
 #if DEBUG_FINA > 0
-	mexPrintf((char*)"Entering labca finalizer\n");
+	msgPrintf((char*)"Entering labca finalizer\n");
 #endif
 
 	if ( thepid != getpid() ) {
 		/* DONT run this if a forked caRepeater exits */
 #if DEBUG_FINA > 0
-		mexPrintf((char*)"labca finalizer: PID mismatch\n");
+		msgPrintf((char*)"labca finalizer: PID mismatch\n");
 #endif
 		_exit(-1);
 		return; //never get here
@@ -191,65 +245,83 @@ multiEzcaFinalizer()
 	// FIXME: proper ezca shutdown; move all of this to ezca...
 
 #if DEBUG_FINA > 1
-	mexPrintf((char*)"clearing channels...\n");
+	msgPrintf((char*)"clearing channels...\n");
 #endif
 	multi_ezca_clear_channels(0,-1, 0);
 #if DEBUG_FINA > 1
-	mexPrintf((char*)"done\n");
+	msgPrintf((char*)"done\n");
 #endif
 	ezcaLock();
 
 
 #if DEBUG_FINA > 1
-	mexPrintf((char*)"destroying CA context...\n");
+	msgPrintf((char*)"destroying CA context...\n");
 #endif
-	ca_context_destroy();
+
+#ifdef MATLAB_APP
+	if ( is2020b() ) {
+		/* 2020b deadlocks if EPICS joins threads during shutdown */
+		skipCaContextDestroy = 0;
+	}
+#endif
+
+	if ( ! skipCaContextDestroy ) {
+		ca_context_destroy();
+	}
+
 #if DEBUG_FINA > 1
-	mexPrintf((char*)"done\n");
+	msgPrintf("%s\n", skipCaContextDestroy ? "skipped" : "done");
 #endif
 
 #if BASE_IS_MIN_VERSION(3,14,7)
 #if DEBUG_FINA > 1
-	mexPrintf((char*)"calling exits...\n");
+	msgPrintf((char*)"calling exits...\n");
 #endif
 	/* replicate epicsExit w/o calling exit() */
 	epicsExitCallAtExits();
 #if DEBUG_FINA > 1
-	mexPrintf((char*)"done\n");
+	msgPrintf((char*)"done\n");
 #endif
 	epicsThreadSleep(1.);
 #endif
 
+#ifdef MATLAB_APP
+	::free((void*) matlabVersionString);
+#endif
+
 #if DEBUG_FINA > 0
-	mexPrintf((char*)"Leaving labca finalizer\n");
+	msgPrintf((char*)"Leaving labca finalizer\n");
 #endif
 }
 
-class multiEzcaInitializer {
-public:
-	multiEzcaInitializer();
-	~multiEzcaInitializer();
-};
-
-multiEzcaInitializer::
-~multiEzcaInitializer()
+multiEzcaInitializer::multiEzcaInitializer()
+: initDone           ( 0 ),
+  inFiniFlag         ( 0 ),
+  isMccFlag          ( 0 ),
+  matlabVersionString( 0 )
 {
-#ifndef USE_ATEXIT
-	multiEzcaFinalizer();
+#ifdef SCILAB_APP
+	initialize();
 #endif
+	/* under matlab initialize from mex-file context */
 }
 
-multiEzcaInitializer::
-multiEzcaInitializer()
+int
+multiEzcaInitializer::initialize()
 {
 CtrlCStateRec saved;
+
+	if ( initDone )
+		return 1;
+
+	initDone = 1;
 
 #ifdef MATLAB_APP
 	/* Skip execution of initializer if this is a mcc compilation run
 	 * (J. Sebek, 4/2007)
 	 */
 	if ( isMcc(1) )
-		return;
+		return 0;
 #endif
 
 
@@ -264,116 +336,209 @@ CtrlCStateRec saved;
 	signal(SIGSEGV, SIG_DFL);
 #endif
 
-/* don't print to stderr because that
- * doesn't go to scilab's main window...
- */
-mexPrintf((char*)"Initializing labCA Release '%s'...\n", gitRevisionString);
-mexPrintf((char*)"Author: Till Straumann <till.straumann@psi.ch>\n");
+	/* don't print to stderr because that
+	 * doesn't go to scilab's main window...
+	 */
+	msgPrintf((char*)"Initializing labCA Release '%s'...\n", gitRevisionString);
+	msgPrintf((char*)"Author: Till Straumann <till.straumann@psi.ch>\n");
 
 #if defined( MATLAB_APP ) && 0
-  /* UPDATE: this mexLock() crashes matlab 2017 -- hence we remove
-   * it for now. Here's a relevant email (thanks to J. Sebek)
-   *
-   * 12/9/2017
-   *
-   * Hello Jim, 
-   *
-   * Thank you for your patience. I collaborated with my colleagues to work
-   * on this further and following are our observations.
-   *
-   * We were able to reproduce the crash on Windows with the sample
-   * application you provided and get the same crash error.  After
-   * speaking with the development team, it looks like this is probably
-   * a bug from a change in the code in R2017b.  The best guess we have
-   * as to why this started failing in R2017b is that there was probably
-   * a change in scoping of a variable or structure that is now initialized
-   * either when the MEX file is compiled or at run-time.  If mexLock is
-   * called in a library linked to the MEX file before the MEX file is run,
-   * the failure occurs.
-   *
-   * While we want to avoid any crashes and will investigate this issue,
-   * from talking with the development team, mexLock wasn't intended
-   * to be called at the shared library level.  While we don't specifically
-   * forbid it in our documentation, our examples there show how to use it
-   * in a MEX file. We tested the workflow by moving the mexLock command
-   * from the shared library object (libthelib.so through ini.o) to the
-   * calling MEX function (themex.cc), and the program ran successfully
-   * without crashing.  
-   *
-   * We then verified a workflow similar to what you mentioned, multiple
-   * MEX files accessing a shared library without the library being
-   * released until specifically unlock called.  We created a MEX file
-   * where we call a function from the shared library as well as MEX
-   * function calls mexLock.  When mexLock is called, the MEX can't
-   * be released from memory by typing clear <mexFile>.  This can be
-   * tested by trying to recompile the MEX file, which will explicitly say
-   * that it is locked. This still is same as the workflow you intended to
-   * have (even though mexLock is in the MEX file), as the MEX file is
-   * locked, the linked library is also locked as well, and this can be
-   * verified by duplicating the MEX file and calling it mexFile2.  Each
-   * MEX file can be locked or unlocked, but the library won't be freed
-   * unless all MEX files that load that library are unlocked.
-   *
-   * I'm not sure if this fulfills your exact workflow, perhaps if want
-   * to load the library once at the start of their program and never release
-   * it, no matter what happens to the MEX file.  In that case, you may want
-   * to add a dummy MEX file that calls a function in the shared
-   * library as well as mexLock.  You can then unlock the MEX file when
-   * exiting the application so that the MEX file and the library it loads
-   * remains throughout the lifetime of the application.
-   *
-   * Developers are already aware of this behavior (crash when mexLock
-   * called from shared library) and they may consider fixing this in one of
-   * the future releases of MATLAB.
-   *
-   * Please go through the above information and let me know if  the
-   * workaround satisfies your requirements or not. I look forward to hearing
-   * from you.
-   *
-   * Sincerely, 
-   * Manish Annappa
-   */
-  /* Under matlab, always lock the library in memory - even though we
-   * now do a pretty good job cleaning up (and as a matter of fact
-   * I now can clear and reload scilabca and matlabca under unix [but
-   * not win$] w/o crashing) but more work in ezcamt is needed until
-   * we can release this...
-   */
-  mexLock();
+	/* UPDATE: this mexLock() crashes matlab 2017 -- hence we remove
+	 * it for now. Here's a relevant email (thanks to J. Sebek)
+	 *
+	 * 12/9/2017
+	 *
+	 * Hello Jim, 
+	 *
+	 * Thank you for your patience. I collaborated with my colleagues to work
+	 * on this further and following are our observations.
+	 *
+	 * We were able to reproduce the crash on Windows with the sample
+	 * application you provided and get the same crash error.  After
+	 * speaking with the development team, it looks like this is probably
+	 * a bug from a change in the code in R2017b.  The best guess we have
+	 * as to why this started failing in R2017b is that there was probably
+	 * a change in scoping of a variable or structure that is now initialized
+	 * either when the MEX file is compiled or at run-time.  If mexLock is
+	 * called in a library linked to the MEX file before the MEX file is run,
+	 * the failure occurs.
+	 *
+	 * While we want to avoid any crashes and will investigate this issue,
+	 * from talking with the development team, mexLock wasn't intended
+	 * to be called at the shared library level.  While we don't specifically
+	 * forbid it in our documentation, our examples there show how to use it
+	 * in a MEX file. We tested the workflow by moving the mexLock command
+	 * from the shared library object (libthelib.so through ini.o) to the
+	 * calling MEX function (themex.cc), and the program ran successfully
+	 * without crashing.  
+	 *
+	 * We then verified a workflow similar to what you mentioned, multiple
+	 * MEX files accessing a shared library without the library being
+	 * released until specifically unlock called.  We created a MEX file
+	 * where we call a function from the shared library as well as MEX
+	 * function calls mexLock.  When mexLock is called, the MEX can't
+	 * be released from memory by typing clear <mexFile>.  This can be
+	 * tested by trying to recompile the MEX file, which will explicitly say
+	 * that it is locked. This still is same as the workflow you intended to
+	 * have (even though mexLock is in the MEX file), as the MEX file is
+	 * locked, the linked library is also locked as well, and this can be
+	 * verified by duplicating the MEX file and calling it mexFile2.  Each
+	 * MEX file can be locked or unlocked, but the library won't be freed
+	 * unless all MEX files that load that library are unlocked.
+	 *
+	 * I'm not sure if this fulfills your exact workflow, perhaps if want
+	 * to load the library once at the start of their program and never release
+	 * it, no matter what happens to the MEX file.  In that case, you may want
+	 * to add a dummy MEX file that calls a function in the shared
+	 * library as well as mexLock.  You can then unlock the MEX file when
+	 * exiting the application so that the MEX file and the library it loads
+	 * remains throughout the lifetime of the application.
+	 *
+	 * Developers are already aware of this behavior (crash when mexLock
+	 * called from shared library) and they may consider fixing this in one of
+	 * the future releases of MATLAB.
+	 *
+	 * Please go through the above information and let me know if  the
+	 * workaround satisfies your requirements or not. I look forward to hearing
+	 * from you.
+	 *
+	 * Sincerely, 
+	 * Manish Annappa
+	 */
+	/* Under matlab, always lock the library in memory - even though we
+	 * now do a pretty good job cleaning up (and as a matter of fact
+	 * I now can clear and reload scilabca and matlabca under unix [but
+	 * not win$] w/o crashing) but more work in ezcamt is needed until
+	 * we can release this...
+	 */
+	mexLock();
+	/* NOTE: (2021/3/3) we now use the 'APPLY_MEXLOCK()' macro to
+	 *       ensure mexLock() is executed from a mex file.
+	 */
 #endif
 
 #if defined(USE_DLOPEN) && !defined(MATLAB_APP)
-  if ( !dlopen("libsezcaglue.so",RTLD_NOW) ) {
-	mexPrintf((char*)"Locking library in memory failed: %s\n",dlerror());
-  }
+	if ( !dlopen("libsezcaglue.so",RTLD_NOW) ) {
+		msgPrintf((char*)"Locking library in memory failed: %s\n",dlerror());
+	}
 #endif
 
-multi_ezca_ctrlC_initialize();
+	multi_ezca_ctrlC_initialize();
 
-multi_ezca_ctrlC_prologue(&saved);
-ezcaAutoErrorMessageOff(); /* calls ezca init() */
-multi_ezca_ctrlC_epilogue(&saved);
+	multi_ezca_ctrlC_prologue(&saved);
+	ezcaAutoErrorMessageOff(); /* calls ezca init() */
+	multi_ezca_ctrlC_epilogue(&saved);
 
-/* MUST initialize errlog -- otherwise it is never initialized
- * until after epicsCallAtExits(), i.e., from some class destructor.
- * At that point it is too late however and it won't be shut
- * down anymore.
- */
-errlogInit(0);	// FIXME: should move that to ezca initialization
+	/* MUST initialize errlog -- otherwise it is never initialized
+	 * until after epicsCallAtExits(), i.e., from some class destructor.
+	 * At that point it is too late however and it won't be shut
+	 * down anymore.
+	 */
+	errlogInit(0);	// FIXME: should move that to ezca initialization
 
-/* Another problem on unix is the 'fork'ed caRepeater calling the
- * finalizer...
- */
-thepid = getpid();
-#ifdef USE_ATEXIT
-/* On unix the class destructor is called too late; atexit seems to
- * give a cleaner shutdown.
- *
- * UPDATE -- 2007/6/5: with the new shutdown implementation the
- * class destructor seems to work on all platforms.
- */
-atexit(multiEzcaFinalizer);
+	/* Another problem on unix is the 'fork'ed caRepeater calling the
+	 * finalizer...
+	 */
+	thepid = getpid();
+
+	return 0;
+}
+
+void
+multiEzcaInitializer::msgPrintf(const char *fmt, ...)
+{
+va_list ap;
+char    msg[512];
+	va_start(ap, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, ap);
+	va_end(ap);
+#ifdef SCILAB_APP
+	mexPrintf("%s", msg);
+#endif
+#ifdef MATLAB_APP
+	/* Matlab 2020 doesn't like printing from shutdown */
+	if ( inFini() ) {
+		/* Not visible in matlab console */
+		fprintf(stderr, "%s", msg);
+	} else {
+		mexPrintf("%s", msg);
+	}
 #endif
 }
 
+#ifdef MATLAB_APP
+void
+multiEzcaInitializer::mexInit()
+{
+mxArray *lhs[1];
+mxArray *exc;
+char    *str;
+size_t   sl;
+
+	/* Assume matlab serializes access to mexFiles */
+	if ( initialize() )
+		return;
+
+	lhs[0]=0;
+	exc = mexCallMATLABWithTrap(1, lhs, 0, NULL, "version");
+	if ( exc ) {
+		msgPrintf("WARNING: -- UNABLE TO DETERMINE MATLAB VERSION\n");
+	} else {
+		if ( ! mxIsChar( lhs[0] ) ) {
+			msgPrintf("WARNING: -- UNABLE TO DETERMINE MATLAB VERSION (not a string?)\n");
+		} else {
+			sl  = mxGetN(lhs[0]);
+			str = (char*)::malloc(sl + 1);
+			str[sl] = 0;
+			mxGetString( lhs[0], str, sl );
+			matlabVersionString = str;
+			str = 0;
+		}
+	}
+	if ( lhs[0] ) {
+		mxDestroyArray( lhs[0] );
+	}
+	if ( str ) {
+		::free( (void*)str );
+	}
+	if ( ! matlabVersionString ) {
+		matlabVersionString = "unknown";
+	}
+
+#ifdef CONFIG_MEXLOCK
+	mexLock();
+#else
+	if ( is2020b() ) {
+		/* Lock anyways -- 2020b doesn't handle unloading well */
+		mexLock();
+	}
+#endif
+
+}
+
+const char *
+multiEzcaInitializer::getMatlabVersionString()
+{
+	if ( ! matlabVersionString ) {
+		msgPrintf("%s\n", "INTERNAL ERROR: must not call getMatlabVersionString() before the first mexFile was executed");
+		return "ERROR";
+	}
+	return matlabVersionString;
+}
+
+int
+multiEzcaInitializer::is2020b()
+{
+	return !! ::strstr(getMatlabVersionString(), "R2020b");
+}
+#endif
+
 static multiEzcaInitializer theini;
+
+
+#ifdef MATLAB_APP
+extern "C" void lcaMexGblInit()
+{
+	theini.mexInit();
+}
+#endif

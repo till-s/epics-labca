@@ -18,6 +18,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 PVs      pvs = { {0} };
 LcaError theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

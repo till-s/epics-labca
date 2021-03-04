@@ -74,3 +74,9 @@ unsigned cnt;
 
 	ezcaPollCbInstall(poll_cb);
 }
+
+void
+multi_ezca_ctrlC_finalize()
+{
+	ezcaPollCbInstall( 0 );
+}

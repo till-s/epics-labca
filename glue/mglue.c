@@ -194,7 +194,7 @@ mxArray *dummy = 0;
 	}
 
 	n = mxGetN( tmp = prhs[1] );
-    m = mxGetM( tmp );
+	m = mxGetM( tmp );
 
 	if ( mxIsChar( tmp ) ) {
 		/* a single string; create a dummy cell matrix */

@@ -33,3 +33,8 @@ multi_ezca_ctrlC_initialize()
 	mexPrintf("       ==> Initializing max. timeout to 5. seconds\n");
 	ezcaSetRetryCount((unsigned)(5.0/ezcaGetTimeout()));
 }
+
+void
+multi_ezca_ctrlC_finalize()
+{
+}

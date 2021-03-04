@@ -15,6 +15,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 int      rc;
 LcaError theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

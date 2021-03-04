@@ -30,6 +30,8 @@ MultiArgRec	args[1];
 enum_states *strbuf MAY_ALIAS = 0;
 mxArray *tmp;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

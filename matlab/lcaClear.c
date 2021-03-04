@@ -20,6 +20,8 @@ char	**s;
 int		m = -1;
 LcaError theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

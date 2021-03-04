@@ -149,3 +149,9 @@ multi_ezca_ctrlC_initialize()
 {
 	ezcaPollCbInstall( multi_ezca_pollCb );
 }
+
+void
+multi_ezca_ctrlC_finalize()
+{
+	ezcaPollCbInstall( 0 );
+}

@@ -30,6 +30,8 @@ MultiArgRec	args[1];
 units_string *strbuf MAY_ALIAS = 0;
 mxArray *tmp;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

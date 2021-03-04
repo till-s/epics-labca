@@ -24,6 +24,8 @@ char	       type = ezcaNative;
 epicsTimeStamp  *ts = 0;
 LcaError theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

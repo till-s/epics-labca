@@ -34,6 +34,9 @@ multi_ezca_ctrlC_epilogue(CtrlCState prestore);
 void
 multi_ezca_ctrlC_initialize();
 
+void
+multi_ezca_ctrlC_finalize();
+
 #ifdef __cplusplus
 };
 #endif

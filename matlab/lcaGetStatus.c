@@ -23,6 +23,8 @@ mxArray		    *res[2] = {0};
 short		    *stat = 0, *sevr = 0;
 LcaError	    theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

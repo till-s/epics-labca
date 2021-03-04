@@ -21,6 +21,8 @@ MultiArgRec	args[1];
 mxArray		*res[1] = {0};
 LcaError	theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);

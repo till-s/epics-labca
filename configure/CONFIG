@@ -35,6 +35,18 @@ endif
 # 
 CONFIG_ECDRGET=NO
 
+# Prevent matlab from unloading labCA - unloading
+# may cause problems with certain matlab versions
+#
+# Setting to NO skips calls to 'mexLock()' and
+# enables clearing labCA from memory.
+# Setting to YES keeps labCA locked in matlab.
+ifndef CONFIG_MEXLOCK
+CONFIG_MEXLOCK=NO
+endif
+
+USR_CPPFLAGS_USE_MEXLOCK_YES=-DCONFIG_MEXLOCK
+
 # No need to change anything below here
 # (except for adding more matlab extensions for
 # other platforms...)

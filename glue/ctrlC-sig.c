@@ -191,3 +191,11 @@ multi_ezca_ctrlC_initialize()
 	ezcaPollCbInstall( flashSigCB );
 #endif
 }
+
+void
+multi_ezca_ctrlC_finalize()
+{
+#ifdef DO_MASK
+	ezcaPollCbInstall( 0 );
+#endif
+}

@@ -55,15 +55,15 @@ epicsShareFunc int epicsShareAPI
 flagError(int nlhs, mxArray *plhs[]);
 
 /* assert that 'nlhs' >= 1 and clear *plhs */
-#define LHSCHECK(nlhs, plhs) \
-	do { \
+#define LHSCHECK(nlhs, plhs)           \
+	do {                           \
 		int xxx; \
-		if ( nlhs < 1 ) { \
-			nlhs = 1; \
-		} \
+		if ( nlhs < 1 ) {      \
+			nlhs = 1;      \
+		}                      \
 		for ( xxx = 0; xxx < nlhs; xxx++ ) { \
 			plhs[xxx] = 0; \
-		} \
+		}                      \
 	} while (0)
 
 /* mexErrMsgTxt() should be called only from a routine
@@ -84,6 +84,12 @@ flagError(int nlhs, mxArray *plhs[]);
 	} while (0)
 epicsShareFunc int epicsShareAPI
 theLcaPutMexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], int doWait, LcaError *pe);
+
+/*
+ * Global initialization that *must* be performed from MEX-file context
+ */
+void
+lcaMexGblInit();
 
 #ifdef __cplusplus
 };

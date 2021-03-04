@@ -19,6 +19,8 @@ PVs     pvs = { {0} };
 char	type = ezcaNative;
 LcaError theErr;
 
+	lcaMexGblInit();
+
 	lcaErrorInit(&theErr);
 
 	LHSCHECK(nlhs, plhs);
