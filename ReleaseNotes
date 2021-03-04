@@ -1,11 +1,16 @@
 #####################################
-#  R3.8.0 (T.S., 2021/03/03):       #
+#  R3.8.0 (T.S., 2021/03/04):       #
 #####################################
-This release is a port to the new SCILAB API (pre 5.3 scilab
-no longer supported). The MATLAB parts of the code are not
-affected (and equivalent to 3.7.2).
-
 The repository is now on github.
+
+This release is a port to the new SCILAB API (pre 5.3 scilab
+no longer supported).
+
+A number for work-arounds for matlab2020b were implemented
+to avoid crashes and hangs under 2020b with EPICS 7.0.4.1.
+IMO there is (at least one) matlab bug (can be reproduced
+with a simple non-epics mex file) which still requires
+special measures to avoid a deadlock:
 
 MATLAB 2020b known issue (under RHEL7): loading labCA may
 hang (during execution of the first labCA function).
