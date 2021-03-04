@@ -1,0 +1,150 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
+<HTML lang="EN">
+<HEAD>
+<TITLE>lcaLastError</TITLE>
+<META NAME="description" CONTENT="lcaLastError">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node14.html">
+<LINK REL="previous" HREF="node12.html">
+<LINK REL="next" HREF="node14.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node14.html">lcaGetControlLimits</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node12.html">lcaClear</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL CLASS="ChildLinks">
+<LI><A ID="tex2html77"
+  HREF="node13.html#SECTION000211100000000000000">Calling Sequence</A>
+<LI><A ID="tex2html78"
+  HREF="node13.html#SECTION000211200000000000000">Description</A>
+<LI><A ID="tex2html79"
+  HREF="node13.html#SECTION000211300000000000000">Parameters</A>
+<LI><A ID="tex2html80"
+  HREF="node13.html#SECTION000211400000000000000">Examples</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H2><A ID="SECTION000211000000000000000"></A>
+<A ID="lcalasterror"></A>
+<BR>
+lcaLastError
+</H2>
+
+<H3><A ID="SECTION000211100000000000000">
+Calling Sequence</A>
+</H3>
+<PRE>
+[err_status] = lcaLastError()
+</PRE>
+<H3><A ID="SECTION000211200000000000000">
+Description</A>
+</H3>
+This routine is a simple extension to <SPAN  CLASS="textbf">scilab</SPAN>'s <SPAN style="font-family:monospace">lasterror</SPAN>
+which only allows a single error to be reported. If <SPAN  CLASS="textbf">labCA</SPAN> encounters
+an error of general nature then <SPAN style="font-family:monospace">lasterror</SPAN> is sufficient
+and <SPAN style="font-family:monospace">lcaLastError()</SPAN> reports redundant/identical information.
+However, if a <SPAN  CLASS="textbf">labCA</SPAN> operation only fails on a subset of a vector
+of PVs then <SPAN style="font-family:monospace">lcaLastError()</SPAN> returns an error code for each individual
+PV (as a <SPAN  CLASS="textit">m x 1</SPAN> vector) so that failing channels can be identified.
+
+<P>
+The error reported by <SPAN style="font-family:monospace">lasterror</SPAN> corresponds to the first error
+found in the <SPAN style="font-family:monospace">err_status</SPAN> vector.
+
+<P>
+Note that (matching <SPAN style="font-family:monospace">lasterror</SPAN>'s semantics) the recorded
+errors are <I>not cleared by a successful <SPAN  CLASS="textbf">labCA</SPAN> operation</I>.
+Hence, the status returned by <SPAN style="font-family:monospace">lcaLastError()</SPAN> is only defined
+after an error occurred and the routine is intended to be used
+from the <SPAN style="font-family:monospace">catch</SPAN> section of a <SPAN style="font-family:monospace">try &ndash; catch &ndash; end</SPAN>
+construct.
+
+<P>
+
+<H3><A ID="SECTION000211300000000000000">
+Parameters</A>
+</H3>
+<DL>
+<DT><STRONG>err_status</STRONG></DT>
+<DD><SPAN  CLASS="textbf">m x 1</SPAN> column vector of
+<A HREF="node4.html#errorhandling">status codes</A>
+for each PV of the last failing <SPAN  CLASS="textbf">labCA</SPAN> call or a scalar.
+Note that this routine can return a scalar even if
+the last operation involved multiple PVs if the
+error was of general nature (e.g., &ldquo;invalid argument&rdquo;).
+In this case the scalar is identical to the error reported
+by <SPAN  CLASS="textbf">scilab</SPAN>'s <SPAN style="font-family:monospace">lasterror</SPAN>.
+</DD>
+</DL>
+<H3><A ID="SECTION000211400000000000000">
+Examples</A>
+</H3>
+<PRE>
+try
+  // lcaXXX command goes here
+catch
+  errors = lcaLastError()
+  // errors holds status vector or single status code
+  // depending on command, error cause and number of PVs.
+end
+</PRE>
+
+<P>
+<BR>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A
+ HREF="node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A>   
+<BR>
+<B> Next:</B> <A
+ HREF="node14.html">lcaGetControlLimits</A>
+<B> Up:</B> <A
+ HREF="node2.html">Supported EZCA Calls</A>
+<B> Previous:</B> <A
+ HREF="node12.html">lcaClear</A></DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>
