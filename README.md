@@ -1,5 +1,7 @@
 # Basic Information
 
+## labCA is an EPICS Channel-Access Interface for SCILAB and MATLAB
+
 Further information, documentation and build/install instructions
 can be found [here](https://till-s.github.io/epics-labca)
 

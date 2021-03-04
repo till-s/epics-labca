@@ -88,7 +88,7 @@ connections. A modified version of \ezca{} comes with
 
 As of \sca{} version 3 further improvements to \ezca{}
 have been made that exploit features of the multi-threaded
-CA library (EPICS 3.14 only) in order to speed up response time.
+CA library (EPICS 3.14/3.15/7 only) in order to speed up response time.
 Earlier versions always handed control to \ezca{} in multiples of the
 \sca{} \ita{timeout}, i.e., even if data from a channel
 were available quicker the library would wait until the
@@ -104,7 +104,7 @@ of PV names.
 \sca{} has been tested with EPICS 3.13%
 \footnote{Support for 3.13 has been dropped as of \sca{} version 3}%
 ,
-3.14, 3.15, \scilab-2.7 .. \scilab-6.1,
+3.14, 3.15, 7.0.4.1, \scilab-2.7 .. \scilab-6.1,
 \matlab-6.5, \matlab-7 (R2010a), \matlab-2017b, \matlab-2020b%
 \footnote{A problem has been reported with \matlab-2020b where \matlab{}
 deadlocks during the initialization of \sca{} (under RHEL7). Known work-
@@ -496,7 +496,7 @@ lcaSetMonitor(pvs, nmax, type)
 \subsubsection{Description}
 Set a ``monitor'' on a set of PVs. Monitored PVs are automatically retrieved
 every time their value or status changes. 
-Monitors are especially useful under EPICS-3.14 which supports
+Monitors are especially useful under EPICS-3.14 (and newer) which supports
 multiple threads. EPICS-3.14 transparently reads monitored PVs as needed.
 Older, single threaded versions of EPICS require periodic calls to \sca{}
 e.g., to \comref{lcaDelay}{lcadelay}, in order to allow \sca{} to handle
@@ -1012,7 +1012,7 @@ effects. It should be possible to build and use the \scilab{} interface
 with static libraries --- minor tweaks to the Makefiles might be necessary.
 
 \sca{} has been tested with \matlab-6.5, \matlab-7.0 and \scilab-2.7 .. \scilab-5.3
-under a variety of EPICS releases up to 3.14.12 on \ita{linux-x86},
+under a variety of EPICS releases up to 7.0.4.1 on \ita{linux-x86},
 \ita{linux-ppc}, \ita{solaris-sparc-gnu},
 \ita{linux-x86\_64}, \ita{solaris-sparc}, \ita{solaris-sparc64}
 and \windoze%
