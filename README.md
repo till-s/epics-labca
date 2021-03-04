@@ -1,5 +1,4 @@
-LabCA - EPICS/Channel Access Interface for Scilab and Matlab
-============================================================
+# [LabCA](https://www.github.com/till-s/epics-labca) - EPICS/Channel Access Interface for Scilab and Matlab
 
 Till Straumann \<strauman/at/slac.stanford.edu\>, 2002-2021. Last
 Modified: 2021/03/04.
@@ -79,12 +78,18 @@ version of LabCA) with/on.
 
 #### Applications
 
--   Scilab-2.7 (2.7.2 under windoze), scilab-3.0, scilab-3.1.1,
-    scilab-4.0, scilab-4.1, scilab-5.2, scilab-5.3.3 (note that the
-    documentation does not build under 5.3.3 - but it did under 5.2.2. A
-    bug report has been filed but you don't need to build documentation
-    anyways unless you change `manual.tex`), scilab-5.5.0 (docs built
-    again), scilab-6.1.
+##### Scilab
+
+-   Scilab-6.1, Scilab-5.5.0 (docs build again)
+-   scilab-5.3.3 (note that the documentation does not build under
+    5.3.3 - but it did under 5.2.2. A bug report has been filed but
+    you don't need to build documentation anyways unless you change
+    `manual.tex`).
+-   Scilab-5.2, Scilab-4.1, Scilab-4.0, Scilab-3.1.1,
+    Scilab-3.0, Scilab-2.7 (2.7.2 under windoze).
+
+##### Matlab
+
 -   Matlab 2020b requires work-arounds (see
     [ReleaseNotes](https://raw.githubusercontent.com/till-s/epics-labca/master/ReleaseNotes))
 -   Matlab 2019b, 2020a
