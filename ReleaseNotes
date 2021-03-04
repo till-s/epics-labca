@@ -30,8 +30,10 @@ FIXES - released tarball was missing submodule;
       - windows (non-cygwin) build
 
 MATLAB2020b: the issue mentioned for the 3.8.0 release
-      also applies to 3.7.2 (which -- for matlab -- is
-      identical to 3.8.0)
+      also applies to 3.7.2. The work-arounds may or
+      may not work with 3.7.2 (worked for me with
+      epics-3.14.12 but not with epics-7.0.4.1 which
+      crashed during shutdown).
 
 #####################################
 #  R3.7.1 (T.S., 2018/02/17):       #
