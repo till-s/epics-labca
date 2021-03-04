@@ -268,7 +268,7 @@ CtrlCStateRec saved;
  * doesn't go to scilab's main window...
  */
 mexPrintf((char*)"Initializing labCA Release '%s'...\n", gitRevisionString);
-mexPrintf((char*)"Author: Till Straumann <strauman@slac.stanford.edu>\n");
+mexPrintf((char*)"Author: Till Straumann <till.straumann@psi.ch>\n");
 
 #if defined( MATLAB_APP ) && 0
   /* UPDATE: this mexLock() crashes matlab 2017 -- hence we remove
