@@ -36,7 +36,7 @@ images:
 	mkdir -p $@
 
 gh-release: documentation
-	tar cf $(GITSTRING)-doc-and-help.tgz documentation/manual.pdf documentation/jar/*.jar documentation/help/*.m
+	tar cfz $(GITSTRING)-doc-and-help.tgz documentation/manual.pdf documentation/jar/*.jar documentation/help/*.m
 	@echo "Cut a GH release and add the '$(GITSTRING)-doc-and-help.tgz' as a binary to the release"
 	@echo "Add comment to unpack in top-dir"
 
