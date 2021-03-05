@@ -15,8 +15,17 @@ special measures to avoid a deadlock:
 MATLAB 2020b known issue (under RHEL7): loading labCA may
 hang (during execution of the first labCA function).
 Two work-arounds are available (either one is enough):
- - rebuild EPICS base with posix priority scheduling *disabled*.
+
+ - rebuild EPICS base with posix priority scheduling *disabled*:
+   In <base>/configure/CONFIG_SITE set:
+
+       USE_POSIX_THREAD_PRIORITY_SCHEDULING=NO
+
+   and rebuild.
+
  - Use LD_PRELOAD to load EPICS libCom.so before starting MATLAB.
+
+       LD_PRELOAD=<path-to-base>/lib/<arch>/libCom.so matlab <options>
 
 WINDOWS CAVEAT: I did not have a windows + matlab installation
 available for testing a build on windows. Hopefully I didn't
