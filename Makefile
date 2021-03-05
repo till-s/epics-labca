@@ -4,9 +4,7 @@ include $(TOP)/configure/CONFIG
 DIRS += configure
 DIRS += ezca
 DIRS += glue
-ifndef NO_DOCS
 DIRS += documentation
-endif
 ifeq ($(MAKEFOR),MATLAB)
 DIRS += matlab
 endif

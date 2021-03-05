@@ -23,9 +23,15 @@ SCILAB=$(SCILABDIR)/bin/scilab
 endif
 
 # Check for tools
+ifndef NO_DOCS
 FOUND_PDFLATEX:=$(shell (pdflatex -v > /dev/null 2>&1 && echo YES) || echo NO)
 FOUND_LATEX2HTML:=$(shell (latex2html -v > /dev/null 2>&1 && echo YES) || echo NO)
 FOUND_LYNX:=$(shell (lynx -version > /dev/null 2>&1 && echo YES) || echo NO)
+else
+FOUND_PDFLATEX:=DONTGEN
+FOUND_LATEX2HTML:=DONTGEN
+FOUND_LYNX:=DONTGEN
+endif
 
 HAVE_PDFLATEX:=$(FOUND_PDFLATEX)
 HAVE_LATEX2HTML:=$(FOUND_LATEX2HTML)
@@ -35,14 +41,14 @@ FOUND_PDFLATEX_MSG_NO="WARNING: 'pdflatex' tool not found; no documentation of h
 FOUND_LATEX2HTML_MSG_NO="WARNING: 'latex2html' tool not found; will skip creating HTML documentation and on-line help files"
 FOUND_LYNX_MSG_NO="WARNING: 'lynx' tool not found; will skip creating on-line help files"
 
-ifneq ($(FOUND_LYNX),YES)
-$(warning $(FOUND_PDFLATEX_MSG_NO))
+ifeq ($(FOUND_LYNX),NO)
+$(warning $(FOUND_PDFLATEX_MSG_NO)
 endif
-ifneq ($(FOUND_LATEX2HTML),YES)
+ifeq ($(FOUND_LATEX2HTML),NO)
 $(warning $(FOUND_LATEX2HTML_MSG_NO))
 HAVE_LYNX:=NO
 endif
-ifneq ($(FOUND_PDFLATEX),YES)
+ifeq ($(FOUND_PDFLATEX),NO)
 $(warning $(FOUND_LYNX_MSG_NO))
 HAVE_LYNX:=NO
 HAVE_LATEX2HTML:=NO
@@ -65,6 +71,8 @@ SCI5HELPS+=xmlhelp/en_US/Error.xml
 endif
 
 DOCS_YES=manual.pdf
+# install if found
+DOCS_DONTGEN=$(wildcard $(DOCS_YES))
 MANHTMLS_YES=$(wildcard $(addprefix manual/*,.html .png .css .svg))
 HTMLS_YES=$(HELPS) help/whatis.htm $(MANHTMLS)
 
@@ -75,6 +83,8 @@ HTMLS+=$(HTMLS_$(HAVE_LYNX))
 GH_PAGES_DOCS=$(DOCS) $(MANHTMLS)
 
 INSTALL_SCI5_HELPJAR_YES=$(INSTALL_LOCATION)/jar/scilab_en_US_help.jar
+# install if found
+INSTALL_SCI5_HELPJAR_DONTGEN=$(addprefix $(INSTALL_LOCATION)/,$(wildcard jar/scilab_en_US_help.jar))
 INSTALL_SCI5_HELPJAR=$(INSTALL_SCI5_HELPJAR_$(HAVE_LYNX))
 
 $(INSTALL_HTML)/$(HTMLS_DIR)/%: %
@@ -122,9 +132,11 @@ gitstring.tex: manual.tex Makefile
 	@$(PERLDIFF) $@.new $@ || ($(RM) $@; perl -e 'rename("$@.new","$@")')
 	@$(RM) $@.new
 
+ifndef NO_DOCS
 manual.pdf manual.aux: manual.tex gitstring.tex
 	pdflatex $<
 	pdflatex $<
+endif
 
 
 help/whatis.htm: whatis.htm
@@ -181,11 +193,14 @@ xmlhelp/en_US/lca%.xml: xmlhelp/en_US/lca%.sci
 	$(RM) $@
 	$(SCILAB) -nb -nw -e 'help_from_sci("$(@:%.xml=%.sci)","./xmlhelp/en_US"); quit;'
 
+ifndef NO_DOCS
 ./jar/scilab_en_US_help.jar: $(SCI5HELPS)
 	$(RM) $@
 	$(SCILAB) -nb -nw -e 'xmltojar("xmlhelp/en_US","labCA"); quit'
+endif
 
 $(INSTALL_LOCATION)/jar/scilab_en_US_help.jar: ./jar/scilab_en_US_help.jar $(INSTALL_LOCATION)/jar 
+	@echo "Installing SCILAB Help $@"
 	@$(INSTALL) -d -m 644 $< $(@D)
 
 $(INSTALL_LOCATION)/jar:

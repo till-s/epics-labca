@@ -163,4 +163,10 @@ GITSTRING:=$(shell perl -e 'my $$v=`git describe --always --dirty 2>/dev/null`; 
                      }; \
                      print($$v);')
 
+ifndef NO_DOCS
+ifeq ($(wildcard $(TOP)/.git)xx,xx)
+NO_DOCS=YES
+endif
+endif
+
 -include $(TOP)/configure/CONFIG.local
