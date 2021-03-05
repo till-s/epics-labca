@@ -12,7 +12,8 @@ modified version comes with labCA.
 
 2021/03/04:
 
-:   [labCA 3.8.0](https://www.github.com/till-s/epics-labca) released.
+:   [labCA 3.8.0](https://github.com/till-s/epics-labca/releases/tag/labca_3_8_0)
+    released.
     This release supports scilab-6 (new scilab API -- older versions are
     no longer supported).
 
