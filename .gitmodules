@@ -1,3 +1,0 @@
-[submodule "glue/sciclean"]
-	path = glue/sciclean
-	url = ../epics-labca-sciclean.git
