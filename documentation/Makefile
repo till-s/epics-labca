@@ -126,7 +126,7 @@ $(HELPS): manual.aux
 	$(TEST_D) help || $(MKDIR) help
 	latex2html -no_footnode -split 5 -link 0 -no_navigation -no_antialias_text -long_titles 1 -dir help manual.tex
 
-gitstring.tex: manual.tex Makefile
+gitstring.tex: .FORCE
 	@$(RM) $@.new
 	@echo '%newcommand{%gitstring}{%lstinline|$(GITSTRING)|}' | tr '%' '\\' > $@.new
 	@$(PERLDIFF) $@.new $@ || ($(RM) $@; perl -e 'rename("$@.new","$@")')
@@ -214,6 +214,8 @@ realclean:: clean xmlclean
 	$(RM) -r manual 
 	$(RM) *.aux *.dvi *.log *.pdf *.out *.ps
 	$(RM) *~
+
+.PHONY: .FORCE
 
 test:
 	echo $(SCI5HELPS)
