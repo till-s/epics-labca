@@ -21,7 +21,7 @@ The repository can be found [here](https://www.github.com/till-s/epics-labca).
 
     Also, some work-arounds for matlab-2020b have been added. Note that
     using 2020b still requires special attention (see
-    [ReleaseNotes](https://raw.githubusercontent.com/till-s/epics-labca/master/ReleaseNotes))
+    [ReleaseNotes](https://github.com/till-s/epics-labca/blob/labca_3_8_0/ReleaseNotes)
 
 	Also: labCA is now maintained on [github](https://www.github.com/till-s/epics-labca).
 
