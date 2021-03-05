@@ -88,8 +88,8 @@ $(INSTALL_DOC)/%:%
 INSTALL_GH_PAGES=$(addprefix $(TOP)/gh-pages/,$(GH_PAGES_DOCS))
 
 $(TOP)/gh-pages/%: %
-	($(TEST_D) $(@D) && \
-		echo "Installing github Help/Documentation $@"; \
+	@($(TEST_D) $(@D) && \
+		echo "Installing github Help/Documentation $@" && \
 		$(INSTALL) -d -m 644 $< $(@D) ) || \
 		echo "No $(TOP)/gh-pages/ directory; skipping installation" 
 
