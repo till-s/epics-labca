@@ -42,7 +42,7 @@ FOUND_LATEX2HTML_MSG_NO="WARNING: 'latex2html' tool not found; will skip creatin
 FOUND_LYNX_MSG_NO="WARNING: 'lynx' tool not found; will skip creating on-line help files"
 
 ifeq ($(FOUND_LYNX),NO)
-$(warning $(FOUND_PDFLATEX_MSG_NO)
+$(warning $(FOUND_PDFLATEX_MSG_NO))
 endif
 ifeq ($(FOUND_LATEX2HTML),NO)
 $(warning $(FOUND_LATEX2HTML_MSG_NO))
