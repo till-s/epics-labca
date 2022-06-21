@@ -42,12 +42,14 @@ Quick instructions:
    hitting Ctrl-C on the keyboard.
    
  - edit `configure/RELEASE` to point to your
-    o EPICS base
-    o MATLAB
-    o SCILAB
-   installation directories and (WIN32 only)
-    o set `MATLIB_SUBDIR` to point to your compiler
-      dependent libmx/libmex versions.
+   installation directories of 
+     o EPICS base
+     o MATLAB
+     o SCILAB
+
+   and (WIN32 only)
+     o set `MATLIB_SUBDIR` to point to your compiler
+       dependent libmx/libmex versions.
  - set `EPICS_HOST_ARCH` environment
    variable.
  - run GNU make from this directory.
