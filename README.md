@@ -43,12 +43,12 @@ Quick instructions:
    
  - edit `configure/RELEASE` to point to your
    installation directories of 
-     o EPICS base
-     o MATLAB
-     o SCILAB
+     * EPICS base
+     * MATLAB
+     * SCILAB
 
    and (WIN32 only)
-     o set `MATLIB_SUBDIR` to point to your compiler
+     * set `MATLIB_SUBDIR` to point to your compiler
        dependent libmx/libmex versions.
  - set `EPICS_HOST_ARCH` environment
    variable.
