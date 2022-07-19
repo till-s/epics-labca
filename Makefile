@@ -2,13 +2,17 @@
 TOP = .
 include $(TOP)/configure/CONFIG
 DIRS += configure
+ifneq ($(MAKEFOR),DOCONLY)
 DIRS += ezca
 DIRS += glue
+endif
 DIRS += documentation
 ifeq ($(MAKEFOR),MATLAB)
 DIRS += matlab
 endif
+ifneq ($(MAKEFOR),DOCONLY)
 DIRS += testing
+endif
 include $(TOP)/configure/RULES_TOP
 
 UNINSTALL_DIRS+=jar

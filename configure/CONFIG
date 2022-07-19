@@ -125,9 +125,13 @@ ifeq ($(MAKEFOR),MATLAB)
 else
   ifeq ($(MAKEFOR),SCILAB)
   else
-    $(error MAKEFOR variable in configure/CONFIG must be set to MATLAB or SCILAB [currently: "$(MAKEFOR)")
+    ifneq ($(MAKEFOR),DOCONLY)
+      $(error MAKEFOR variable in configure/CONFIG must be set to MATLAB, SCILABor DOCONLY [currently: "$(MAKEFOR)")
+    endif
   endif
 endif
+
+DOCONLYDIR=""
 
 ifndef $(MAKEFOR)DIR
   ifneq ($(strip $($(MAKEFOR)DIR_$(EPICS_HOST_ARCH))),)
