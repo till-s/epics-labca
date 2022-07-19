@@ -54,7 +54,8 @@ Quick instructions:
    variable.
  - run GNU make from this directory.
  - In order to build documentation you need more tools
-   (latex, latex2html).
+   (pdflatex, latex2html and lynx). Building the documentation
+   is skipped if any of these tools is missing.
     
 
 T.S, 2006/4
