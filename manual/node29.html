@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 
-<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
-<HTML lang="EN">
+<!--Converted with LaTeX2HTML 2021.2 (Released July 1, 2021) -->
+<HTML lang="en">
 <HEAD>
 <TITLE>Build</TITLE>
 <META NAME="description" CONTENT="Build">
@@ -11,7 +11,7 @@
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
 <META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2021.2">
 
 <LINK REL="STYLESHEET" HREF="manual.css">
 
@@ -59,9 +59,6 @@
 <H2><A ID="SECTION00031000000000000000">
 Build</A>
 </H2>
-<EM>NOTE: If the binaries distributed with <SPAN  CLASS="textbf">labCA</SPAN> work for you then there is
-no need to build anything. If you want/need to build your own version then read on
-otherwise proceed to <A HREF="node30.html#usingsca">Using <SPAN  CLASS="textbf">labCA</SPAN></A>.</EM>
 
 <P>
 <SPAN  CLASS="textbf">labCA</SPAN> comes with a `<SPAN style="font-family:monospace">configure</SPAN>' subdirectory and Makefiles conforming to the
@@ -81,7 +78,7 @@ Prerequisites</A>
 </H3>
 <SPAN  CLASS="textbf">labCA</SPAN> needs an EPICS BASE installation that was built <SPAN  CLASS="textbf">with shared
 libraries enabled</SPAN><A ID="tex2html11"
-  HREF="#foot887"><SUP><SPAN CLASS="arabic">10</SPAN></SUP></A>.
+  HREF="#foot882"><SUP><SPAN CLASS="arabic">10</SPAN></SUP></A>.
 The main reason being that <SPAN  CLASS="textbf">matlab</SPAN>'s <SPAN  CLASS="textbf">mex</SPAN> files cannot
 have multiple entry points. Hence, when statically linking multiple <SPAN  CLASS="textbf">mex</SPAN>
 files against <SPAN  CLASS="textbf">ezca, ca, Com</SPAN> etc. multiple copies of those libraries
@@ -95,12 +92,13 @@ under a variety of EPICS releases up to 7.0.4.1 on <SPAN  CLASS="textbf">linux-x
 <SPAN  CLASS="textbf">linux-ppc</SPAN>, <SPAN  CLASS="textbf">solaris-sparc-gnu</SPAN>,
 <SPAN  CLASS="textbf">linux-x86_64</SPAN>, <SPAN  CLASS="textbf">solaris-sparc</SPAN>, <SPAN  CLASS="textbf">solaris-sparc64</SPAN>
 and <SPAN  CLASS="textbf">win32/64</SPAN><A ID="tex2html12"
-  HREF="#foot888"><SUP><SPAN CLASS="arabic">11</SPAN></SUP></A>.
+  HREF="#foot883"><SUP><SPAN CLASS="arabic">11</SPAN></SUP></A>.
 
 <P>
-Note that the binary distribution of <SPAN  CLASS="textbf">labCA</SPAN> usually ships with the
-necessary EPICS base libraries so there is no need to download anything
-besides <SPAN  CLASS="textbf">labCA</SPAN>.
+Building the documentation (on- and off-line) requires the <SPAN  CLASS="textbf">pdflatex</SPAN>,
+<SPAN  CLASS="textbf">latex2html</SPAN> and <SPAN  CLASS="textbf">lynx</SPAN> software. If any of these is missing then
+<SPAN  CLASS="textbf">labCA</SPAN> is still built but no documentation is generated. Note that
+tagged releases on github usually come with pre-built documentation.
 
 <P>
 
@@ -208,12 +206,12 @@ After setting the
 `<SPAN style="font-family:monospace">EPICS_HOST_ARCH</SPAN>' environment variable, <SPAN  CLASS="textbf">GNU</SPAN> make is invoked from the <SPAN  CLASS="textbf">labCA</SPAN> top 
 directory. Note that the compiler toolchain must be found in the system
 <SPAN style="font-family:monospace">PATH</SPAN><A ID="tex2html13"
-  HREF="#foot891"><SUP><SPAN CLASS="arabic">12</SPAN></SUP></A>.
+  HREF="#foot886"><SUP><SPAN CLASS="arabic">12</SPAN></SUP></A>.
 
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A ID="foot887">... enabled</A><A
+<DT><A ID="foot882">... enabled</A><A
  HREF="node29.html#tex2html11"><SUP><SPAN CLASS="arabic">10</SPAN></SUP></A></DT>
 <DD>
 To be precise: only <SPAN  CLASS="textbf">labCA</SPAN> needs to be a shared library (but must then have
@@ -223,7 +221,7 @@ are required to build a shared <SPAN  CLASS="textbf">labCA</SPAN> library that i
 static versions of EPICS BASE.
 
 </DD>
-<DT><A ID="foot888">...win32/64</A><A
+<DT><A ID="foot883">...win32/64</A><A
  HREF="node29.html#tex2html12"><SUP><SPAN CLASS="arabic">11</SPAN></SUP></A></DT>
 <DD>
 Note that not all possible combinations have been tested with the latest <SPAN  CLASS="textbf">labCA</SPAN> release
@@ -231,7 +229,7 @@ but rather the latest versions of the respective components on the platforms
 that are in the distribution.
 
 </DD>
-<DT><A ID="foot891">... style="font-family:monospace">PATH</SPAN></A><A
+<DT><A ID="foot886">... style="font-family:monospace">PATH</SPAN></A><A
  HREF="node29.html#tex2html13"><SUP><SPAN CLASS="arabic">12</SPAN></SUP></A></DT>
 <DD>
 Under <SPAN  CLASS="textbf">win32/64</SPAN>, the <SPAN  CLASS="textbf">msvc</SPAN> compiler features a <SPAN style="font-family:monospace">.BAT</SPAN> file for

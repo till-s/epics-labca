@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 
-<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
-<HTML lang="EN">
+<!--Converted with LaTeX2HTML 2021.2 (Released July 1, 2021) -->
+<HTML lang="en">
 <HEAD>
 <TITLE>Common Arguments and Return Values</TITLE>
 <META NAME="description" CONTENT="Common Arguments and Return Values">
@@ -11,7 +11,7 @@
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
 <META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2021.2">
 
 <LINK REL="STYLESHEET" HREF="manual.css">
 
@@ -81,7 +81,7 @@ All channel access activities for the PVs
 passed to a single <SPAN  CLASS="textit">labCA</SPAN> call are batched together and
 completion of the batch is awaited before returning from
 the <SPAN  CLASS="textit">labCA</SPAN> call. Consider the following example:<A ID="tex2html6"
-  HREF="#foot876"><SUP><SPAN CLASS="arabic">6</SPAN></SUP></A><PRE>
+  HREF="#foot872"><SUP><SPAN CLASS="arabic">6</SPAN></SUP></A><PRE>
 lcaPut( 'trigger', 1 ) \\
 data=lcaGet( ['sensor1' ; 'sens2'] );
 </PRE>
@@ -90,7 +90,7 @@ data=lcaGet( ['sensor1' ; 'sens2'] );
 <LI>It is guaranteed that writing the &ldquo;trigger&rdquo;
 completes (on the CA server) prior to reading the
 sensors.<A ID="tex2html7"
-  HREF="#foot161"><SUP><SPAN CLASS="arabic">7</SPAN></SUP></A>
+  HREF="#foot159"><SUP><SPAN CLASS="arabic">7</SPAN></SUP></A>
 </LI>
 <LI>Reading the two sensors is done in &ldquo;parallel&rdquo; &mdash;
 the exact order is unspecified. After the command sequence
@@ -117,14 +117,14 @@ full accuracy.
 <P>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A ID="foot876">...</A><A
+<DT><A ID="foot872">...</A><A
  HREF="node3.html#tex2html6"><SUP><SPAN CLASS="arabic">6</SPAN></SUP></A></DT>
 <DD>
 In <SPAN  CLASS="textit">matlab</SPAN>, the square brackets (&ldquo;[]&rdquo;) must be replaced
 by curly braces (&ldquo;{}&rdquo;).
 
 </DD>
-<DT><A ID="foot161">...</A><A
+<DT><A ID="foot159">...</A><A
  HREF="node3.html#tex2html7"><SUP><SPAN CLASS="arabic">7</SPAN></SUP></A></DT>
 <DD>If the remote sensors have finite
 processing time, the subsequent CA read may still

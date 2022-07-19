@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 
-<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
-<HTML lang="EN">
+<!--Converted with LaTeX2HTML 2021.2 (Released July 1, 2021) -->
+<HTML lang="en">
 <HEAD>
 <TITLE>Using labCA</TITLE>
 <META NAME="description" CONTENT="Using labCA">
@@ -11,7 +11,7 @@
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
 <META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2021.2">
 
 <LINK REL="STYLESHEET" HREF="manual.css">
 
@@ -70,7 +70,7 @@ in <SPAN  CLASS="textbf">matlab</SPAN>) at the prompt with obscure error message
 Under <SPAN  CLASS="textbf">linux</SPAN> or <SPAN  CLASS="textbf">solaris</SPAN>, the <SPAN style="font-family:monospace">LD_LIBRARY_PATH</SPAN> environment
 variable or the <SPAN style="font-family:monospace">ld.so.conf / ldconfig</SPAN> facility are used to point
 to the executable shared libraries (located in <SPAN style="font-family:monospace">lib/&lt;arch&gt;</SPAN>).
-If using a binary distribution, the <SPAN style="font-family:monospace">PATH</SPAN> variable also should point
+The <SPAN style="font-family:monospace">PATH</SPAN> variable also should point
 to <SPAN style="font-family:monospace">bin/&lt;arch&gt;</SPAN> so that the <SPAN  CLASS="textbf">CA repeater</SPAN> executable is found.
 If you build from source using your own EPICS base installation then
 we assume that locating the <SPAN  CLASS="textbf">CA repeater</SPAN> has already been taken
@@ -114,7 +114,7 @@ Set up the shared library search path (as described above) and start
 (<SPAN style="font-family:monospace">&lt;<SPAN  CLASS="textbf">labCA</SPAN>-top&gt;/bin/&lt;arch&gt;/<SPAN  CLASS="textbf">labCA</SPAN>.sce</SPAN>) to load the <SPAN  CLASS="textbf">labCA</SPAN> interface.
 The script also adds to the <SPAN style="font-family:monospace">%helps</SPAN> variable making on-line
 help available<A ID="tex2html14"
-  HREF="#foot894"><SUP><SPAN CLASS="arabic">13</SPAN></SUP></A>.
+  HREF="#foot889"><SUP><SPAN CLASS="arabic">13</SPAN></SUP></A>.
 
 <P>
 The script can be installed at any convenient location &mdash; the lines
@@ -133,7 +133,7 @@ Using <SPAN  CLASS="textbf">labCA</SPAN> with <SPAN  CLASS="textbf">matlab</SPAN
 Every entry point / <SPAN style="font-family:monospace">lcaXXX</SPAN> routine 
 is contained in a separate
 shared object (AKA &ldquo;<SPAN style="font-family:monospace">mex</SPAN>-&rdquo;) file in the <SPAN style="font-family:monospace">&lt;<SPAN  CLASS="textbf">labCA</SPAN>-top&gt;/bin/&lt;arch&gt;/labca</SPAN><A ID="tex2html15"
-  HREF="#foot896"><SUP><SPAN CLASS="arabic">14</SPAN></SUP></A> directory
+  HREF="#foot891"><SUP><SPAN CLASS="arabic">14</SPAN></SUP></A> directory
 which must be added to the <SPAN  CLASS="textbf">matlab</SPAN> search path.
 Note that this is in <SPAN  CLASS="textbf">addition</SPAN>
 to setting the system library search path which must be performed prior
@@ -143,7 +143,7 @@ by invoking any of the entry point routines. Note that on-line help
 files are also installed to be located automatically.
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A ID="foot894">... available</A><A
+<DT><A ID="foot889">... available</A><A
  HREF="node30.html#tex2html14"><SUP><SPAN CLASS="arabic">13</SPAN></SUP></A></DT>
 <DD>
 Under <SPAN  CLASS="textbf">scilab</SPAN>-5 <SPAN style="font-family:monospace">%helps</SPAN> is no longer relevant
@@ -151,7 +151,7 @@ but <SPAN style="font-family:monospace">add_help_chapter()</SPAN> is used insted
 
 
 </DD>
-<DT><A ID="foot896">... CLASS="textbf">labCA</SPAN>-top&gt;/bin/&lt;arch&gt;/labca</SPAN></A><A
+<DT><A ID="foot891">... CLASS="textbf">labCA</SPAN>-top&gt;/bin/&lt;arch&gt;/labca</SPAN></A><A
  HREF="node30.html#tex2html15"><SUP><SPAN CLASS="arabic">14</SPAN></SUP></A></DT>
 <DD>
 the extra subdirectory was added in order for the <SPAN  CLASS="textbf">matlab</SPAN> <SPAN style="font-family:monospace">help</SPAN> command

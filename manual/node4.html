@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 
-<!--Converted with LaTeX2HTML 2019.2 (Released June 5, 2019) -->
-<HTML lang="EN">
+<!--Converted with LaTeX2HTML 2021.2 (Released July 1, 2021) -->
+<HTML lang="en">
 <HEAD>
 <TITLE>Error Handling</TITLE>
 <META NAME="description" CONTENT="Error Handling">
@@ -11,7 +11,7 @@
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
 <META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2019.2">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2021.2">
 
 <LINK REL="STYLESHEET" HREF="manual.css">
 
@@ -49,7 +49,7 @@
 Error Handling
 </H2>
 All errors<A ID="tex2html8"
-  HREF="#foot877"><SUP><SPAN CLASS="arabic">8</SPAN></SUP></A>encountered during execution of <SPAN  CLASS="textit">labCA</SPAN> calls result in the
+  HREF="#foot873"><SUP><SPAN CLASS="arabic">8</SPAN></SUP></A>encountered during execution of <SPAN  CLASS="textit">labCA</SPAN> calls result in the
 call being aborted, a message being printed to the console
 and an error status being recorded which
 can be retrieved using <SPAN  CLASS="textit">scilab</SPAN>'s <SPAN style="font-family:monospace">lasterror</SPAN> command.
@@ -78,7 +78,7 @@ The error codes are shown in
 
 <P>
 <BR><P></P>
-<DIV class="CENTER"><A ID="880"></A>
+<DIV class="CENTER"><A ID="876"></A>
 <TABLE>
 <CAPTION><STRONG>Table 1:</STRONG>
 &nbsp;<SPAN  CLASS="textit">labCA</SPAN> error codes. Numerical codes (<SPAN  CLASS="textit">scilab</SPAN> <SPAN style="font-family:monospace">lasterror</SPAN> and
@@ -87,55 +87,55 @@ The error codes are shown in
 <TR><TD><TABLE class="PAD  BORDER" style="">
 <TR><TD CLASS="RIGHT">#</TD>
 <TD CLASS="LEFT">Matlab Error ID</TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>Comment</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>Comment</TD>
 </TR>
 <TR><TD CLASS="RIGHT">0</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:unexpectedOK</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>No error</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>No error</TD>
 </TR>
 <TR><TD CLASS="RIGHT">1</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:invalidArg</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>Invalid argument</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>Invalid argument</TD>
 </TR>
 <TR><TD CLASS="RIGHT">2</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:noMemory</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>Not enough memory</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>Not enough memory</TD>
 </TR>
 <TR><TD CLASS="RIGHT">3</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:channelAccessFail</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>Underlying CA operation failed</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>Underlying CA operation failed</TD>
 </TR>
 <TR><TD CLASS="RIGHT">4</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:udfCaReq</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>Item(s) requested undefined for its/their native data type</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>Item(s) requested undefined for its/their native data type</TD>
 </TR>
 <TR><TD CLASS="RIGHT">5</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:notConnected</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>Channel currently disconnected</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>Channel currently disconnected</TD>
 </TR>
 <TR><TD CLASS="RIGHT">6</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:timedOut</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>No response in time</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>No response in time</TD>
 </TR>
 <TR><TD CLASS="RIGHT">7</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:inGroup</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>Currently in a EZCA group</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>Currently in a EZCA group</TD>
 </TR>
 <TR><TD CLASS="RIGHT">8</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:notInGroup</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>Currently not in a EZCA group</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>Currently not in a EZCA group</TD>
 </TR>
 <TR><TD CLASS="RIGHT">9</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:usrAbort</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>EZCA call aborted by user (Ctrl-C)</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>EZCA call aborted by user (Ctrl-C)</TD>
 </TR>
 <TR><TD CLASS="RIGHT">20</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:noMonitor</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>No monitor for PV/type found</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>No monitor for PV/type found</TD>
 </TR>
 <TR><TD CLASS="RIGHT">21</TD>
 <TD CLASS="LEFT"><SPAN style="font-family:monospace">labca:noChannel</SPAN></TD>
-<TD CLASS="LEFT TOP"  WIDTH=156>No channel for PV name found</TD>
+<TD CLASS="LEFT TOP"  WIDTH=200>No channel for PV name found</TD>
 </TR>
 </TABLE>
 
@@ -148,7 +148,7 @@ The error codes are shown in
 <BR>
 <BR><HR><H4>Footnotes</H4>
 <DL>
-<DT><A ID="foot877">... errors</A><A
+<DT><A ID="foot873">... errors</A><A
  HREF="node4.html#tex2html8"><SUP><SPAN CLASS="arabic">8</SPAN></SUP></A></DT>
 <DD>As of version 3; earlier versions didn't consistently
 &ldquo;throw&rdquo; all errors so that they could be caught by the
