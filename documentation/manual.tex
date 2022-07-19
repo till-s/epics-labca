@@ -981,9 +981,6 @@ A timeout value in seconds.
 \pbrkf
 \section{Building and Using \sca{}}
 \subsection{Build}
-{\em NOTE: If the binaries distributed with \sca{} work for you then there is
-no need to build anything. If you want/need to build your own version then read on
-otherwise proceed to \hyperref{Using \sca}{Subsection~}{}{usingsca}.}
 
 \sca{} comes with a `\com{configure}' subdirectory and Makefiles conforming to the
 EPICS build system. Following a configuration step which involves editing
@@ -1022,12 +1019,14 @@ but rather the latest versions of the respective components on the platforms
 that are in the distribution.}%
 .
 
-Note that the binary distribution of \sca{} usually ships with the
-necessary EPICS base libraries so there is no need to download anything
-besides \sca.
 %The \ita{linux}
 %and \ita{solaris} versions have these libraries built-in, the \windoze
 %version comes with the appropriate DLLs.
+
+Building the documentation (on- and off-line) requires the \ita{pdflatex},
+\ita{latex2html} and \ita{lynx} software. If any of these is missing then
+\sca{} is still built but no documentation is generated. Note that
+tagged releases on github usually come with pre-built documentation.
 
 \pbrkf
 \subsubsection{Configuration}
@@ -1126,7 +1125,7 @@ in \matlab) at the prompt with obscure error messages.
 Under \ita{linux} or \ita{solaris}, the \com{LD\_LIBRARY\_PATH} environment
 variable or the \com{ld.so.conf / ldconfig} facility are used to point
 to the executable shared libraries (located in \com{lib/<arch>}).
-If using a binary distribution, the \com{PATH} variable also should point
+The \com{PATH} variable also should point
 to \com{bin/<arch>} so that the \ita{CA repeater} executable is found.
 If you build from source using your own EPICS base installation then
 we assume that locating the \ita{CA repeater} has already been taken
