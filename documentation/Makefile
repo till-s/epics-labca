@@ -64,6 +64,15 @@ HELPS=$(patsubst %,help/%.html,$(HELP_AUTOGEN_CHAPTERS))
 
 MHELPS=$(HELPS:%.html=%.m)
 
+# Obtain the functions which share help documentation so we can generate .m files for both the getter and setter
+HELPS_SHARED_GET:=$(shell $(SED) -n -e 's/\(.*[^b]subsection.*[{][ \t]*\)\(lca[a-zA-Z0-9]*\)\(,\slca[a-zA-Z0-9]*\).*/\2/gp' manual.tex)
+
+HELPS_SHARED_SET:=$(shell $(SED) -n -e 's/\(.*[^b]subsection.*[{][ \t]*\)\(lca[a-zA-Z0-9]*\)\(,\s\)\(lca[a-zA-Z0-9]*\).*/\4/gp' manual.tex)
+
+MHELPS_COPY_FROM=$(patsubst %,help/%.m,$(HELPS_SHARED_GET))
+
+MHELPS_NEEDING_COPY=$(patsubst %,help/%.m,$(HELPS_SHARED_SET))
+
 ifneq '$(wildcard $(SCILAB))' ''
 SCI5HELPS=$(patsubst %,xmlhelp/en_US/%.xml,$(HELP_AUTOGEN_CHAPTERS))
 SCI5HELPS+=xmlhelp/en_US/Common.xml
@@ -149,6 +158,8 @@ help/Contents.m: Contents.m
 	$(RM) $@
 	cp $< $@
 
+$(MHELPS_NEEDING_COPY): $(MHELPS)
+	$(subst ^, ,$(join $(addprefix cp^,$(MHELPS_COPY_FROM)),$(patsubst %,^%;,$(MHELPS_NEEDING_COPY))))
 
 # html->text, add leading '%' and remove long URLs, just leave filename
 %.m:%.html
@@ -163,6 +174,7 @@ endif
 
 ifeq ($(HAVE_LYNX),YES)
 build: $(MHELPS) help/Contents.m
+build: $(MHELPS_NEEDING_COPY)
 endif
 
 # make again for the HTMLS wildcard expansion to find the newly created files
