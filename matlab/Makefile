@@ -48,6 +48,8 @@ MEXF += lcaNewMonitorValue
 MEXF += lcaNewMonitorWait
 MEXF += lcaDelay
 MEXF += lcaLastError
+MEXF += lcaDebugOn
+MEXF += lcaDebugOff
 ifeq ($(CONFIG_ECDRGET),YES)
 MEXF += ecget
 endif
