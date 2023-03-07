@@ -98,6 +98,7 @@ public:
 	~multiEzcaInitializer();
 #ifdef MATLAB_APP
 	const char *getMatlabVersionString();
+	int   getMatlabVersion();
 	void mexInit();
 	int  is2020b();
 
@@ -527,9 +528,43 @@ multiEzcaInitializer::getMatlabVersionString()
 }
 
 int
+multiEzcaInitializer::getMatlabVersion()
+{
+const char *c = getMatlabVersionString();
+int         i;
+int         rv = 0;
+
+	while ( 0 == rv ) {
+		while ( *c != 'R' ) {
+			if ( ! *c ) {
+				return -1;
+			}
+			c++;
+		}
+		c++;
+		i = 0;
+		while ( i < 4 ) {
+			if ( ! *c ) {
+				return -1;
+			}
+			if ( *c >= '0' && *c <= '9' ) {
+				rv = 10*rv + (*c - '0');
+				i++;
+				c++;
+			} else {
+				rv = 0;
+				i  = 4;
+			}
+		}
+	}
+	return rv;
+}
+
+
+int
 multiEzcaInitializer::is2020b()
 {
-	return !! ::strstr(getMatlabVersionString(), "R2020b");
+	return getMatlabVersion() >= 2020;
 }
 #endif
 

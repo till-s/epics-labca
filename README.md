@@ -20,7 +20,7 @@ Quick instructions:
   - start matlab; 
   -   `addpath bin/<arch>/labca`
   - ready to go, type e.g. `help labca`
-  >>> if MATLAB 2002b hangs, this is most likely
+  >>> if MATLAB 2020b hangs, this is most likely
       due to MATLAB problems.
       Try setting `LD_PRELOAD` environment variable (prior to
       launching MATLAB):

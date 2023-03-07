@@ -37,7 +37,7 @@ end
 if ( 0 == lca_fail )
 	disp('<<<OK') 
 else
-    error('lcaGet should have failed -- unset EPICS_CA_MAX_ARRAY_BYTES')
+    error('lcaGet should have failed -- unset EPICS_CA_MAX_ARRAY_BYTES and under epics-7 set EPICS_CA_AUTO_ARRAY_BYTES=NO')
 end
 
 
