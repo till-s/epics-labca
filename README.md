@@ -12,6 +12,13 @@ The repository can be found [here](https://www.github.com/till-s/epics-labca).
 
 ### Recent Changes 
 
+2023/03/08:
+:   [labCA 3.8.1](https://www.github.com/till-s/epics-labca) released.
+    This release supports matlab 2022a but is virtually identical to
+    3.8.0. The work-arounds necessary for 2020 are still required and
+    they are now enabled for any release >= 2020 (3.8.0 made a specific
+    exception for 2020 only).
+
 2021/03/04:
 
 :   [labCA 3.8.0](https://github.com/till-s/epics-labca/releases/tag/labca_3_8_0)
