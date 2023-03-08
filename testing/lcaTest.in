@@ -28,6 +28,7 @@ end
 // lcaGetStatus don't transfer all array elements. We want these calls
 // to fail if we fetch them for a large waveform.
 disp('VERIFYING THAT EPICS_CA_MAX_ARRAY_BYTES IS *SMALL* ENOUGH FOR TEST')
+disp(' *** this may take a while - be patient *** ')
 lca_fail=0;
 try
     lcaGet('lca:wavA');
