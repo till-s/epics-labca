@@ -1,4 +1,17 @@
 #####################################
+#  R3.8.1 (T.S., 2023/03/08):       #
+#####################################
+
+This release is virtually identical to 3.8.0. It just
+perpetuates the work-arounds that have been developed for
+matlab-2020 (and only enabled for the 2020 release), i.e.,
+any matlab >= 2020 will use them.
+
+Note that (linux) you still need the LD_PRELOAD work-around.
+
+This release has been tested with matlab-2022a.
+
+#####################################
 #  R3.8.0 (T.S., 2021/03/04):       #
 #####################################
 The repository is now on github.
