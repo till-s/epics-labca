@@ -1,7 +1,7 @@
 # LabCA - EPICS/Channel Access Interface for Scilab and Matlab
 
-Till Straumann \<strauman/at/slac.stanford.edu\>, 2002-2021. Last
-Modified: 2022/07/19.
+Till Straumann \<strauman/at/slac.stanford.edu\>, 2002-2021.
+Last Modified: 2023/03/08.
 
 Here comes yet another [CA/EPICS](http://www.aps.anl.gov/epics) interface.
 This one builds on top of a modified (thread-safe) version of
