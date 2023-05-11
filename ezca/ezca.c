@@ -5053,7 +5053,16 @@ int rval = 0;
 
 static int EzcaClearEvent(struct monitor *mp)
 {
-	return mp ? ca_clear_event(mp->evd) : ECA_NORMAL;
+    int rval = ECA_NORMAL;
+    if (mp) {
+        /* ca_clear_event() waits for the user's monitor callback to complete,
+         * we must unlock to prevent deadlock.
+         */
+        EZCA_UNLOCK();
+        rval = ca_clear_event(mp->evd);
+        EZCA_LOCK();
+    }
+    return rval;
 } /* end EzcaClearEvent() */
 
 /****************************************************************
