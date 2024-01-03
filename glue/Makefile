@@ -201,7 +201,7 @@ include $(TOP)/configure/RULES
 gitstring.c:
 	$(RM) $@.new
 	perl > $@.new -e "print(\"const char *gitRevisionString = \\\"$(GITSTRING)\\\";\n\")" > $@.new
-	$(PERLDIFF) $@.new $@ || ($(RM) $@; perl -e 'rename("$@.new","$@")')
+	$(PERLDIFF) $@.new $@ || perl -e "unlink(\"$@\") && rename(\"$@.new\",\"$@\")"
 	$(RM) $@.new
 
 mkmezca.m: ../mkmezca.m.tmpl
