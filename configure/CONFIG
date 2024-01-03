@@ -111,8 +111,10 @@ endif
 
 ifeq ($(OS_CLASS),WIN32)
 SED=psed
+NULLDEV=NUL
 else
 SED=sed
+NULLDEV=/dev/null
 endif
 
 # create MAKEFOR-specific config includes; 
@@ -158,14 +160,14 @@ RUNTIME_LDFLAGS=
 CROSS_COMPILER_TARGET_ARCHS =
 
 # use perl for sake of non-cygwin windoze build...
-GITSTRING:=$(shell perl -e 'my $$v=`git describe --always --dirty 2>/dev/null`; \
+GITSTRING:=$(shell perl -e "my $$v=`git describe --always --dirty 2>$(NULLDEV)`; \
                      if ( $$? != 0 ) { \
-                        open(F,"$(TOP)/gitstring.txt"); \
+                        open(F,\"$(TOP)/gitstring.txt\"); \
                         $$v=<F>; \
                         $$v=~s/[ ]*[(](.*tag:[ ]*)([^,]+)(([,].*)|())[)]/\2 - /; \
                         $$v=~s/[ ]*[(].*[)]//; \
                      }; \
-                     print($$v);')
+                     print($$v);")
 
 ifndef NO_DOCS
 ifeq ($(wildcard $(TOP)/.git)xx,xx)

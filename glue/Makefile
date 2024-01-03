@@ -43,7 +43,7 @@ ifeq ($(VERS),)
 $(error "Unable to determine SCILAB version")
 endif
 
-VERS_CHECK=$(shell perl -e 'if ( $(MAJ) > $(1) || $(MAJ) == $(1) && $(MIN) >= $(2) ) { print "TRUE\n"; }')
+VERS_CHECK=$(shell perl -e "if ( $(MAJ) > $(1) || $(MAJ) == $(1) && $(MIN) >= $(2) ) { print \"TRUE\n\"; }")
 
 MAJ=$(word 1,$(VERS))
 MIN=$(word 2,$(VERS))
@@ -201,7 +201,7 @@ include $(TOP)/configure/RULES
 gitstring.c:
 	$(RM) $@.new
 	perl > $@.new -e "print(\"const char *gitRevisionString = \\\"$(GITSTRING)\\\";\n\")" > $@.new
-	$(PERLDIFF) $@.new $@ || ($(RM) $@; perl -e 'rename("$@.new","$@")')
+	$(PERLDIFF) $@.new $@ || perl -e "unlink(\"$@\"); rename(\"$@.new\",\"$@\")"
 	$(RM) $@.new
 
 mkmezca.m: ../mkmezca.m.tmpl
