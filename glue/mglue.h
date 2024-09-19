@@ -88,7 +88,7 @@ theLcaPutMexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[],
 /*
  * Global initialization that *must* be performed from MEX-file context
  */
-void
+epicsShareFunc void
 lcaMexGblInit();
 
 #ifdef __cplusplus
